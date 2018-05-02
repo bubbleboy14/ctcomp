@@ -1,0 +1,1 @@
+This package includes the necessary blockchain/widget/api components for direct generative compensation for content creators.
