@@ -2,7 +2,7 @@ syms = {
 	".": ["_comp.py"]
 }
 model = {
-	"ctcomp.model": ["Content", "View"]
+	"ctcomp.model": ["Wallet", "Person", "Content", "View"]
 }
 routes = {
 	"/_comp": "_comp.py"
