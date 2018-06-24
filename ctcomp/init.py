@@ -2,8 +2,9 @@ syms = {
 	".": ["_comp.py"]
 }
 model = {
-	"ctcomp.model": ["View"]
+	"ctcomp.model": ["Content", "View"]
 }
 routes = {
 	"/_comp": "_comp.py"
 }
+requires = ["ctuser"]
