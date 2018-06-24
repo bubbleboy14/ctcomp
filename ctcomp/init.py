@@ -1,5 +1,7 @@
 syms = {
-	".": ["_comp.py"]
+	".": ["_comp.py"],
+	"html": ["comp"],
+	"js": ["comp"]
 }
 model = {
 	"ctcomp.model": ["Wallet", "Person", "Content", "View"]
