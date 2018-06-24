@@ -1,5 +1,5 @@
 from cantools.web import respond, succeed, fail, cgi_get, local
-from model import db, CTUser, Content, View
+from model import db, Person, Content, View
 
 def response():
 	action = cgi_get("action", choices=["view"])
@@ -11,10 +11,10 @@ def response():
 		if user:
 			user = db.get(user)
 		else:
-			user = CTUser.query(CTUser.blurb == ip).get() # haha
+			user = Person.query(Person.ip == ip).get()
 		if not user:
-			user = CTUser()
-			user.blurb = ip # haha again
+			user = Person()
+			user.ip = ip
 			user.put()
 
 		if View.query(View.viewer == user.key, View.content == content.key).get():
@@ -24,7 +24,9 @@ def response():
 		view.content = content.key
 		view.put()
 
-		# TODO: create a token!! put it in the right account! <---
+		owner = content.owner.get()
+		wallet = owner.wallet.get()
+		wallet.deposit(1)
 
 		succeed(view.key.urlsafe())
 	else:
