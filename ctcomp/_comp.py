@@ -4,12 +4,12 @@ from model import View
 def response():
 	action = cgi_get("action", choices=["view"])
 	if action == "view":
-		ip = local("response").ip
+		user = cgi_get("user", required=False) or local("response").ip
 		content = cgi_get("content")
-		if View.query(View.ip == ip, View.content == content).get():
+		if View.query(View.user == user, View.content == content).get():
 			succeed("already viewed")
 		view = View()
-		view.ip = ip
+		view.user = user
 		view.content = content
 		view.put()
 		# TODO: create a token!! put it in the right account!
