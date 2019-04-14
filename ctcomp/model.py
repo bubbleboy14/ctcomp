@@ -49,11 +49,20 @@ class Act(db.TimeStampedBase):
 	beneficiaries = db.ForeignKey(kind=Person, repeated=True)
 	notes = db.Text()
 
+	def deposit(self):
+		if not self.verified():
+			return False
+		count = len(self.beneficiaries)
+		pod = self.pod.get()
+		service = self.service.get()
+		for worker in db.get_multi(self.workers):
+			pod.service(worker, service, count)
+		return True
+
 	def verify(self, person):
 		if person in self.beneficiaries:
-			v = Verification(act=self.key, person=person)
-			v.put()
-			return v
+			Verification(act=self.key, person=person).put()
+			return self.deposit()
 
 	def verified(self):
 		for person in self.beneficiaries:
