@@ -12,6 +12,21 @@ class Person(CTUser):
 	ip = db.String()                    # optional
 	wallet = db.ForeignKey(kind=Wallet) # optional
 
+class Pod(db.TimeStampedBase):
+	name = db.String()
+	pool = db.ForeignKey(kind=Wallet)
+
+	def deposit(self, member, amount):
+		member.wallet.get().deposit(amount)
+		self.pool.get().deposit(amount)
+
+	def members(self):
+		return [mem.person for mem in Membership.query(Membership.pod == self.key).fetch()]
+
+class Membership(db.TimeStampedBase):
+	pod = db.ForeignKey(kind=Pod)
+	person = db.ForeignKey(kind=Person)
+
 class Content(db.TimeStampedBase):
 	owner = db.ForeignKey(kind=Person)
 	identifier = db.String() # some hash, defaulting to url
