@@ -1,8 +1,8 @@
 from cantools.web import respond, succeed, fail, cgi_get, local
-from model import db, Person, Content, View
+from model import db, Person, Content, View, Act
 
 def response():
-	action = cgi_get("action", choices=["view"])
+	action = cgi_get("action", choices=["view", "act", "verify"])
 	if action == "view":
 		ip = local("response").ip
 		content = db.get(cgi_get("content")) # key
@@ -28,6 +28,18 @@ def response():
 		membership.pod.get().deposit(membership.person.get(), 1)
 
 		succeed(view.key.urlsafe())
+	elif action == "act":
+		act = Act()
+		act.service = cgi_get("service")
+		act.pod = cgi_get("pod")
+		act.workers = cgi_get("workers")
+		act.beneficiaries = cgi_get("beneficiaries")
+		act.notes = cgi_get("notes")
+		act.put()
+		succeed(act.key.urlsafe())
+	elif action == "verify":
+		act = db.get(cgi_get("act"))
+		act.verify(cgi_get("person"))
 	else:
 		fail("what? bad action: %s"%(action,))
 
