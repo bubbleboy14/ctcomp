@@ -28,7 +28,7 @@ class Membership(db.TimeStampedBase):
 	person = db.ForeignKey(kind=Person)
 
 class Content(db.TimeStampedBase):
-	owner = db.ForeignKey(kind=Person)
+	membership = db.ForeignKey(kind=Membership)
 	identifier = db.String() # some hash, defaulting to url
 
 class View(db.TimeStampedBase):

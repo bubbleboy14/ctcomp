@@ -24,9 +24,8 @@ def response():
 		view.content = content.key
 		view.put()
 
-		owner = content.owner.get()
-		wallet = owner.wallet.get()
-		wallet.deposit(1)
+		membership = content.membership.get()
+		membership.pod.get().deposit(membership.person.get(), 1)
 
 		succeed(view.key.urlsafe())
 	else:
