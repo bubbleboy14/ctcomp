@@ -41,3 +41,10 @@ class View(db.TimeStampedBase):
 class Service(db.TimeStampedBase):
 	name = db.String()
 	compensation = db.Float(default=1.0)
+
+class Act(db.TimeStampedBase):
+	service = db.ForeignKey(kind=Service)
+	pod = db.ForeignKey(kind=Pod)
+	workers = db.ForeignKey(kind=Person, repeated=True)
+	beneficiaries = db.ForeignKey(kind=Person, repeated=True)
+	notes = db.Text()
