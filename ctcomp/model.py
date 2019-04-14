@@ -48,3 +48,19 @@ class Act(db.TimeStampedBase):
 	workers = db.ForeignKey(kind=Person, repeated=True)
 	beneficiaries = db.ForeignKey(kind=Person, repeated=True)
 	notes = db.Text()
+
+	def verify(self, person):
+		if person in self.beneficiaries:
+			v = Verification(act=self.key, person=person)
+			v.put()
+			return v
+
+	def verified(self):
+		for person in self.beneficiaries:
+			if not Verification.query(Verification.act == self.key, Verification.person == person).get():
+				return False
+		return True
+
+class Verification(db.TimeStampedBase):
+	act = db.ForeignKey(kind=Act)
+	person = db.ForeignKey(kind=Person)
