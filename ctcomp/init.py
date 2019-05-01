@@ -4,7 +4,7 @@ syms = {
 	"js": ["comp"]
 }
 model = {
-	"ctcomp.model": ["Wallet", "Person", "Content", "View"]
+	"ctcomp.model": ["*"]
 }
 routes = {
 	"/_comp": "_comp.py"
