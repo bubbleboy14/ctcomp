@@ -70,6 +70,32 @@ class Act(db.TimeStampedBase):
 				return False
 		return True
 
+class Request(db.TimeStampedBase):
+	action = db.String(choices=["include", "exclude"])
+	person = db.ForeignKey(kind=Person)
+	pod = db.ForeignKey(kind=Pod)
+	notes = db.Text()
+
+	def fulfill(self):
+		if not self.verified():
+			return False
+		if self.action == "exclude":
+			Membership.query(Membership.pod == self.pod, Membership.person == self.person).rm()
+		else: # include
+			Membership(pod=self.pod, person=self.person).put()
+		return True
+
+	def verify(self, person):
+		if person in self.pod.members():
+			Verification(act=self.key, person=person).put()
+			return self.fulfill()
+
+	def verified(self):
+		for person in self.pod.members():
+			if not Verification.query(Verification.act == self.key, Verification.person == person).get():
+				return False
+		return True
+
 class Verification(db.TimeStampedBase):
-	act = db.ForeignKey(kind=Act)
+	act = db.ForeignKey(kinds=[Act, Request])
 	person = db.ForeignKey(kind=Person)
