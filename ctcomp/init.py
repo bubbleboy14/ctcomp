@@ -9,4 +9,4 @@ model = {
 routes = {
 	"/_comp": "_comp.py"
 }
-requires = ["ctuser"]
+requires = ["ctcoop"]
