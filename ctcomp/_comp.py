@@ -25,7 +25,7 @@ def response():
 		view.put()
 
 		membership = content.membership.get()
-		membership.pod.get().deposit(membership.person.get(), 1)
+		membership.pod.get().deposit(membership.person.get(), 0.1)
 
 		succeed(view.key.urlsafe())
 	elif action == "act":
