@@ -1,5 +1,5 @@
 from cantools import db
-from ctuser.model import CTUser
+from ctcoop.model import Member
 
 class Wallet(db.TimeStampedBase):
 	identifier = db.String() # for now or whatever
@@ -8,7 +8,7 @@ class Wallet(db.TimeStampedBase):
 		# TODO: create a token!! put it in the right account! <---
 		pass
 
-class Person(CTUser):
+class Person(Member):
 	ip = db.String()                    # optional
 	wallet = db.ForeignKey(kind=Wallet) # optional
 
