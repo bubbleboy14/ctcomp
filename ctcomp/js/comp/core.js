@@ -6,15 +6,10 @@ comp.core = {
 			cb: cb
 		});
 	},
-//	decide.core.util.proposals("ctmain");
-	proposals: function(pod) {
-
-	},
-	pods: function(memberships) {
-		CT.db.multi(memberships.map(function(m) {
-			return m.pod;
-		}), function(pods) {
-			
-		});
+	proposals: function(pod, cb) {
+		comp.core.c({
+			action: "proposals",
+			pod: pod
+		}, cb);
 	}
 };
