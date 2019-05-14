@@ -2,7 +2,7 @@ from cantools.web import respond, succeed, fail, cgi_get, local
 from model import db, Person, Content, View, Act, Request
 
 def response():
-	action = cgi_get("action", choices=["view", "act", "verify", "request"])
+	action = cgi_get("action", choices=["view", "act", "verify", "request", "proposals"])
 	if action == "view":
 		ip = local("response").ip
 		content = db.get(cgi_get("content")) # key
@@ -48,6 +48,8 @@ def response():
 		req.notes = cgi_get("notes")
 		req.put()
 		succeed(req.key.urlsafe())
+	elif action == "proposals":
+		succeed(db.get(cgi_get("pod")).proposals())
 	else:
 		fail("what? bad action: %s"%(action,))
 
