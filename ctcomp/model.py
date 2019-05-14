@@ -1,5 +1,6 @@
 from cantools import db
 from ctcoop.model import Member
+from ctdecide.model import Proposal
 
 class Wallet(db.TimeStampedBase):
 	identifier = db.String() # for now or whatever
@@ -16,8 +17,12 @@ class Pod(db.TimeStampedBase):
 	name = db.String()
 	pool = db.ForeignKey(kind=Wallet)
 
-	def members(self):
-		return [mem.person for mem in Membership.query(Membership.pod == self.key).fetch()]
+	def proposals(self):
+		return sum([m.proposals for m in self.members(True)], [])
+
+	def members(self, noperson=False):
+		mems = Membership.query(Membership.pod == self.key).fetch()
+		return noperson and mems or [mem.person for mem in mems]
 
 	def deposit(self, member, amount):
 		member.wallet.get().deposit(amount)
@@ -29,6 +34,7 @@ class Pod(db.TimeStampedBase):
 class Membership(db.TimeStampedBase):
 	pod = db.ForeignKey(kind=Pod)
 	person = db.ForeignKey(kind=Person)
+	proposals = db.ForeignKey(kind=Proposal, repeated=True)
 
 class Content(db.TimeStampedBase):
 	membership = db.ForeignKey(kind=Membership)
