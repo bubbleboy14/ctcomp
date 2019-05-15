@@ -56,7 +56,7 @@ class Verifiable(db.TimeStampedBase):
 		pod = self.membership.get().pod
 		return noget and pod or pod.get()
 
-	def members(self):
+	def signers(self):
 		return self.pod().members()
 
 	def fulfill(self):
@@ -64,12 +64,12 @@ class Verifiable(db.TimeStampedBase):
 		self.put()
 
 	def verify(self, person):
-		if person in self.members():
+		if person in self.signers():
 			Verification(act=self.key, person=person).put()
 			return self.fulfill()
 
 	def verified(self):
-		if person in self.members():
+		if person in self.signers():
 			if not Verification.query(Verification.act == self.key, Verification.person == person).get():
 				return False
 		return True
@@ -96,7 +96,7 @@ class Act(Verifiable):
 		self.put()
 		return True
 
-	def members(self):
+	def signers(self):
 		return self.beneficiaries
 
 class Request(Verifiable):
