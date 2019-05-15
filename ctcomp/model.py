@@ -50,6 +50,7 @@ class Service(db.TimeStampedBase):
 
 class Verifiable(db.TimeStampedBase):
 	membership = db.ForeignKey(kind=Membership)
+	passed = db.Boolean(default=False)
 
 	def pod(self, noget=False):
 		pod = self.membership.get().pod
@@ -59,7 +60,8 @@ class Verifiable(db.TimeStampedBase):
 		return self.pod().members()
 
 	def fulfill(self):
-		pass
+		self.passed = True
+		self.put()
 
 	def verify(self, person):
 		if person in self.members():
@@ -83,13 +85,15 @@ class Act(Verifiable):
 	notes = db.Text()
 
 	def fulfill(self):
-		if not self.verified():
+		if self.passed or not self.verified():
 			return False
 		count = len(self.beneficiaries)
 		pod = self.pod()
 		service = self.service.get()
 		for worker in db.get_multi(self.workers):
 			pod.service(worker, service, count)
+		self.passed = True
+		self.put()
 		return True
 
 	def members(self):
@@ -101,13 +105,15 @@ class Request(Verifiable):
 	notes = db.Text()
 
 	def fulfill(self):
-		if not self.verified():
+		if self.passed or not self.verified():
 			return False
 		pod = self.pod(True)
 		if self.action == "exclude":
 			Membership.query(Membership.pod == pod, Membership.person == self.person).rm()
 		else: # include
 			Membership(pod=pod, person=self.person).put()
+		self.passed = True
+		self.put()
 		return True
 
 class Verification(db.TimeStampedBase):
