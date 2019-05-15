@@ -48,60 +48,68 @@ class Service(db.TimeStampedBase):
 	name = db.String()
 	compensation = db.Float(default=1.0)
 
-class Act(db.TimeStampedBase):
-	service = db.ForeignKey(kind=Service)
-	pod = db.ForeignKey(kind=Pod)
-	workers = db.ForeignKey(kind=Person, repeated=True)
-	beneficiaries = db.ForeignKey(kind=Person, repeated=True)
-	notes = db.Text()
+class Verifiable(db.TimeStampedBase):
+	membership = db.ForeignKey(kind=Membership)
 
-	def deposit(self):
-		if not self.verified():
-			return False
-		count = len(self.beneficiaries)
-		pod = self.pod.get()
-		service = self.service.get()
-		for worker in db.get_multi(self.workers):
-			pod.service(worker, service, count)
-		return True
+	def pod(self, noget=False):
+		pod = self.membership.get().pod
+		return noget and pod or pod.get()
+
+	def members(self):
+		return self.pod().members()
+
+	def fulfill(self):
+		pass
 
 	def verify(self, person):
-		if person in self.beneficiaries:
+		if person in self.members():
 			Verification(act=self.key, person=person).put()
-			return self.deposit()
+			return self.fulfill()
 
 	def verified(self):
-		for person in self.beneficiaries:
+		if person in self.members():
 			if not Verification.query(Verification.act == self.key, Verification.person == person).get():
 				return False
 		return True
 
-class Request(db.TimeStampedBase):
-	action = db.String(choices=["include", "exclude"])
-	person = db.ForeignKey(kind=Person)
-	pod = db.ForeignKey(kind=Pod)
+class Commitment(Verifiable):
+	service = db.ForeignKey(kind=Service)
+	estimate = db.Float(default=1.0) # per week (hours?)
+
+class Act(Verifiable):
+	service = db.ForeignKey(kind=Service)
+	workers = db.ForeignKey(kind=Person, repeated=True)
+	beneficiaries = db.ForeignKey(kind=Person, repeated=True)
 	notes = db.Text()
 
 	def fulfill(self):
 		if not self.verified():
 			return False
-		if self.action == "exclude":
-			Membership.query(Membership.pod == self.pod, Membership.person == self.person).rm()
-		else: # include
-			Membership(pod=self.pod, person=self.person).put()
+		count = len(self.beneficiaries)
+		pod = self.pod()
+		service = self.service.get()
+		for worker in db.get_multi(self.workers):
+			pod.service(worker, service, count)
 		return True
 
-	def verify(self, person):
-		if person in self.pod.members():
-			Verification(act=self.key, person=person).put()
-			return self.fulfill()
+	def members(self):
+		return self.beneficiaries
 
-	def verified(self):
-		for person in self.pod.members():
-			if not Verification.query(Verification.act == self.key, Verification.person == person).get():
-				return False
+class Request(Verifiable):
+	action = db.String(choices=["include", "exclude"])
+	person = db.ForeignKey(kind=Person) # person in question!
+	notes = db.Text()
+
+	def fulfill(self):
+		if not self.verified():
+			return False
+		pod = self.pod(True)
+		if self.action == "exclude":
+			Membership.query(Membership.pod == pod, Membership.person == self.person).rm()
+		else: # include
+			Membership(pod=pod, person=self.person).put()
 		return True
 
 class Verification(db.TimeStampedBase):
-	act = db.ForeignKey(kinds=[Act, Request])
+	act = db.ForeignKey(kinds=[Act, Request, Commitment])
 	person = db.ForeignKey(kind=Person)
