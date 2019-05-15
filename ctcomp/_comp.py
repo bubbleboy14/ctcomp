@@ -47,9 +47,9 @@ def response():
 		succeed(comm.key.urlsafe())
 	elif action == "request":
 		req = Request()
+		req.membership = cgi_get("membership")
 		req.action = cgi_get("action")
 		req.person = cgi_get("person")
-		req.pod = cgi_get("pod")
 		req.notes = cgi_get("notes")
 		req.put()
 		succeed(req.key.urlsafe())
