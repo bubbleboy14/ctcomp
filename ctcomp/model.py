@@ -13,6 +13,9 @@ class Person(Member):
 	ip = db.String()                    # optional
 	wallet = db.ForeignKey(kind=Wallet) # optional
 
+	def onjoin(self):
+		Membership(pod=global_pod().key, person=self.key).put()
+
 class Pod(db.TimeStampedBase):
 	name = db.String()
 	pool = db.ForeignKey(kind=Wallet)
@@ -30,6 +33,15 @@ class Pod(db.TimeStampedBase):
 
 	def service(self, member, service, recipient_count):
 		self.deposit(member, service.compensation * recipient_count)
+
+def global_pod():
+	p = Pod.query().get() # pod #1
+	if not p:
+		p = Pod()
+		p.name = "Global"
+		# TODO: set up wallet (pool)
+		p.put()
+	return p
 
 class Membership(db.TimeStampedBase):
 	pod = db.ForeignKey(kind=Pod)
