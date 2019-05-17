@@ -23,3 +23,23 @@ EXCLUDE = """Hello!
 Please click <a href='""" + config.web.protocol + """://""" + config.web.domain + """/_comp?action=verify&verifiable=%s&person=%s'>here</a> if you agree that this person should be excluded.
 
 That's it!"""
+
+SERVICE = """Hello!
+
+%s of the "%s" pod has reported performing the following service: %s.
+
+The following pod mates participated:
+
+%s
+
+Please click <a href='""" + config.web.protocol + """://""" + config.web.domain + """/_comp?action=verify&verifiable=%s&person=%s'>here</a> to verify this service.
+
+That's it!"""
+
+COMMITMENT = """Hello!
+
+%s of the "%s" pod commits to performing %s hours per week of the following service: %s.
+
+Please click <a href='""" + config.web.protocol + """://""" + config.web.domain + """/_comp?action=verify&verifiable=%s&person=%s'>here</a> if you consider this realistic.
+
+That's it!"""
