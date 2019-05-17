@@ -1,6 +1,6 @@
 from cantools.web import respond, succeed, fail, cgi_get, local, send_mail
 from model import db, Person, Content, View, Act, Commitment, Request
-from compTemplates import APPLY, APPLICATION, EXCLUDE
+from compTemplates import APPLY, APPLICATION, EXCLUDE, SERVICE, COMMITMENT
 
 def response():
 	action = cgi_get("action", choices=["view", "act", "commit", "request", "verify", "proposals", "apply"])
@@ -37,7 +37,16 @@ def response():
 		act.beneficiaries = cgi_get("beneficiaries")
 		act.notes = cgi_get("notes")
 		act.put()
-		succeed(act.key.urlsafe())
+		akey = act.key.urlsafe()
+		service = act.service.get()
+		memship = act.membership.get()
+		person = memship.person.get()
+		pod = memship.pod.get()
+		workers = "\n".join([w.email for w in db.get_multi(act.workers)])
+		for signer in act.beneficiaries:
+			send_mail(to=signer.get().email, subject="verify service",
+				body=SERVICE%(person.email, pod.name, service.name, workers, akey, signer.urlsafe()))
+		succeed(akey)
 	elif action == "commit":
 		comm = Commitment()
 		comm.membership = cgi_get("membership")
@@ -45,7 +54,16 @@ def response():
 		comm.estimate = cgi_get("estimate")
 		comm.put()
 		comm.verify(comm.membership.get().person) # (submitter already agrees)
-		succeed(comm.key.urlsafe())
+		ckey = comm.key.urlsafe()
+		service = comm.service.get()
+		memship = comm.membership.get()
+		person = memship.person.get()
+		pod = memship.pod.get()
+		for signer in pod.members():
+			send_mail(to=signer.get().email, subject="affirm commitment",
+				body=COMMITMENT%(person.email, pod.name, comm.estimate,
+					service.name, ckey, signer.urlsafe()))
+		succeed(ckey)
 	elif action == "request":
 		req = Request()
 		req.membership = cgi_get("membership")
