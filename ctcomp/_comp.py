@@ -1,8 +1,9 @@
-from cantools.web import respond, succeed, fail, cgi_get, local
+from cantools.web import respond, succeed, fail, cgi_get, local, send_mail
 from model import db, Person, Content, View, Act, Commitment, Request
+from compTemplates import APPLY, APPLICATION, EXCLUDE
 
 def response():
-	action = cgi_get("action", choices=["view", "act", "commit", "request", "verify", "proposals"])
+	action = cgi_get("action", choices=["view", "act", "commit", "request", "verify", "proposals", "apply"])
 	if action == "view":
 		ip = local("response").ip
 		content = db.get(cgi_get("content")) # key
@@ -52,11 +53,32 @@ def response():
 		req.person = cgi_get("person")
 		req.notes = cgi_get("notes")
 		req.put()
+		rpmail = req.person.get().email
+		memship = req.membership.get()
+		mpmail = memship.person.get().email
+		pod = memship.pod.get()
+		rkey = req.key.urlsafe()
+		if req.action == "include":
+			send_mail(to=rpmail, subject="pod membership nomination",
+				body=APPLY%(mpmail, pod.name, rkey))
+		else: # exclude
+			for mem in req.signers():
+				send_mail(to=mem.get().email, subject="pod membership exclusion proposal",
+					body=EXCLUDE%(mpmail, rpmail, pod.name, rkey, mem.urlsafe()))
 		succeed(req.key.urlsafe())
 	elif action == "verify":
 		verifiable = db.get(cgi_get("verifiable")) # act or request or commitment
 		verifiable.verify(cgi_get("person"))
 	elif action == "proposals":
 		succeed(db.get(cgi_get("pod")).proposals())
+	elif action == "apply":
+		req = db.get(cgi_get("request"))
+		memship = req.membership.get()
+		pod = memship.pod.get()
+		em = req.person.get().email
+		rkey = req.key.urlsafe()
+		for mem in pod.members():
+			send_mail(to=mem.get().email, subject="pod membership application",
+				body=APPLICATION%(em, pod.name, rkey, mem.urlsafe()))
 
 respond(response)
