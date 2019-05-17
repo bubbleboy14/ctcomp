@@ -1,3 +1,6 @@
+copies = {
+	".": ["compTemplates.py"]
+}
 syms = {
 	".": ["_comp.py"],
 	"html": ["comp"],
