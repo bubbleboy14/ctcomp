@@ -12,6 +12,6 @@ APPLICATION = """Hello!
 
 %s just applied for membership in the "%s" pod.
 
-Please click <a href='http://""" + config.web.domain + """/_comp?action=verify&verifiable=%s'>here</a> if you wish to allow it.
+Please click <a href='http://""" + config.web.domain + """/_comp?action=verify&verifiable=%s&person=%s'>here</a> if you wish to allow it.
 
 That's it!"""
