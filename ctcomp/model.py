@@ -3,11 +3,19 @@ from ctcoop.model import Member
 from ctdecide.model import Proposal
 
 class Wallet(db.TimeStampedBase):
-	identifier = db.String() # for now or whatever
+	identifier = db.String() # public key
+	outstanding = db.Integer(default=0)
 
 	def deposit(self, amount):
-		# TODO: create a token!! put it in the right account! <---
-		pass
+		if self.identifier:
+			if self.outstanding:
+				amount += self.outstanding
+				self.outstanding = 0
+				self.put()
+			# TODO: create/issue amount
+		else:
+			self.outstanding += amount
+			self.put()
 
 class Person(Member):
 	ip = db.String()                    # optional
@@ -15,6 +23,10 @@ class Person(Member):
 
 	def onjoin(self):
 		Membership(pod=global_pod().key, person=self.key).put()
+		wallet = Wallet()
+		wallet.put()
+		self.wallet = wallet.key
+		self.put()
 
 class Pod(db.TimeStampedBase):
 	name = db.String()
@@ -37,9 +49,11 @@ class Pod(db.TimeStampedBase):
 def global_pod():
 	p = Pod.query().get() # pod #1
 	if not p:
+		w = Wallet()
+		w.put()
 		p = Pod()
 		p.name = "Global"
-		# TODO: set up wallet (pool)
+		p.pool = w.key
 		p.put()
 	return p
 
