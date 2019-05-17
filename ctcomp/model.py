@@ -110,6 +110,9 @@ class Act(Verifiable):
 	beneficiaries = db.ForeignKey(kind=Person, repeated=True)
 	notes = db.Text()
 
+	def signers(self):
+		return self.beneficiaries
+
 	def fulfill(self):
 		if self.passed or not self.verified():
 			return False
@@ -122,13 +125,13 @@ class Act(Verifiable):
 		self.put()
 		return True
 
-	def signers(self):
-		return self.beneficiaries
-
 class Request(Verifiable):
 	action = db.String(choices=["include", "exclude"])
 	person = db.ForeignKey(kind=Person) # person in question!
 	notes = db.Text()
+
+	def signers(self):
+		return [p for p in self.pod().members() if p != self.person]
 
 	def fulfill(self):
 		if self.passed or not self.verified():
