@@ -1,11 +1,16 @@
 comp.pods = {
 	_: {
+		classes: {
+			menu: "margined padded bordered round"
+		},
 		nodes: {
 			list: CT.dom.div(),
+			views: CT.dom.div(),
+			slider: CT.dom.div(null, null, "slider"),
 			main: CT.dom.div(null, "h1 mr160 relative"),
-			right: CT.dom.div(null, "h1 w160p up5 scrolly right"),
-			menu: CT.dom.div(null, "margined padded bordered round")
-		}
+			right: CT.dom.div(null, "h1 w160p up5 scrolly right")
+		},
+		sections: ["Commitments", "Services", "Requests", "Proposals"]
 	},
 	fresh: function() {
 
@@ -25,18 +30,32 @@ comp.pods = {
 	},
 	menu: function() {
 		var _ = comp.pods._;
-		CT.dom.setContent(_.nodes.menu, [
-			CT.dom.link("new pod", comp.pods.fresh, null, "bold"),
-			_.nodes.list
+		CT.dom.setContent(_.nodes.right, [
+			CT.dom.div([
+				CT.dom.link("new pod", comp.pods.fresh, null, "bold"),
+				_.nodes.list
+			], _.classes.menu),
+			CT.dom.div([
+				CT.dom.div("Views", "bold"),
+				_.nodes.views
+			], _.classes.menu)
 		]);
-		_.nodes.right.appendChild(_.nodes.menu);
+		CT.dom.setContent(_.nodes.main, _.nodes.slider);
 		CT.dom.setContent("ctmain", [
 			_.nodes.right,
 			_.nodes.main
 		]);
 	},
+	slider: function() {
+		var _ = comp.pods._, nodes = _.nodes;
+		nodes.slider._slider = CT.panel.slider([], nodes.views, nodes.slider, null, "bold", null, true);
+		_.sections.forEach(function(section, i) {
+			nodes[section.toLowerCase()] = nodes.slider._slider.add(section, !i);
+		});
+	},
 	init: function() {
 		comp.pods.menu();
+		comp.pods.slider();
 		CT.db.get("membership", comp.pods.memberships, null, null, null, {
 			person: user.core.get("key")
 		});
