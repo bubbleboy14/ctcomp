@@ -4,6 +4,7 @@ copies = {
 syms = {
 	".": ["_comp.py"],
 	"html": ["comp"],
+	"css": ["comp.css"],
 	"js": ["comp"]
 }
 model = {
