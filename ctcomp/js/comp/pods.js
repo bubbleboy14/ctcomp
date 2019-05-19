@@ -1,5 +1,7 @@
 comp.pods = {
 	_: {
+		current: {},
+		memberships: {},
 		classes: {
 			menu: "margined padded bordered round"
 		},
@@ -10,21 +12,34 @@ comp.pods = {
 			main: CT.dom.div(null, "h1 mr160 relative"),
 			right: CT.dom.div(null, "h1 w160p up5 scrolly right")
 		},
-		sections: ["Commitments", "Services", "Requests", "Proposals"]
+		sections: ["Commitments", "Services", "Requests", "Proposals"],
+		proposal: function(key) {
+			var _ = comp.pods._,
+				memship = _.memberships[_.current.pod.key];
+			memship.proposals.push(key);
+			comp.core.edit({
+				key: memship.key,
+				proposals: memship.proposals
+			});
+		}
 	},
 	fresh: function() {
 
 	},
 	pod: function(pod) {
+		var _ = comp.pods._;
+		_.current.pod = pod;
 		comp.core.proposals(pod.key, function(proposals) {
-			decide.core.util.proposals(comp.pods._.nodes.proposals, proposals);
+			decide.core.util.proposals(_.nodes.proposals, proposals);
 		});
 	},
 	pods: function(pods) {
 		CT.panel.triggerList(pods, comp.pods.pod, comp.pods._.nodes.list);
 	},
 	memberships: function(memberships) {
+		var _ = comp.pods._;
 		CT.db.multi(memberships.map(function(m) {
+			_.memberships[m.pod] = m;
 			return m.pod;
 		}), comp.pods.pods);
 	},
@@ -56,6 +71,7 @@ comp.pods = {
 	init: function() {
 		comp.pods.menu();
 		comp.pods.slider();
+		decide.core.util.onNew(comp.pods._.proposal);
 		CT.db.get("membership", comp.pods.memberships, null, null, null, {
 			person: user.core.get("key")
 		});
