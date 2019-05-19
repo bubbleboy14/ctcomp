@@ -90,10 +90,12 @@ def response():
 	elif action == "pod":
 		pod = db.get(cgi_get("pod"))
 		succeed({
-			acts: pod.acts(),
-			requests: pod.requests(),
-			proposals: pod.proposals(),
-			commitments: pod.commitments()
+			"acts": [a.data() for a in pod.acts()],
+			"requests": [r.data() for r in pod.requests()],
+			"proposals": [p.data() for p in pod.proposals()],
+			"commitments": [c.data() for c in pod.commitments()],
+			"memberships": [m.data() for m in pod.members(True)],
+			"people": [p.data() for p in db.get_multi(pod.members())]
 		})
 	elif action == "apply":
 		req = db.get(cgi_get("request"))
