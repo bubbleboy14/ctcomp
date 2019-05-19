@@ -17,7 +17,7 @@ comp.pods = {
 	},
 	pod: function(pod) {
 		comp.core.proposals(pod.key, function(proposals) {
-			decide.core.util.proposals(comp.pods._.nodes.main, proposals);
+			decide.core.util.proposals(comp.pods._.nodes.proposals, proposals);
 		});
 	},
 	pods: function(pods) {
@@ -41,10 +41,10 @@ comp.pods = {
 			], _.classes.menu)
 		]);
 		CT.dom.setContent(_.nodes.main, _.nodes.slider);
-		CT.dom.setContent("ctmain", [
+		CT.dom.setContent("ctmain", CT.dom.div([
 			_.nodes.right,
 			_.nodes.main
-		]);
+		], "full"));
 	},
 	slider: function() {
 		var _ = comp.pods._, nodes = _.nodes;
