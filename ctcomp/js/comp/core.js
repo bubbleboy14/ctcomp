@@ -24,7 +24,11 @@ comp.core = {
 		comp.core.c({
 			action: "pod",
 			pod: pod
-		}, cb);
+		}, function(data) {
+			for (var k in data)
+				CT.data.addSet(data[k]);
+			cb(data);
+		});
 	},
 	prompt: function(opts) {
 		(new CT.modal.Prompt(CT.merge(opts, {
