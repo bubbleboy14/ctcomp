@@ -31,6 +31,19 @@ comp.pods = {
 		_.current.pod = pod;
 		comp.core.pod(pod.key, function(data) {
 			decide.core.util.proposals(_.nodes.proposals, data.proposals);
+			CT.dom.setContent(_.nodes.services, data.acts.map(function(a) {
+				return CT.dom.div([
+					CT.dom.div(comp.core.service(a.service).name, "big"),
+					a.notes,
+					a.passed ? "passed" : "pending"
+				], "bordered padded margined");
+			}));
+			CT.dom.setContent(_.nodes.requests, data.requests.map(function(r) {
+				return CT.dom.div([
+					CT.dom.div(r.action, "big"),
+					r.passed ? "passed" : "pending"
+				], "bordered padded margined");
+			}));
 			CT.dom.setContent(_.nodes.commitments, data.commitments.map(function(c) {
 				return CT.dom.div([
 					CT.dom.div(comp.core.service(c.service).name, "big"),
