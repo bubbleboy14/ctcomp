@@ -45,7 +45,7 @@ comp.core = {
 			cb: function(service) {
 				if (service == "New Service") {
 					comp.core.prompt({
-						prompt: "what's the service called?"
+						prompt: "what's the service called?",
 						cb: function(sname) {
 							comp.core.edit({
 								modelName: "service",
