@@ -3,7 +3,7 @@ from model import db, Person, Content, View, Act, Commitment, Request
 from compTemplates import APPLY, APPLICATION, EXCLUDE, SERVICE, COMMITMENT
 
 def response():
-	action = cgi_get("action", choices=["view", "act", "commit", "request", "verify", "proposals", "apply"])
+	action = cgi_get("action", choices=["view", "act", "commit", "request", "verify", "pod", "apply"])
 	if action == "view":
 		ip = local("response").ip
 		content = db.get(cgi_get("content")) # key
@@ -87,8 +87,14 @@ def response():
 	elif action == "verify":
 		verifiable = db.get(cgi_get("verifiable")) # act or request or commitment
 		verifiable.verify(cgi_get("person"))
-	elif action == "proposals":
-		succeed(db.get(cgi_get("pod")).proposals())
+	elif action == "pod":
+		pod = db.get(cgi_get("pod"))
+		succeed({
+			acts: pod.acts(),
+			requests: pod.requests(),
+			proposals: pod.proposals(),
+			commitments: pod.commitments()
+		})
 	elif action == "apply":
 		req = db.get(cgi_get("request"))
 		memship = req.membership.get()
