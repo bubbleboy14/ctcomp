@@ -1,0 +1,12 @@
+#slider {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	right: 0px;
+	bottom: 0px;
+	overflow: hidden;
+}
+
+.basicpopup .choice_cell {
+	display: inline-block;
+}
