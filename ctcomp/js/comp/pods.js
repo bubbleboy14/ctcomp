@@ -29,8 +29,15 @@ comp.pods = {
 	pod: function(pod) {
 		var _ = comp.pods._;
 		_.current.pod = pod;
-		comp.core.proposals(pod.key, function(proposals) {
-			decide.core.util.proposals(_.nodes.proposals, proposals);
+		comp.core.pod(pod.key, function(data) {
+			decide.core.util.proposals(_.nodes.proposals, data.proposals);
+			CT.dom.setContent(_.nodes.commitments, data.commitments.map(function(c) {
+				return CT.dom.div([
+					CT.dom.div(comp.core.service(c.service).name, "big"),
+					c.estimate + " hours per week",
+					c.passed ? "passed" : "pending"
+				], "bordered padded margined");
+			}));
 		});
 	},
 	pods: function(pods) {
@@ -69,6 +76,7 @@ comp.pods = {
 		});
 	},
 	init: function() {
+		comp.core.init();
 		comp.pods.menu();
 		comp.pods.slider();
 		decide.core.util.onNew(comp.pods._.proposal);
