@@ -32,6 +32,18 @@ class Pod(db.TimeStampedBase):
 	name = db.String()
 	pool = db.ForeignKey(kind=Wallet)
 
+	def _collection(self, mod):
+		return sum([mod.query(mod.membership == m).fetch() for m in self.members(True)], [])
+
+	def acts(self):
+		return self._collection(Act)
+
+	def requests(self):
+		return self._collection(Request)
+
+	def commitments(self):
+		return self._collection(Commitment)
+
 	def proposals(self):
 		return sum([m.proposals for m in self.members(True)], [])
 
