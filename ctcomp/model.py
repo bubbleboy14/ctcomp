@@ -89,6 +89,7 @@ class Service(db.TimeStampedBase):
 class Verifiable(db.TimeStampedBase):
 	membership = db.ForeignKey(kind=Membership)
 	passed = db.Boolean(default=False)
+	notes = db.Text()
 
 	def pod(self, noget=False):
 		pod = self.membership.get().pod
@@ -120,7 +121,6 @@ class Act(Verifiable):
 	service = db.ForeignKey(kind=Service)
 	workers = db.ForeignKey(kind=Person, repeated=True)
 	beneficiaries = db.ForeignKey(kind=Person, repeated=True)
-	notes = db.Text()
 
 	def signers(self):
 		return self.beneficiaries
@@ -140,7 +140,6 @@ class Act(Verifiable):
 class Request(Verifiable):
 	action = db.String(choices=["include", "exclude"])
 	person = db.ForeignKey(kind=Person) # person in question!
-	notes = db.Text()
 
 	def signers(self):
 		return [p for p in self.pod().members() if p != self.person]
