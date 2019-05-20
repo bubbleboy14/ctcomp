@@ -87,8 +87,39 @@ comp.pods = {
 							});
 						});
 					});
-				} else if (style == "request") {
-					// action, person
+				} else if (stype == "request") {
+					comp.core.choice({
+						data: ["include", "exclude"],
+						cb: function(change) {
+							if (change == "include") {
+								comp.core.prompt({
+									prompt: "what's this person's email address?",
+									cb: function(email) {
+										if (!CT.parse.validEmail(email))
+											return alert("that's not an email address!");
+										CT.db.get("person", function(peeps) {
+											var person = peeps[0];
+											if (!person)
+												return alert(email + " isn't in our system! ask your friend to join first :)");
+											_.submit({
+												person: person.key,
+												change: change
+											});
+										}, 1, 0, null, {
+											email: email
+										});
+									}
+								});
+							} else { // exclude
+								comp.core.mates(_.current.pod.key, "kick out whom?", function(person) {
+									_.submit({
+										person: person.key,
+										change: change
+									}, stype);
+								}, "single-choice");
+							}
+						}
+					});
 				}
 			};
 		}
