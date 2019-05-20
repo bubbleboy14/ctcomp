@@ -3,7 +3,7 @@ from model import db, Person, Content, View, Act, Commitment, Request
 from compTemplates import APPLY, APPLICATION, EXCLUDE, SERVICE, COMMITMENT
 
 def response():
-	action = cgi_get("action", choices=["view", "act", "commit", "request", "verify", "pod", "apply"])
+	action = cgi_get("action", choices=["view", "service", "commitment", "request", "verify", "pod", "apply"])
 	if action == "view":
 		ip = local("response").ip
 		content = db.get(cgi_get("content")) # key
@@ -29,7 +29,7 @@ def response():
 		membership.pod.get().deposit(membership.person.get(), 0.1)
 
 		succeed(view.key.urlsafe())
-	elif action == "act":
+	elif action == "service":
 		act = Act()
 		act.membership = cgi_get("membership")
 		act.service = cgi_get("service")
@@ -47,11 +47,12 @@ def response():
 			send_mail(to=signer.get().email, subject="verify service",
 				body=SERVICE%(person.email, pod.name, service.name, workers, akey, signer.urlsafe()))
 		succeed(akey)
-	elif action == "commit":
+	elif action == "commitment":
 		comm = Commitment()
 		comm.membership = cgi_get("membership")
 		comm.service = cgi_get("service")
 		comm.estimate = cgi_get("estimate")
+		comm.notes = cgi_get("notes")
 		comm.put()
 		comm.verify(comm.membership.get().person) # (submitter already agrees)
 		ckey = comm.key.urlsafe()
@@ -90,7 +91,7 @@ def response():
 	elif action == "pod":
 		pod = db.get(cgi_get("pod"))
 		succeed({
-			"acts": [a.data() for a in pod.acts()],
+			"services": [a.data() for a in pod.acts()],
 			"requests": [r.data() for r in pod.requests()],
 			"proposals": [p.data() for p in pod.proposals()],
 			"commitments": [c.data() for c in pod.commitments()],
