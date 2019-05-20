@@ -1,4 +1,5 @@
 from cantools import db
+from cantools.util import log
 from ctcoop.model import Member
 from ctdecide.model import Proposal
 
@@ -74,6 +75,9 @@ class Membership(db.TimeStampedBase):
 	person = db.ForeignKey(kind=Person)
 	proposals = db.ForeignKey(kind=Proposal, repeated=True)
 
+	def deposit(self, amount):
+		self.pod.get().deposit(self.person.get(), amount)
+
 class Content(db.TimeStampedBase):
 	membership = db.ForeignKey(kind=Membership)
 	identifier = db.String() # some hash, defaulting to url
@@ -116,6 +120,19 @@ class Verifiable(db.TimeStampedBase):
 class Commitment(Verifiable):
 	service = db.ForeignKey(kind=Service)
 	estimate = db.Float(default=1.0) # per week (hours?)
+
+	def deposit(self, numdays=1):
+		service = self.service.get()
+		log("compensating commitment: %s service (%s); estimated %s hours per week; paying for %s days"%(service.name,
+			service.compensation, self.estimate, numdays))
+		self.membership.get().deposit(service.compensation * self.estimate * numdays / 7.0)
+
+def payDay():
+	commz = Commitment.query(Commitment.passed == True).fetch()
+	log("found %s live commitments"%(len(commz),), important=True)
+	for comm in commz:
+		comm.deposit()
+	log("compensated pods and members corresponding to %s commitments"%(len(commz),), important=True)
 
 class Act(Verifiable):
 	service = db.ForeignKey(kind=Service)
