@@ -124,7 +124,23 @@ comp.pods = {
 		}
 	},
 	fresh: function() {
-
+		comp.core.prompt({
+			prompt: "what will you call this pod?",
+			cb: function(name) {
+				comp.core.edit({
+					modelName: "pod",
+					name: name
+				}, function(pod) {
+					comp.core.edit({
+						modelName: "membership",
+						pod: pod.key,
+						person: user.core.get("key")
+					}, function(memship) {
+						location = location; // TODO: replace hack w/ real deal
+					});
+				});
+			}
+		});
 	},
 	pod: function(pod) {
 		var _ = comp.pods._;
