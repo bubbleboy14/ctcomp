@@ -21,6 +21,23 @@ comp.pods = {
 				key: memship.key,
 				proposals: memship.proposals
 			});
+		},
+		item: function(header, passed, notes) {
+			return CT.dom.div([
+				CT.dom.div(header, "big"),
+				notes,
+				passed ? "passed" : "pending"
+			], "bordered padded margined");
+		},
+		act: function(a) {
+			return comp.pods._.item(CT.data.get(a.service).name, a.passed, a.notes);
+		},
+		request: function(r) {
+			return comp.pods._.item(r.action, r.passed);
+		},
+		commitment: function(c) {
+			return comp.pods._.item(CT.data.get(c.service).name,
+				c.passed, c.estimate + " hours per week");
 		}
 	},
 	fresh: function() {
@@ -31,26 +48,9 @@ comp.pods = {
 		_.current.pod = pod;
 		comp.core.pod(pod.key, function(data) {
 			decide.core.util.proposals(_.nodes.proposals, data.proposals);
-			CT.dom.setContent(_.nodes.services, data.acts.map(function(a) {
-				return CT.dom.div([
-					CT.dom.div(comp.core.service(a.service).name, "big"),
-					a.notes,
-					a.passed ? "passed" : "pending"
-				], "bordered padded margined");
-			}));
-			CT.dom.setContent(_.nodes.requests, data.requests.map(function(r) {
-				return CT.dom.div([
-					CT.dom.div(r.action, "big"),
-					r.passed ? "passed" : "pending"
-				], "bordered padded margined");
-			}));
-			CT.dom.setContent(_.nodes.commitments, data.commitments.map(function(c) {
-				return CT.dom.div([
-					CT.dom.div(comp.core.service(c.service).name, "big"),
-					c.estimate + " hours per week",
-					c.passed ? "passed" : "pending"
-				], "bordered padded margined");
-			}));
+			CT.dom.setContent(_.nodes.services, data.acts.map(_.act));
+			CT.dom.setContent(_.nodes.requests, data.requests.map(_.request));
+			CT.dom.setContent(_.nodes.commitments, data.commitments.map(_.commitment));
 		});
 	},
 	pods: function(pods) {
