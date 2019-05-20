@@ -1,7 +1,5 @@
 comp.core = {
-	_: {
-		service_keys: {}
-	},
+	_: {},
 	c: function(opts, cb) {
 		CT.net.post({
 			path: "/_comp",
@@ -62,16 +60,11 @@ comp.core = {
 			}
 		});
 	},
-	service: function(skey) {
-		return comp.core._.service_keys[skey];
-	},
 	init: function() {
 		var _ = comp.core._;
 		CT.db.get("service", function(services) {
 			_.services = services;
-			services.forEach(function(service) {
-				_.service_keys[service.key] = service;
-			});
+			CT.data.addSet(services);
 		});
 	}
 };
