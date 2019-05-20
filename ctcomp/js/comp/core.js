@@ -1,5 +1,5 @@
 comp.core = {
-	_: {},
+	_: { pods: {} },
 	c: function(opts, cb) {
 		CT.net.post({
 			path: "/_comp",
@@ -19,12 +19,16 @@ comp.core = {
 		});
 	},
 	pod: function(pod, cb) {
+		var _ = comp.core._;
+		if (_.pods[pod])
+			return cb(_.pods[pod]);
 		comp.core.c({
 			action: "pod",
 			pod: pod
 		}, function(data) {
 			for (var k in data)
 				CT.data.addSet(data[k]);
+			_.pods[pod] = data;
 			cb(data);
 		});
 	},
@@ -40,6 +44,14 @@ comp.core = {
 			style: "single-choice"
 		}));
 	},
+	mates: function(pod, prompt, cb) {
+		comp.core.choice({
+			cb: cb,
+			prompt: prompt,
+			style: "multiple-choice",
+			data: comp.core._.pods[pod].people
+		})
+	},
 	services: function(cb) {
 		comp.core.choice({
 			prompt: "select a service",
@@ -52,7 +64,11 @@ comp.core = {
 							comp.core.edit({
 								modelName: "service",
 								name: sname
-							}, cb);
+							}, function(data) {
+								CT.data.add(data);
+								comp.core._.services.push(data);
+								cb(data);
+							});
 						}
 					});
 				} else
