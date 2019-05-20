@@ -33,6 +33,12 @@ class Pod(db.TimeStampedBase):
 	name = db.String()
 	pool = db.ForeignKey(kind=Wallet)
 
+	def oncreate(self):
+		if not self.pool:
+			w = Wallet()
+			w.put()
+			self.pool = w.key
+
 	def _collection(self, mod):
 		return sum([mod.query(mod.membership == m.key).fetch() for m in self.members(True)], [])
 
@@ -62,11 +68,9 @@ class Pod(db.TimeStampedBase):
 def global_pod():
 	p = Pod.query().get() # pod #1
 	if not p:
-		w = Wallet()
-		w.put()
 		p = Pod()
 		p.name = "Global"
-		p.pool = w.key
+		p.oncreate()
 		p.put()
 	return p
 
