@@ -39,6 +39,58 @@ comp.pods = {
 		commitment: function(c) {
 			return comp.pods._.item(CT.data.get(c.service).name,
 				c, c.estimate + " hours per week");
+		},
+		submit: function(opts, stype) {
+			var _ = comp.pods._;
+			opts.membership = _.memberships[_.current.pod.key].key;
+			comp.core.prompt({
+				prompt: "any notes?",
+				isTA: true,
+				cb: function(notes) {
+					opts.notes = notes;
+					comp.core.c(CT.merge(opts, {
+						action: stype
+					}), function(ckey) {
+						opts.key = ckey;
+						CT.data.add(opts);
+						
+						var n = _[stype](opts);
+						// TODO: add n to appropriate lister node!!!
+					});
+				}
+			});
+		},
+		submitter: function(stype) {
+			var _ = comp.pods._;
+			return function() {
+				if (stype == "commit") {
+					comp.core.services(function(service) {
+						comp.core.prompt({
+							prompt: "how many hours per week?",
+							style: "number",
+							cb: function(estimate) {
+								_.submit({
+									service: service.key,
+									estimate: estimate
+								}, stype);
+							}
+						});
+					});
+				} else if (stype == "act") {
+					comp.core.services(function(service) {
+						comp.core.mates(_.current.pod.key, "select the workers", function(workers) {
+							comp.core.mates(_.current.pod.key, "select the beneficiaries", function(bennies) {
+								_.submit({
+									workers: workers.map(function(w) { return w.key; }),
+									beneficiaries: bennies.map(function(b) { return b.key; })
+								}, stype);
+							});
+						});
+					});
+				} else if (style == "request") {
+					// action, person
+				}
+			};
 		}
 	},
 	fresh: function() {
@@ -49,9 +101,21 @@ comp.pods = {
 		_.current.pod = pod;
 		comp.core.pod(pod.key, function(data) {
 			decide.core.util.proposals(_.nodes.proposals, data.proposals);
-			CT.dom.setContent(_.nodes.services, data.acts.map(_.act));
-			CT.dom.setContent(_.nodes.requests, data.requests.map(_.request));
-			CT.dom.setContent(_.nodes.commitments, data.commitments.map(_.commitment));
+			CT.dom.setContent(_.nodes.services, [
+				CT.dom.button("new", _.submitter("act"), "right"),
+				CT.dom.div("Services", "biggest"),
+				data.acts.map(_.act)
+			]);
+			CT.dom.setContent(_.nodes.requests, [
+				CT.dom.button("new", _.submitter("request"), "right"),
+				CT.dom.div("Requests", "biggest"),
+				data.requests.map(_.request)
+			]);
+			CT.dom.setContent(_.nodes.commitments, [
+				CT.dom.button("new", _.submitter("commit"), "right"),
+				CT.dom.div("Commitments", "biggest"),
+				data.commitments.map(_.commitment)
+			]);
 		});
 	},
 	pods: function(pods) {
