@@ -22,22 +22,23 @@ comp.pods = {
 				proposals: memship.proposals
 			});
 		},
-		item: function(header, passed, notes) {
+		item: function(header, data, notes) {
 			return CT.dom.div([
 				CT.dom.div(header, "big"),
-				notes,
-				passed ? "passed" : "pending"
+				"submitted by: " + CT.data.get(CT.data.get(data.membership).person).email,
+				notes || data.notes,
+				data.passed ? "passed" : "pending"
 			], "bordered padded margined");
 		},
 		act: function(a) {
-			return comp.pods._.item(CT.data.get(a.service).name, a.passed, a.notes);
+			return comp.pods._.item(CT.data.get(a.service).name, a);
 		},
 		request: function(r) {
-			return comp.pods._.item(r.action, r.passed);
+			return comp.pods._.item(r.action + " " + CT.data.get(r.person).email, r);
 		},
 		commitment: function(c) {
 			return comp.pods._.item(CT.data.get(c.service).name,
-				c.passed, c.estimate + " hours per week");
+				c, c.estimate + " hours per week");
 		}
 	},
 	fresh: function() {
