@@ -44,11 +44,11 @@ comp.core = {
 			style: "single-choice"
 		}));
 	},
-	mates: function(pod, prompt, cb) {
+	mates: function(pod, prompt, cb, style) {
 		comp.core.choice({
 			cb: cb,
 			prompt: prompt,
-			style: "multiple-choice",
+			style: style || "multiple-choice",
 			data: comp.core._.pods[pod].people
 		})
 	},
