@@ -67,7 +67,7 @@ def response():
 	elif action == "request":
 		req = Request()
 		req.membership = cgi_get("membership")
-		req.action = cgi_get("action")
+		req.change = cgi_get("change")
 		req.person = cgi_get("person")
 		req.notes = cgi_get("notes")
 		req.put()

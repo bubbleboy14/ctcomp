@@ -138,7 +138,7 @@ class Act(Verifiable):
 		return True
 
 class Request(Verifiable):
-	action = db.String(choices=["include", "exclude"])
+	change = db.String(choices=["include", "exclude"])
 	person = db.ForeignKey(kind=Person) # person in question!
 
 	def signers(self):
@@ -148,7 +148,7 @@ class Request(Verifiable):
 		if self.passed or not self.verified():
 			return False
 		pod = self.pod(True)
-		if self.action == "exclude":
+		if self.change == "exclude":
 			Membership.query(Membership.pod == pod, Membership.person == self.person).rm()
 		else: # include
 			Membership(pod=pod, person=self.person).put()
