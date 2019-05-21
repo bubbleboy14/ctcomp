@@ -87,40 +87,53 @@ comp.pods = {
 						});
 					});
 				} else if (stype == "request") {
-					comp.core.choice({
-						data: ["include", "exclude"],
-						cb: function(change) {
-							if (change == "include") {
-								comp.core.prompt({
-									prompt: "what's this person's email address?",
-									cb: function(email) {
-										if (!CT.parse.validEmail(email))
-											return alert("that's not an email address!");
-										CT.db.get("person", function(peeps) {
-											var person = peeps[0];
-											if (!person)
-												return alert(email + " isn't in our system! ask your friend to join first :)");
-											_.submit({
-												person: person.key,
-												change: change
-											});
-										}, 1, 0, null, {
-											email: email
-										});
-									}
-								});
-							} else { // exclude
-								comp.core.mates(_.current.pod.key, "kick out whom?", function(person) {
-									_.submit({
-										person: person.key,
-										change: change
-									}, stype);
-								}, "single-choice");
-							}
-						}
-					});
+					if (comp.core.size(_.current.pod.key) > 2) {
+						comp.core.choice({
+							data: ["include", "exclude"],
+							cb: _.change
+						});
+					} else
+						_.change("include");
 				}
 			};
+		},
+		change: function(change) {
+			var _ = comp.pods._;
+			if (change == "include") {
+				comp.core.prompt({
+					prompt: "what's this person's email address?",
+					cb: function(email) {
+						if (!CT.parse.validEmail(email))
+							return alert("that's not an email address!");
+						CT.db.get("person", function(peeps) {
+							var person = peeps[0];
+							if (!person)
+								return alert(email + " isn't in our system! ask your friend to join first :)");
+							_.submit({
+								person: person.key,
+								change: change
+							}, "request");
+						}, 1, 0, null, {
+							email: email
+						});
+					}
+				});
+			} else { // exclude
+				comp.core.mates(_.current.pod.key, "kick out whom?", function(person) {
+					_.submit({
+						person: person.key,
+						change: change
+					}, "request");
+				}, "single-choice");
+			}
+		},
+		restrictions: function() {
+			var unrestricted = comp.core.size(comp.pods._.current.pod.key) > 1,
+				action = unrestricted ? "show" : "hide";
+			["Commitments", "Services"].forEach(function(section) {
+				CT.dom[action]("tl" + section);
+			});
+			unrestricted || CT.dom.id("tlProposals").firstChild.onclick();
 		}
 	},
 	fresh: function() {
@@ -157,6 +170,7 @@ comp.pods = {
 				]);
 			});
 			decide.core.util.proposals(_.nodes.proposals, data.proposals);
+			_.restrictions();
 		});
 	},
 	pods: function(pods) {
@@ -191,7 +205,8 @@ comp.pods = {
 	},
 	slider: function() {
 		var _ = comp.pods._, nodes = _.nodes;
-		nodes.slider._slider = CT.panel.slider([], nodes.views, nodes.slider, null, "bold", null, true);
+		nodes.slider._slider = CT.panel.slider([], nodes.views,
+			nodes.slider, null, null, null, true);
 		_.sections.forEach(function(section, i) {
 			nodes[section.toLowerCase()] = nodes.slider._slider.add(section, !i);
 		});
