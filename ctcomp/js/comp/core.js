@@ -44,6 +44,9 @@ comp.core = {
 			style: "single-choice"
 		}));
 	},
+	size: function(pod) {
+		return comp.core._.pods[pod].people.length;
+	},
 	mates: function(pod, prompt, cb, style) {
 		comp.core.choice({
 			cb: cb,
