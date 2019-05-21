@@ -3,7 +3,7 @@ from model import db, Person, Content, View, Act, Commitment, Request
 from compTemplates import APPLY, APPLICATION, EXCLUDE, SERVICE, COMMITMENT
 
 def response():
-	action = cgi_get("action", choices=["view", "service", "commitment", "request", "verify", "pod", "apply"])
+	action = cgi_get("action", choices=["view", "service", "commitment", "request", "verify", "apply", "pod", "membership"])
 	if action == "view":
 		ip = local("response").ip
 		content = db.get(cgi_get("content")) # key
@@ -88,6 +88,15 @@ def response():
 	elif action == "verify":
 		verifiable = db.get(cgi_get("verifiable")) # act or request or commitment
 		verifiable.verify(cgi_get("person"))
+	elif action == "apply":
+		req = db.get(cgi_get("request"))
+		memship = req.membership.get()
+		pod = memship.pod.get()
+		em = req.person.get().email
+		rkey = req.key.urlsafe()
+		for mem in pod.members():
+			send_mail(to=mem.get().email, subject="pod membership application",
+				body=APPLICATION%(em, pod.name, rkey, mem.urlsafe()))
 	elif action == "pod":
 		pod = db.get(cgi_get("pod"))
 		succeed({
@@ -98,14 +107,9 @@ def response():
 			"memberships": [m.data() for m in pod.members(True)],
 			"people": [p.data() for p in db.get_multi(pod.members())]
 		})
-	elif action == "apply":
-		req = db.get(cgi_get("request"))
-		memship = req.membership.get()
-		pod = memship.pod.get()
-		em = req.person.get().email
-		rkey = req.key.urlsafe()
-		for mem in pod.members():
-			send_mail(to=mem.get().email, subject="pod membership application",
-				body=APPLICATION%(em, pod.name, rkey, mem.urlsafe()))
+	elif action == "membership":
+		succeed({ # maybe include com/ser/req/pro key lists too
+			"content": [c.data() for c in Content.query(Content.membership == cgi_get("membership")).fetch()]
+		})
 
 respond(response)
