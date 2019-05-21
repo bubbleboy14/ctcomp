@@ -12,7 +12,7 @@ comp.pods = {
 			main: CT.dom.div(null, "h1 mr160 relative"),
 			right: CT.dom.div(null, "h1 w160p up5 scrolly right")
 		},
-		sections: ["Commitments", "Services", "Requests", "Proposals"],
+		sections: ["Commitments", "Services", "Requests", "Proposals", "Content"],
 		proposal: function(key) {
 			var _ = comp.pods._,
 				memship = _.memberships[_.current.pod.key];
@@ -24,11 +24,26 @@ comp.pods = {
 		},
 		item: function(header, data, extras) {
 			return CT.dom.div([
+				CT.dom.div("submitted by: " + CT.data.get(CT.data.get(data.membership).person).email, "right"),
 				CT.dom.div(header, "big"),
-				"submitted by: " + CT.data.get(CT.data.get(data.membership).person).email,
 				data.notes,
 				extras,
 				data.passed ? "passed" : "pending"
+			], "bordered padded margined");
+		},
+		content: function(c) {
+			return CT.dom.div([
+				CT.dom.div("submitted by: " + CT.data.get(CT.data.get(c.membership).person).email, "right"),
+				CT.dom.div(c.identifier, "big"),
+				[
+					"add <b>&lt;iframe src='",
+					location.protocol,
+					"://",
+					location.host,
+					"/comp/view.html#",
+					c.key,
+					"'&gt;&lt;/iframe&gt;</b> to your web page"
+				].join("")
 			], "bordered padded margined");
 		},
 		service: function(a) { // act
@@ -62,7 +77,21 @@ comp.pods = {
 		submitter: function(stype) {
 			var _ = comp.pods._;
 			return function() {
-				if (stype == "commitment") {
+				if (stype == "content") {
+					comp.core.prompt({
+						prompt: "enter a descriptor for this content item (url, for instance)",
+						cb: function(identifier) {
+							comp.core.edit({
+								modelName: "content",
+								identifier: identifier,
+								membership: _.memberships[_.current.pod.key].key
+							}, function(content) {
+								CT.data.add(content);
+								CT.dom.addContent(_.nodes.content_list, _.content(content));
+							});
+						}
+					});
+				} else if (stype == "commitment") {
 					comp.core.services(function(service) {
 						comp.core.prompt({
 							prompt: "how many hours per week?",
@@ -134,6 +163,16 @@ comp.pods = {
 				CT.dom[action]("tl" + section);
 			});
 			unrestricted || CT.dom.id("tlProposals").firstChild.onclick();
+		},
+		frame: function(data, item, plur) {
+			var _ = comp.pods._;
+			plur = plur || item;
+				n = _.nodes[item + "_list"] = CT.dom.div(data[plur].map(_[item]));
+			CT.dom.setContent(_.nodes[plur], [
+				CT.dom.button("new", _.submitter(item), "right"),
+				CT.dom.div(CT.parse.capitalize(plur), "biggest"),
+				n
+			]);
 		}
 	},
 	fresh: function() {
@@ -157,17 +196,15 @@ comp.pods = {
 		});
 	},
 	pod: function(pod) {
-		var _ = comp.pods._;
+		var _ = comp.pods._,
+			memship = _.memberships[pod.key];
 		_.current.pod = pod;
+		comp.core.membership(memship.key, function(data) {
+			_.frame(data, "content");
+		});
 		comp.core.pod(pod.key, function(data) {
 			["service", "commitment", "request"].forEach(function(item) {
-				var plur = item + "s",
-					n = _.nodes[item + "_list"] = CT.dom.div(data[plur].map(_[item]));
-				CT.dom.setContent(_.nodes[plur], [
-					CT.dom.button("new", _.submitter(item), "right"),
-					CT.dom.div(CT.parse.capitalize(plur), "biggest"),
-					n
-				]);
+				_.frame(data, item, item + "s");
 			});
 			decide.core.util.proposals(_.nodes.proposals, data.proposals);
 			_.restrictions();
