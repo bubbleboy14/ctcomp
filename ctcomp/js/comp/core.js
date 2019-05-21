@@ -1,5 +1,5 @@
 comp.core = {
-	_: { pods: {} },
+	_: { pods: {}, memships: {} },
 	c: function(opts, cb) {
 		CT.net.post({
 			path: "/_comp",
@@ -16,6 +16,20 @@ comp.core = {
 				pw: core.config.keys.storage
 			},
 			cb: cb
+		});
+	},
+	membership: function(memship, cb) {
+		var _ = comp.core._;
+		if (_.memships[memship])
+			return cb(_.memships[memship]);
+		comp.core.c({
+			action: "membership",
+			membership: memship
+		}, function(data) {
+			for (var k in data)
+				CT.data.addSet(data[k]);
+			_.memships[memship] = data;
+			cb(data);
 		});
 	},
 	pod: function(pod, cb) {
