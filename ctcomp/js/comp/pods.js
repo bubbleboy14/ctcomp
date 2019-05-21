@@ -136,7 +136,8 @@ comp.pods = {
 						pod: pod.key,
 						person: user.core.get("key")
 					}, function(memship) {
-						location = location; // TODO: replace hack w/ real deal
+						location.hash = pod.key;
+						location.reload(); // TODO: replace hack w/ real deal
 					});
 				});
 			}
@@ -159,7 +160,9 @@ comp.pods = {
 		});
 	},
 	pods: function(pods) {
-		CT.panel.triggerList(pods, comp.pods.pod, comp.pods._.nodes.list);
+		var h = location.hash.slice(1),
+			n = CT.panel.triggerList(pods, comp.pods.pod, comp.pods._.nodes.list);
+		(h && CT.dom.id("tl" + h) || n.firstChild).firstChild.onclick();
 	},
 	memberships: function(memberships) {
 		var _ = comp.pods._;
