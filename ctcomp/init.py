@@ -1,6 +1,10 @@
+copies = {
+	".": ["compTemplates.py", "cron.yaml"]
+}
 syms = {
-	".": ["_comp.py"],
+	".": ["_comp.py", "_payday.py"],
 	"html": ["comp"],
+	"css": ["comp.css"],
 	"js": ["comp"]
 }
 model = {
@@ -9,4 +13,4 @@ model = {
 routes = {
 	"/_comp": "_comp.py"
 }
-requires = ["ctuser"]
+requires = ["ctcoop"]
