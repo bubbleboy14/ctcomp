@@ -38,7 +38,7 @@ comp.pods = {
 				[
 					"add <b>&lt;iframe src='",
 					location.protocol,
-					"://",
+					"//",
 					location.host,
 					"/comp/view.html#",
 					c.key,
