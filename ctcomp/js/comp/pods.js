@@ -77,7 +77,7 @@ comp.pods = {
 			});
 		},
 		submitter: function(stype) {
-			var _ = comp.pods._;
+			var _ = comp.pods._, lims = _.limits, counts = _.current.counts, diff;
 			return function() {
 				if (stype == "content") {
 					comp.core.prompt({
@@ -94,11 +94,18 @@ comp.pods = {
 						}
 					});
 				} else if (stype == "commitment") {
+					diff = lims.commitments - counts.commitments;
+					if (!diff)
+						return alert("you're already committed to the max! scale back something else and try again ;)");
 					comp.core.services(function(service) {
 						comp.core.prompt({
 							prompt: "how many hours per week?",
 							style: "number",
+							max: Math.min(5, diff),
+							initial: Math.min(1, diff),
 							cb: function(estimate) {
+								counts.commitments += estimate;
+								_.nodes.limits.update();
 								_.submit({
 									service: service.key,
 									estimate: estimate
@@ -107,10 +114,15 @@ comp.pods = {
 						});
 					});
 				} else if (stype == "service") {
+					if (lims.services == counts.services)
+						return alert("you've served to the max today. take a breather and try again tomorrow ;)");
 					comp.core.services(function(service) {
 						comp.core.mates(_.current.pod.key, "select the workers", function(workers) {
 							comp.core.mates(_.current.pod.key, "select the beneficiaries", function(bennies) {
+								counts.services += 1;
+								_.nodes.limits.update();
 								_.submit({
+									service: service.key,
 									workers: workers.map(function(w) { return w.key; }),
 									beneficiaries: bennies.map(function(b) { return b.key; })
 								}, stype);
