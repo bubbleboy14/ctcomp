@@ -228,6 +228,7 @@ comp.pods = {
 		var h = location.hash.slice(1),
 			n = CT.panel.triggerList(pods, comp.pods.pod, comp.pods._.nodes.list);
 		comp.pods._.current.pods = pods;
+		if (h) location.hash = "";
 		(h && CT.dom.id("tl" + h) || n.firstChild).firstChild.onclick();
 	},
 	memberships: function(memberships) {
