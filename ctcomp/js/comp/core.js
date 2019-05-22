@@ -59,6 +59,10 @@ comp.core = {
 			cb(data);
 		});
 	},
+	podup: function(pod, section, data) {
+		CT.data.add(data);
+		comp.core._.pods[pod][section].push(data);
+	},
 	prompt: function(opts) {
 		(new CT.modal.Prompt(CT.merge(opts, {
 			noClose: true,
