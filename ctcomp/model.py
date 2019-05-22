@@ -32,6 +32,7 @@ class Person(Member):
 class Pod(db.TimeStampedBase):
 	name = db.String()
 	pool = db.ForeignKey(kind=Wallet)
+	agent = db.ForeignKey(kind="Pod")
 
 	def oncreate(self):
 		if not self.pool:
