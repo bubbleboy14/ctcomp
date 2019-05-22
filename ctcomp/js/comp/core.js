@@ -40,6 +40,7 @@ comp.core = {
 			action: "person",
 			person: pkey
 		}, function(data) {
+			CT.data.addSet(data.memberships);
 			_.person = data;
 			cb(data);
 		});
