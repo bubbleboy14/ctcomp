@@ -59,8 +59,8 @@ comp.pods = {
 				c, c.estimate + " hours per week");
 		},
 		submit: function(opts, stype) {
-			var _ = comp.pods._;
-			opts.membership = _.memberships[_.current.pod.key].key;
+			var _ = comp.pods._, pkey = _.current.pod.key;
+			opts.membership = _.memberships[pkey].key;
 			comp.core.prompt({
 				prompt: "any notes?",
 				isTA: true,
@@ -70,7 +70,7 @@ comp.pods = {
 						action: stype
 					}), function(ckey) {
 						opts.key = ckey;
-						CT.data.add(opts);
+						comp.core.podup(pkey, stype + "s", opts);
 						CT.dom.addContent(_.nodes[stype + "_list"], _[stype](opts));
 					});
 				}
