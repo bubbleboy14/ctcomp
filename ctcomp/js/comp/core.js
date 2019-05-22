@@ -86,6 +86,17 @@ comp.core = {
 			data: comp.core._.pods[pod].people
 		})
 	},
+	service: function(name, variety, cb) {
+		comp.core.edit({
+			modelName: "service",
+			variety: variety,
+			name: name
+		}, function(data) {
+			comp.core._.services[variety].push(data);
+			CT.data.add(data);
+			cb(data);
+		});
+	},
 	services: function(cb, variety) {
 		comp.core.choice({
 			prompt: "select a service",
@@ -94,19 +105,38 @@ comp.core = {
 				if (service == "New Service") {
 					comp.core.prompt({
 						prompt: "what's the service called?",
-						cb: function(sname) {
-							comp.core.edit({
-								modelName: "service",
-								name: sname
-							}, function(data) {
-								CT.data.add(data);
-								comp.core._.services[variety].push(data);
-								cb(data);
-							});
+						cb: function(name) {
+							comp.core.service(name, variety, cb);
 						}
 					});
 				} else
 					cb(service);
+			}
+		});
+	},
+	varieties: function(cb, ACP) {
+		var _ = comp.core._;
+		comp.core.choice({
+			prompt: "select a variety",
+			data: ["New Variety"].concat(_.varieties).concat([ACP]),
+			cb: function(variety) {
+				if (variety == "New Variety") {
+					comp.core.prompt({
+						prompt: "what's the new pod variety called?",
+						cb: function(vname) {
+							comp.core.prompt({
+								prompt: "ok, what's an example service of this variety?",
+								cb: function(sname) {
+									comp.core.service(sname, vname, function(service) {
+										_.varieties.push(vname);
+										cb(vname);
+									});
+								}
+							});
+						}
+					});
+				} else
+					cb(variety);
 			}
 		});
 	},
@@ -119,6 +149,7 @@ comp.core = {
 				_.services[service.variety] = _.services[service.variety] || [];
 				_.services[service.variety].push(service);
 			});
+			_.varieties = Object.keys(_.services);
 		});
 	}
 };
