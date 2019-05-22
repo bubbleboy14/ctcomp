@@ -77,7 +77,8 @@ comp.pods = {
 			});
 		},
 		submitter: function(stype) {
-			var _ = comp.pods._, lims = _.limits, counts = _.current.counts, diff;
+			var _ = comp.pods._, lims = _.limits, cur = _.current,
+				pod = cur.pod, counts = cur.counts, diff;
 			return function() {
 				if (stype == "content") {
 					comp.core.prompt({
@@ -86,7 +87,7 @@ comp.pods = {
 							comp.core.edit({
 								modelName: "content",
 								identifier: identifier,
-								membership: _.memberships[_.current.pod.key].key
+								membership: _.memberships[pod.key].key
 							}, function(content) {
 								CT.data.add(content);
 								CT.dom.addContent(_.nodes.content_list, _.content(content));
@@ -112,13 +113,13 @@ comp.pods = {
 								}, stype);
 							}
 						});
-					});
+					}, pod.variety);
 				} else if (stype == "service") {
 					if (lims.services == counts.services)
 						return alert("you've served to the max today. take a breather and try again tomorrow ;)");
 					comp.core.services(function(service) {
-						comp.core.mates(_.current.pod.key, "select the workers", function(workers) {
-							comp.core.mates(_.current.pod.key, "select the beneficiaries", function(bennies) {
+						comp.core.mates(pod.key, "select the workers", function(workers) {
+							comp.core.mates(pod.key, "select the beneficiaries", function(bennies) {
 								counts.services += 1;
 								_.nodes.limits.update();
 								_.submit({
@@ -128,9 +129,9 @@ comp.pods = {
 								}, stype);
 							});
 						});
-					});
+					}, pod.variety);
 				} else if (stype == "request") {
-					if (comp.core.size(_.current.pod.key) > 2) {
+					if (comp.core.size(pod.key) > 2) {
 						comp.core.choice({
 							data: ["include", "exclude"],
 							cb: _.change
