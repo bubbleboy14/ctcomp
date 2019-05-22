@@ -182,18 +182,27 @@ comp.pods = {
 		comp.core.prompt({
 			prompt: "what will you call this pod?",
 			cb: function(name) {
-				comp.core.edit({
-					modelName: "pod",
-					name: name
-				}, function(pod) {
-					comp.core.edit({
-						modelName: "membership",
-						pod: pod.key,
-						person: user.core.get("key")
-					}, function(memship) {
-						location.hash = pod.key;
-						location.reload(); // TODO: replace hack w/ real deal
-					});
+				comp.core.choice({
+					prompt: "associate your pod with an agent? (probably not)",
+					data: ["no agent"].concat(comp.pods._.current.pods),
+					cb: function(agent) {
+						var popts = {
+							modelName: "pod",
+							name: name
+						};
+						if (agent != "no agent")
+							popts.agent = agent.key;
+						comp.core.edit(popts, function(pod) {
+							comp.core.edit({
+								modelName: "membership",
+								pod: pod.key,
+								person: user.core.get("key")
+							}, function(memship) {
+								location.hash = pod.key;
+								location.reload(); // TODO: replace hack w/ real deal
+							});
+						});
+					}
 				});
 			}
 		});
@@ -216,6 +225,7 @@ comp.pods = {
 	pods: function(pods) {
 		var h = location.hash.slice(1),
 			n = CT.panel.triggerList(pods, comp.pods.pod, comp.pods._.nodes.list);
+		comp.pods._.current.pods = pods;
 		(h && CT.dom.id("tl" + h) || n.firstChild).firstChild.onclick();
 	},
 	memberships: function(memberships) {
