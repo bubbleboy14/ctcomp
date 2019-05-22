@@ -48,6 +48,7 @@ class Person(Member):
 
 class Pod(db.TimeStampedBase):
 	name = db.String()
+	variety = db.String()
 	pool = db.ForeignKey(kind=Wallet)
 	agent = db.ForeignKey(kind="Pod")
 
@@ -122,6 +123,7 @@ class View(db.TimeStampedBase):
 
 class Service(db.TimeStampedBase):
 	name = db.String()
+	variety = db.String()
 	compensation = db.Float(default=1.0)
 
 class Verifiable(db.TimeStampedBase):
