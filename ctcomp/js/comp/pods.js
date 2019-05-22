@@ -2,12 +2,14 @@ comp.pods = {
 	_: {
 		current: {},
 		memberships: {},
+		limits: { services: 10, commitments: 40 },
 		classes: {
 			menu: "margined padded bordered round"
 		},
 		nodes: {
 			list: CT.dom.div(),
 			views: CT.dom.div(),
+			limits: CT.dom.div(null, "abs cbl"),
 			slider: CT.dom.div(null, null, "slider"),
 			main: CT.dom.div(null, "h1 mr160 relative"),
 			right: CT.dom.div(null, "h1 w160p up5 scrolly right")
@@ -261,13 +263,28 @@ comp.pods = {
 			nodes[section.toLowerCase()] = nodes.slider._slider.add(section, !i);
 		});
 	},
+	limits: function(data) {
+		var _ = comp.pods._, n = _.nodes.limits, lims = _.limits;
+		_.current.counts = data;
+		n.update = function() {
+			CT.dom.setContent(n, [
+				data.services + " / " + lims.services + " acts (daily service limit)",
+				data.commitments + " / " + lims.commitments + " hours (weekly commitment limit)"
+			]);
+		};
+		n.update();
+		CT.dom.addContent("ctmain", n);
+	},
+	person: function(data) {
+		comp.pods.memberships(data.memberships);
+		delete data.memberships;
+		comp.pods.limits(data);
+	},
 	init: function() {
 		comp.core.init();
 		comp.pods.menu();
 		comp.pods.slider();
 		decide.core.util.onNew(comp.pods._.proposal);
-		CT.db.get("membership", comp.pods.memberships, null, null, null, {
-			person: user.core.get("key")
-		});
+		comp.core.person(user.core.get("key"), comp.pods.person);
 	}
 };
