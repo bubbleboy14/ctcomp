@@ -112,7 +112,7 @@ class Content(db.TimeStampedBase):
 def enroll(agent, person):
 	return db.get(person).enroll(Pod.query(Pod.agent == agent).get()).urlsafe()
 
-def manage(agent, membership, content): # allow multi-pod agents?
+def manage(agent, membership, content):
 	memship = db.get(membership)
 	if memship.pod != Pod.query(Pod.agent == agent).get().key:
 		error("wrong!")
