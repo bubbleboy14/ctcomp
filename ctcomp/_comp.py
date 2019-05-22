@@ -115,6 +115,7 @@ def response():
 		person = db.get(cgi_get("person"))
 		succeed({
 			"services": len(person.acts()), # more efficient way?
+			"memberships": [m.data() for m in person.memberships()],
 			"commitments": sum([c.estimate for c in person.commitments()])
 		})
 
