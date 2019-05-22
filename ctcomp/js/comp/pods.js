@@ -12,7 +12,7 @@ comp.pods = {
 			main: CT.dom.div(null, "h1 mr160 relative"),
 			right: CT.dom.div(null, "h1 w160p up5 scrolly right")
 		},
-		sections: ["Commitments", "Services", "Requests", "Proposals", "Content"],
+		sections: ["Proposals", "Commitments", "Services", "Requests", "Content"],
 		proposal: function(key) {
 			var _ = comp.pods._,
 				memship = _.memberships[_.current.pod.key];
@@ -157,10 +157,13 @@ comp.pods = {
 			}
 		},
 		restrictions: function() {
-			var unrestricted = comp.core.size(comp.pods._.current.pod.key) > 1,
-				action = unrestricted ? "show" : "hide";
-			["Commitments", "Services"].forEach(function(section) {
-				CT.dom[action]("tl" + section);
+			var pod = comp.pods._.current.pod,
+				size = comp.core.size(pod.key),
+				unrestricted = !pod.agent && (size > 1),
+				action = unrestricted ? "show" : "hide",
+				reaction = pod.agent ? "hide" : "show";
+			["Requests", "Commitments", "Services"].forEach(function(section, i) {
+				CT.dom[i ? action : reaction]("tl" + section);
 			});
 			unrestricted || CT.dom.id("tlProposals").firstChild.onclick();
 		},
