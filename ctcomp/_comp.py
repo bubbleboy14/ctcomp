@@ -1,9 +1,9 @@
 from cantools.web import respond, succeed, fail, cgi_get, local, send_mail
-from model import db, Person, Content, View, Act, Commitment, Request
+from model import db, enroll, manage, Person, Content, View, Act, Commitment, Request
 from compTemplates import APPLY, APPLICATION, EXCLUDE, SERVICE, COMMITMENT
 
 def response():
-	action = cgi_get("action", choices=["view", "service", "commitment", "request", "verify", "apply", "pod", "membership"])
+	action = cgi_get("action", choices=["view", "service", "commitment", "request", "verify", "apply", "pod", "membership", "person", "enroll", "manage"])
 	if action == "view":
 		ip = local("response").ip
 		content = db.get(cgi_get("content")) # key
@@ -108,8 +108,19 @@ def response():
 			"people": [p.data() for p in db.get_multi(pod.members())]
 		})
 	elif action == "membership":
-		succeed({ # maybe include com/ser/req/pro key lists too
+		succeed({
 			"content": [c.data() for c in Content.query(Content.membership == cgi_get("membership")).fetch()]
 		})
+	elif action == "person":
+		person = db.get(cgi_get("person"))
+		succeed({
+			"services": len(person.acts()), # more efficient way?
+			"memberships": [m.data() for m in person.memberships()],
+			"commitments": sum([c.estimate for c in person.commitments()])
+		})
+	elif action == "enroll":
+		succeed(enroll(cgi_get("agent"), cgi_get("person")))
+	elif action == "manage":
+		succeed(manage(cgi_get("agent"), cgi_get("membership"), cgi_get("content")))
 
 respond(response)

@@ -1,5 +1,7 @@
+from datetime import datetime, timedelta
 from cantools import db
-from cantools.util import log
+from cantools.util import log, error
+from cantools.web import email_admins
 from ctcoop.model import Member
 from ctdecide.model import Proposal
 
@@ -23,17 +25,37 @@ class Person(Member):
 	wallet = db.ForeignKey(kind=Wallet) # optional
 
 	def onjoin(self):
-		Membership(pod=global_pod().key, person=self.key).put()
+		email_admins("New Person", self.email)
+		self.enroll(global_pod())
 		wallet = Wallet()
 		wallet.put()
 		self.wallet = wallet.key
 		self.put()
 
+	def enroll(self, pod):
+		memship = Membership(pod=pod.key, person=self.key)
+		memship.put()
+		return memship.key
+
+	def memberships(self):
+		return Membership.query(Membership.person == self.key).fetch()
+
+	def acts(self):
+		yesterday = datetime.now() - timedelta(1)
+		return sum([Act.query(Act.membership == m.key,
+			Act.created > yesterday).fetch() for m in self.memberships()], [])
+
+	def commitments(self):
+		return sum([Commitment.query(Commitment.membership == m.key).fetch() for m in self.memberships()], [])
+
 class Pod(db.TimeStampedBase):
 	name = db.String()
+	variety = db.String()
 	pool = db.ForeignKey(kind=Wallet)
+	agent = db.ForeignKey(kind="Pod")
 
 	def oncreate(self):
+		email_admins("New Pod", "name: %s\nvariety: %s"%(self.name, self.variety))
 		if not self.pool:
 			w = Wallet()
 			w.put()
@@ -61,6 +83,7 @@ class Pod(db.TimeStampedBase):
 	def deposit(self, member, amount):
 		member.wallet.get().deposit(amount)
 		self.pool.get().deposit(amount)
+		self.agent and self.agent.get().pool.get().deposit(amount)
 
 	def service(self, member, service, recipient_count):
 		self.deposit(member, service.compensation * recipient_count)
@@ -86,12 +109,24 @@ class Content(db.TimeStampedBase):
 	membership = db.ForeignKey(kind=Membership)
 	identifier = db.String() # some hash, defaulting to url
 
+def enroll(agent, person):
+	return db.get(person).enroll(Pod.query(Pod.agent == agent).get()).urlsafe()
+
+def manage(agent, membership, content):
+	memship = db.get(membership)
+	if memship.pod != Pod.query(Pod.agent == agent).get().key:
+		error("wrong!")
+	con = Content(identifier=content, membership=membership)
+	con.put()
+	return con.key.urlsafe()
+
 class View(db.TimeStampedBase):
 	viewer = db.ForeignKey(kind=Person)
 	content = db.ForeignKey(kind=Content)
 
 class Service(db.TimeStampedBase):
 	name = db.String()
+	variety = db.String()
 	compensation = db.Float(default=1.0)
 
 class Verifiable(db.TimeStampedBase):

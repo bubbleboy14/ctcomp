@@ -2,17 +2,19 @@ comp.pods = {
 	_: {
 		current: {},
 		memberships: {},
+		limits: { services: 10, commitments: 40 },
 		classes: {
 			menu: "margined padded bordered round"
 		},
 		nodes: {
 			list: CT.dom.div(),
 			views: CT.dom.div(),
+			limits: CT.dom.div(null, "abs cbl"),
 			slider: CT.dom.div(null, null, "slider"),
 			main: CT.dom.div(null, "h1 mr160 relative"),
 			right: CT.dom.div(null, "h1 w160p up5 scrolly right")
 		},
-		sections: ["Commitments", "Services", "Requests", "Proposals", "Content"],
+		sections: ["Proposals", "Commitments", "Services", "Requests", "Content"],
 		proposal: function(key) {
 			var _ = comp.pods._,
 				memship = _.memberships[_.current.pod.key];
@@ -57,8 +59,8 @@ comp.pods = {
 				c, c.estimate + " hours per week");
 		},
 		submit: function(opts, stype) {
-			var _ = comp.pods._;
-			opts.membership = _.memberships[_.current.pod.key].key;
+			var _ = comp.pods._, pkey = _.current.pod.key;
+			opts.membership = _.memberships[pkey].key;
 			comp.core.prompt({
 				prompt: "any notes?",
 				isTA: true,
@@ -68,14 +70,15 @@ comp.pods = {
 						action: stype
 					}), function(ckey) {
 						opts.key = ckey;
-						CT.data.add(opts);
+						comp.core.podup(pkey, stype + "s", opts);
 						CT.dom.addContent(_.nodes[stype + "_list"], _[stype](opts));
 					});
 				}
 			});
 		},
 		submitter: function(stype) {
-			var _ = comp.pods._;
+			var _ = comp.pods._, lims = _.limits, cur = _.current,
+				pod = cur.pod, counts = cur.counts, diff;
 			return function() {
 				if (stype == "content") {
 					comp.core.prompt({
@@ -84,7 +87,7 @@ comp.pods = {
 							comp.core.edit({
 								modelName: "content",
 								identifier: identifier,
-								membership: _.memberships[_.current.pod.key].key
+								membership: _.memberships[pod.key].key
 							}, function(content) {
 								CT.data.add(content);
 								CT.dom.addContent(_.nodes.content_list, _.content(content));
@@ -92,31 +95,43 @@ comp.pods = {
 						}
 					});
 				} else if (stype == "commitment") {
+					diff = lims.commitments - counts.commitments;
+					if (!diff)
+						return alert("you're already committed to the max! scale back something else and try again ;)");
 					comp.core.services(function(service) {
 						comp.core.prompt({
 							prompt: "how many hours per week?",
 							style: "number",
+							max: Math.min(5, diff),
+							initial: Math.min(1, diff),
 							cb: function(estimate) {
+								counts.commitments += estimate;
+								_.nodes.limits.update();
 								_.submit({
 									service: service.key,
 									estimate: estimate
 								}, stype);
 							}
 						});
-					});
+					}, pod.variety);
 				} else if (stype == "service") {
+					if (lims.services == counts.services)
+						return alert("you've served to the max today. take a breather and try again tomorrow ;)");
 					comp.core.services(function(service) {
-						comp.core.mates(_.current.pod.key, "select the workers", function(workers) {
-							comp.core.mates(_.current.pod.key, "select the beneficiaries", function(bennies) {
+						comp.core.mates(pod.key, "select the workers", function(workers) {
+							comp.core.mates(pod.key, "select the beneficiaries", function(bennies) {
+								counts.services += 1;
+								_.nodes.limits.update();
 								_.submit({
+									service: service.key,
 									workers: workers.map(function(w) { return w.key; }),
 									beneficiaries: bennies.map(function(b) { return b.key; })
 								}, stype);
 							});
 						});
-					});
+					}, pod.variety);
 				} else if (stype == "request") {
-					if (comp.core.size(_.current.pod.key) > 2) {
+					if (comp.core.size(pod.key) > 2) {
 						comp.core.choice({
 							data: ["include", "exclude"],
 							cb: _.change
@@ -157,10 +172,13 @@ comp.pods = {
 			}
 		},
 		restrictions: function() {
-			var unrestricted = comp.core.size(comp.pods._.current.pod.key) > 1,
-				action = unrestricted ? "show" : "hide";
-			["Commitments", "Services"].forEach(function(section) {
-				CT.dom[action]("tl" + section);
+			var pod = comp.pods._.current.pod,
+				size = comp.core.size(pod.key),
+				unrestricted = !pod.agent && (size > 1),
+				action = unrestricted ? "show" : "hide",
+				reaction = pod.agent ? "hide" : "show";
+			["Requests", "Commitments", "Services"].forEach(function(section, i) {
+				CT.dom[i ? action : reaction]("tl" + section);
 			});
 			unrestricted || CT.dom.id("tlProposals").firstChild.onclick();
 		},
@@ -173,27 +191,43 @@ comp.pods = {
 				CT.dom.div(CT.parse.capitalize(plur), "biggest"),
 				n
 			]);
+		},
+		pod: function(opts, label, cb) {
+			label = label || "this pod";
+			comp.core.prompt({
+				prompt: "what will you call " + label + "?",
+				cb: function(name) {
+					comp.core.edit(CT.merge(opts, {
+						modelName: "pod",
+						name: name
+					}), function(pod) {
+						comp.core.edit({
+							modelName: "membership",
+							pod: pod.key,
+							person: user.core.get("key")
+						}, function(memship) {
+							if (cb) return cb(pod);
+							location.hash = pod.key;
+							location.reload(); // TODO: replace hack w/ real deal
+						});
+					});
+				}
+			});
 		}
 	},
 	fresh: function() {
-		comp.core.prompt({
-			prompt: "what will you call this pod?",
-			cb: function(name) {
-				comp.core.edit({
-					modelName: "pod",
-					name: name
-				}, function(pod) {
-					comp.core.edit({
-						modelName: "membership",
-						pod: pod.key,
-						person: user.core.get("key")
-					}, function(memship) {
-						location.hash = pod.key;
-						location.reload(); // TODO: replace hack w/ real deal
-					});
+		var _ = comp.pods._, ACP = "Agent/Client Pair (Managed Mode)";
+		comp.core.varieties(function(variety) {
+			if (variety == ACP) {
+				_.pod({ variety: "software" }, "the agent pod", function(agent) {
+					_.pod({
+						variety: "managed",
+						agent: agent.key
+					}, "the managed pod");
 				});
-			}
-		});
+			} else
+				_.pod({ variety: variety });
+		}, ACP);
 	},
 	pod: function(pod) {
 		var _ = comp.pods._,
@@ -213,6 +247,8 @@ comp.pods = {
 	pods: function(pods) {
 		var h = location.hash.slice(1),
 			n = CT.panel.triggerList(pods, comp.pods.pod, comp.pods._.nodes.list);
+		comp.pods._.current.pods = pods;
+		if (h) location.hash = "";
 		(h && CT.dom.id("tl" + h) || n.firstChild).firstChild.onclick();
 	},
 	memberships: function(memberships) {
@@ -248,13 +284,28 @@ comp.pods = {
 			nodes[section.toLowerCase()] = nodes.slider._slider.add(section, !i);
 		});
 	},
+	limits: function(data) {
+		var _ = comp.pods._, n = _.nodes.limits, lims = _.limits;
+		_.current.counts = data;
+		n.update = function() {
+			CT.dom.setContent(n, [
+				data.services + " / " + lims.services + " acts (daily service limit)",
+				data.commitments + " / " + lims.commitments + " hours (weekly commitment limit)"
+			]);
+		};
+		n.update();
+		CT.dom.addContent("ctmain", n);
+	},
+	person: function(data) {
+		comp.pods.memberships(data.memberships);
+		delete data.memberships;
+		comp.pods.limits(data);
+	},
 	init: function() {
 		comp.core.init();
 		comp.pods.menu();
 		comp.pods.slider();
 		decide.core.util.onNew(comp.pods._.proposal);
-		CT.db.get("membership", comp.pods.memberships, null, null, null, {
-			person: user.core.get("key")
-		});
+		comp.core.person(user.core.get("key"), comp.pods.person);
 	}
 };

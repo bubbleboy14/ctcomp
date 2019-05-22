@@ -32,6 +32,19 @@ comp.core = {
 			cb(data);
 		});
 	},
+	person: function(pkey, cb) {
+		var _ = comp.core._;
+		if (_.person)
+			return cb(_.person);
+		comp.core.c({
+			action: "person",
+			person: pkey
+		}, function(data) {
+			CT.data.addSet(data.memberships);
+			_.person = data;
+			cb(data);
+		});
+	},
 	pod: function(pod, cb) {
 		var _ = comp.core._;
 		if (_.pods[pod])
@@ -46,14 +59,18 @@ comp.core = {
 			cb(data);
 		});
 	},
+	podup: function(pod, section, data) {
+		CT.data.add(data);
+		comp.core._.pods[pod][section].push(data);
+	},
 	prompt: function(opts) {
 		(new CT.modal.Prompt(CT.merge(opts, {
+			noClose: true,
 			transition: "slide"
 		}))).show();
 	},
 	choice: function(opts) {
 		comp.core.prompt(CT.merge(opts, {
-			noClose: true,
 			defaultIndex: 0,
 			style: "single-choice"
 		}));
@@ -69,23 +86,27 @@ comp.core = {
 			data: comp.core._.pods[pod].people
 		})
 	},
-	services: function(cb) {
+	service: function(name, variety, cb) {
+		comp.core.edit({
+			modelName: "service",
+			variety: variety,
+			name: name
+		}, function(data) {
+			comp.core._.services[variety].push(data);
+			CT.data.add(data);
+			cb(data);
+		});
+	},
+	services: function(cb, variety) {
 		comp.core.choice({
 			prompt: "select a service",
-			data: ["New Service"].concat(comp.core._.services),
+			data: ["New Service"].concat(comp.core._.services[variety]),
 			cb: function(service) {
 				if (service == "New Service") {
 					comp.core.prompt({
 						prompt: "what's the service called?",
-						cb: function(sname) {
-							comp.core.edit({
-								modelName: "service",
-								name: sname
-							}, function(data) {
-								CT.data.add(data);
-								comp.core._.services.push(data);
-								cb(data);
-							});
+						cb: function(name) {
+							comp.core.service(name, variety, cb);
 						}
 					});
 				} else
@@ -93,11 +114,42 @@ comp.core = {
 			}
 		});
 	},
+	varieties: function(cb, ACP) {
+		var _ = comp.core._;
+		comp.core.choice({
+			prompt: "select a variety",
+			data: ["New Variety"].concat(_.varieties).concat([ACP]),
+			cb: function(variety) {
+				if (variety == "New Variety") {
+					comp.core.prompt({
+						prompt: "what's the new pod variety called?",
+						cb: function(vname) {
+							comp.core.prompt({
+								prompt: "ok, what's an example service of this variety?",
+								cb: function(sname) {
+									comp.core.service(sname, vname, function(service) {
+										_.varieties.push(vname);
+										cb(vname);
+									});
+								}
+							});
+						}
+					});
+				} else
+					cb(variety);
+			}
+		});
+	},
 	init: function() {
 		var _ = comp.core._;
 		CT.db.get("service", function(services) {
-			_.services = services;
 			CT.data.addSet(services);
+			_.services = {};
+			services.forEach(function(service) {
+				_.services[service.variety] = _.services[service.variety] || [];
+				_.services[service.variety].push(service);
+			});
+			_.varieties = Object.keys(_.services);
 		});
 	}
 };
