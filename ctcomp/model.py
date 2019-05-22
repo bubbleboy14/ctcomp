@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from cantools import db
 from cantools.util import log, error
+from cantools.web import email_admins
 from ctcoop.model import Member
 from ctdecide.model import Proposal
 
@@ -24,6 +25,7 @@ class Person(Member):
 	wallet = db.ForeignKey(kind=Wallet) # optional
 
 	def onjoin(self):
+		email_admins("New Person", self.email)
 		self.enroll(global_pod())
 		wallet = Wallet()
 		wallet.put()
@@ -53,6 +55,7 @@ class Pod(db.TimeStampedBase):
 	agent = db.ForeignKey(kind="Pod")
 
 	def oncreate(self):
+		email_admins("New Pod", "name: %s\nvariety: %s"%(self.name, self.variety))
 		if not self.pool:
 			w = Wallet()
 			w.put()
