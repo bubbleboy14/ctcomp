@@ -3,7 +3,7 @@ from model import db, Person, Content, View, Act, Commitment, Request
 from compTemplates import APPLY, APPLICATION, EXCLUDE, SERVICE, COMMITMENT
 
 def response():
-	action = cgi_get("action", choices=["view", "service", "commitment", "request", "verify", "apply", "pod", "membership"])
+	action = cgi_get("action", choices=["view", "service", "commitment", "request", "verify", "apply", "pod", "membership", "person"])
 	if action == "view":
 		ip = local("response").ip
 		content = db.get(cgi_get("content")) # key
@@ -108,8 +108,14 @@ def response():
 			"people": [p.data() for p in db.get_multi(pod.members())]
 		})
 	elif action == "membership":
-		succeed({ # maybe include com/ser/req/pro key lists too
+		succeed({
 			"content": [c.data() for c in Content.query(Content.membership == cgi_get("membership")).fetch()]
+		})
+	elif action == "person":
+		person = db.get(cgi_get("person"))
+		succeed({
+			"services": len(person.acts()), # more efficient way?
+			"commitments": sum([c.estimate for c in person.commitments()])
 		})
 
 respond(response)
