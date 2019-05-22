@@ -32,6 +32,18 @@ comp.core = {
 			cb(data);
 		});
 	},
+	person: function(pkey, cb) {
+		var _ = comp.core._;
+		if (_.person)
+			return cb(_.person);
+		comp.core.c({
+			action: "person",
+			person: pkey
+		}, function(data) {
+			_.person = data;
+			cb(data);
+		});
+	},
 	pod: function(pod, cb) {
 		var _ = comp.core._;
 		if (_.pods[pod])
