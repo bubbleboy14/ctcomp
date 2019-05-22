@@ -62,6 +62,7 @@ class Pod(db.TimeStampedBase):
 	def deposit(self, member, amount):
 		member.wallet.get().deposit(amount)
 		self.pool.get().deposit(amount)
+		self.agent and self.agent.get().pool.get().deposit(amount)
 
 	def service(self, member, service, recipient_count):
 		self.deposit(member, service.compensation * recipient_count)
