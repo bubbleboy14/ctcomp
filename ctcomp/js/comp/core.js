@@ -86,10 +86,10 @@ comp.core = {
 			data: comp.core._.pods[pod].people
 		})
 	},
-	services: function(cb) {
+	services: function(cb, variety) {
 		comp.core.choice({
 			prompt: "select a service",
-			data: ["New Service"].concat(comp.core._.services),
+			data: ["New Service"].concat(comp.core._.services[variety]),
 			cb: function(service) {
 				if (service == "New Service") {
 					comp.core.prompt({
@@ -100,7 +100,7 @@ comp.core = {
 								name: sname
 							}, function(data) {
 								CT.data.add(data);
-								comp.core._.services.push(data);
+								comp.core._.services[variety].push(data);
 								cb(data);
 							});
 						}
@@ -113,8 +113,12 @@ comp.core = {
 	init: function() {
 		var _ = comp.core._;
 		CT.db.get("service", function(services) {
-			_.services = services;
 			CT.data.addSet(services);
+			_.services = {};
+			services.forEach(function(service) {
+				_.services[service.variety] = _.services[service.variety] || [];
+				_.services[service.variety].push(service);
+			});
 		});
 	}
 };
