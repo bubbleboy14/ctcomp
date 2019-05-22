@@ -191,36 +191,43 @@ comp.pods = {
 				CT.dom.div(CT.parse.capitalize(plur), "biggest"),
 				n
 			]);
+		},
+		pod: function(opts, label, cb) {
+			label = label || "this pod";
+			comp.core.prompt({
+				prompt: "what will you call " + label + "?",
+				cb: function(name) {
+					comp.core.edit(CT.merge(opts, {
+						modelName: "pod",
+						name: name
+					}), function(pod) {
+						comp.core.edit({
+							modelName: "membership",
+							pod: pod.key,
+							person: user.core.get("key")
+						}, function(memship) {
+							if (cb) return cb(pod);
+							location.hash = pod.key;
+							location.reload(); // TODO: replace hack w/ real deal
+						});
+					});
+				}
+			});
 		}
 	},
 	fresh: function() {
-		comp.core.prompt({
-			prompt: "what will you call this pod?",
-			cb: function(name) {
-				comp.core.choice({
-					prompt: "associate your pod with an agent? (probably not)",
-					data: ["no agent"].concat(comp.pods._.current.pods),
-					cb: function(agent) {
-						var popts = {
-							modelName: "pod",
-							name: name
-						};
-						if (agent != "no agent")
-							popts.agent = agent.key;
-						comp.core.edit(popts, function(pod) {
-							comp.core.edit({
-								modelName: "membership",
-								pod: pod.key,
-								person: user.core.get("key")
-							}, function(memship) {
-								location.hash = pod.key;
-								location.reload(); // TODO: replace hack w/ real deal
-							});
-						});
-					}
+		var _ = comp.pods._, ACP = "Agent/Client Pair (Managed Mode)";
+		comp.core.varieties(function(variety) {
+			if (variety == ACP) {
+				_.pod({ variety: "software" }, "the agent pod", function(agent) {
+					_.pod({
+						variety: "managed",
+						agent: agent.key
+					}, "the managed pod");
 				});
-			}
-		});
+			} else
+				_.pod({ variety: variety });
+		}, ACP);
 	},
 	pod: function(pod) {
 		var _ = comp.pods._,
