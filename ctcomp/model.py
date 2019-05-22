@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from cantools import db
-from cantools.util import log
+from cantools.util import log, error
 from ctcoop.model import Member
 from ctdecide.model import Proposal
 
@@ -24,11 +24,16 @@ class Person(Member):
 	wallet = db.ForeignKey(kind=Wallet) # optional
 
 	def onjoin(self):
-		Membership(pod=global_pod().key, person=self.key).put()
+		self.enroll(global_pod())
 		wallet = Wallet()
 		wallet.put()
 		self.wallet = wallet.key
 		self.put()
+
+	def enroll(self, pod):
+		memship = Membership(pod=pod.key, person=self.key)
+		memship.put()
+		return memship.key
 
 	def memberships(self):
 		return Membership.query(Membership.person == self.key).fetch()
@@ -99,6 +104,17 @@ class Membership(db.TimeStampedBase):
 class Content(db.TimeStampedBase):
 	membership = db.ForeignKey(kind=Membership)
 	identifier = db.String() # some hash, defaulting to url
+
+def enroll(agent, person):
+	return db.get(person).enroll(Pod.query(Pod.agent == agent).get()).urlsafe()
+
+def manage(agent, membership, content): # allow multi-pod agents?
+	memship = db.get(membership)
+	if memship.pod != Pod.query(Pod.agent == agent).get().key:
+		error("wrong!")
+	con = Content(identifier=content, membership=membership)
+	con.put()
+	return con.key.urlsafe()
 
 class View(db.TimeStampedBase):
 	viewer = db.ForeignKey(kind=Person)
