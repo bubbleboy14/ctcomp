@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from cantools import db
 from cantools.util import log
 from ctcoop.model import Member
@@ -28,6 +29,17 @@ class Person(Member):
 		wallet.put()
 		self.wallet = wallet.key
 		self.put()
+
+	def memberships(self):
+		return Membership.query(Membership.person == self.key).fetch()
+
+	def acts(self):
+		yesterday = datetime.now() - timedelta(1)
+		return sum([Act.query(Act.membership == m.key,
+			Act.created > yesterday).fetch() for m in self.memberships()], [])
+
+	def commitments(self):
+		return sum([Commitment.query(Commitment.membership == m.key).fetch() for m in self.memberships()], [])
 
 class Pod(db.TimeStampedBase):
 	name = db.String()
