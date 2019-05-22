@@ -61,12 +61,12 @@ comp.core = {
 	},
 	prompt: function(opts) {
 		(new CT.modal.Prompt(CT.merge(opts, {
+			noClose: true,
 			transition: "slide"
 		}))).show();
 	},
 	choice: function(opts) {
 		comp.core.prompt(CT.merge(opts, {
-			noClose: true,
 			defaultIndex: 0,
 			style: "single-choice"
 		}));
