@@ -102,7 +102,7 @@ def response():
 		succeed({
 			"services": [a.data() for a in pod.acts()],
 			"requests": [r.data() for r in pod.requests()],
-			"proposals": [p.data() for p in pod.proposals()],
+			"proposals": [p.data() for p in db.get_multi(pod.proposals())],
 			"commitments": [c.data() for c in pod.commitments()],
 			"memberships": [m.data() for m in pod.members(True)],
 			"people": [p.data() for p in db.get_multi(pod.members())]
