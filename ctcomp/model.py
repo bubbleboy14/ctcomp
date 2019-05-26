@@ -20,9 +20,13 @@ class Wallet(db.TimeStampedBase):
 			self.outstanding += amount
 			self.put()
 
+class Contributor(db.TimeStampedBase):
+	handle = db.String()
+
 class Person(Member):
-	ip = db.String()                    # optional
-	wallet = db.ForeignKey(kind=Wallet) # optional
+	ip = db.String()                              # optional
+	wallet = db.ForeignKey(kind=Wallet)           # optional
+	contributor = db.ForeignKey(kind=Contributor) # optional
 
 	def onjoin(self):
 		email_admins("New Person", self.email)
@@ -105,6 +109,39 @@ class Membership(db.TimeStampedBase):
 	def deposit(self, amount):
 		self.pod.get().deposit(self.person.get(), amount)
 
+class Codebase(db.TimeStampedBase):
+	pod = db.ForeignKey(kind=Pod)
+	account = db.String() # bubbleboy14
+	repo = db.String()    # ctcomp
+
+	def contributions(self):
+		contz = {}
+		for cont in Contribution.query(Contribution.codebase == self.key).fetch():
+			contz[cont.contributor.get().handle] = cont
+		return contz
+
+	def refresh(self):
+		contribs = self.contributions()
+		freshies = [] # TODO: acquire via github api!
+		for item in freshies:
+			contrib = contribs.get(item["login"])
+			contrib and contrib.refresh(item["contributions"])
+
+class Contribution(db.TimeStampedBase):
+	codebase = db.ForeignKey(kind=Codebase)
+	contributor = db.ForeignKey(kind=Contributor)
+	count = db.Integer(default=0)
+
+	def refresh(self, total):
+		diff = total - self.count
+		if diff:
+			person = Person.query(Person.contributor == self.contributor).get()
+			pod = db.get(self.codebase).pod
+			memship = Membership.query(Membership.pod == pod, Membership.person == person.key).get()
+			memship.deposit(diff)
+			self.count = total
+			self.put()
+
 class Content(db.TimeStampedBase):
 	membership = db.ForeignKey(kind=Membership)
 	identifier = db.String() # some hash, defaulting to url
@@ -167,11 +204,17 @@ class Commitment(Verifiable):
 		self.membership.get().deposit(service.compensation * self.estimate * numdays / 7.0)
 
 def payDay():
+	log("payday!", important=True)
 	commz = Commitment.query(Commitment.passed == True).fetch()
 	log("found %s live commitments"%(len(commz),), important=True)
 	for comm in commz:
 		comm.deposit()
 	log("compensated pods and members corresponding to %s commitments"%(len(commz),), important=True)
+	cbz = Codebase.query().fetch()
+	log("found %s registered codebases"%(len(cbz),), important=True)
+	for cb in cbz:
+		cb.refresh()
+	log("refreshed %s codebases", important=True)
 
 class Act(Verifiable):
 	service = db.ForeignKey(kind=Service)
