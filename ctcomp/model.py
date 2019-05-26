@@ -65,6 +65,9 @@ class Pod(db.TimeStampedBase):
 			w.put()
 			self.pool = w.key
 
+	def codebases(self):
+		return Codebase.query(Codebase.pod == self.key).fetch()
+
 	def _collection(self, mod):
 		return sum([mod.query(mod.membership == m.key).fetch() for m in self.members(True)], [])
 
@@ -88,6 +91,8 @@ class Pod(db.TimeStampedBase):
 		member.wallet.get().deposit(amount)
 		self.pool.get().deposit(amount)
 		self.agent and self.agent.get().pool.get().deposit(amount)
+		for codebase in self.codebases():
+			codebase.deposit(amount)
 
 	def service(self, member, service, recipient_count):
 		self.deposit(member, service.compensation * recipient_count)
@@ -111,17 +116,26 @@ class Membership(db.TimeStampedBase):
 
 class Codebase(db.TimeStampedBase):
 	pod = db.ForeignKey(kind=Pod)
-	account = db.String() # bubbleboy14
-	repo = db.String()    # ctcomp
+	owner = db.String() # bubbleboy14
+	repo = db.String()  # ctcomp
 
-	def contributions(self):
+	def deposit(self, amount):
+		contz = self.contributions()
+		total = float(sum([cont.count for cont in contz]))
+		for contrib in contz:
+			contrib.membership().deposit(amount * contrib.count / total)
+
+	def contributions(self, asmap=False):
+		clist = Contribution.query(Contribution.codebase == self.key).fetch()
+		if not asmap:
+			return clist
 		contz = {}
-		for cont in Contribution.query(Contribution.codebase == self.key).fetch():
+		for cont in clist:
 			contz[cont.contributor.get().handle] = cont
 		return contz
 
 	def refresh(self):
-		contribs = self.contributions()
+		contribs = self.contributions(True)
 		freshies = [] # TODO: acquire via github api!
 		for item in freshies:
 			contrib = contribs.get(item["login"])
@@ -132,13 +146,15 @@ class Contribution(db.TimeStampedBase):
 	contributor = db.ForeignKey(kind=Contributor)
 	count = db.Integer(default=0)
 
+	def membership():
+		person = Person.query(Person.contributor == self.contributor).get()
+		pod = db.get(self.codebase).pod
+		return Membership.query(Membership.pod == pod, Membership.person == person.key).get()
+
 	def refresh(self, total):
 		diff = total - self.count
 		if diff:
-			person = Person.query(Person.contributor == self.contributor).get()
-			pod = db.get(self.codebase).pod
-			memship = Membership.query(Membership.pod == pod, Membership.person == person.key).get()
-			memship.deposit(diff)
+			self.membership().deposit(diff)
 			self.count = total
 			self.put()
 
