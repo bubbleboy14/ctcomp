@@ -1,9 +1,11 @@
 from datetime import datetime, timedelta
-from cantools import db
+from cantools import db, config
 from cantools.util import log, error
 from cantools.web import email_admins, fetch
 from ctcoop.model import Member
 from ctdecide.model import Proposal
+
+ratios = config.ctcomp.ratios
 
 class Wallet(db.TimeStampedBase):
 	identifier = db.String() # public key
@@ -90,7 +92,7 @@ class Pod(db.TimeStampedBase):
 	def deposit(self, member, amount):
 		member.wallet.get().deposit(amount)
 		self.pool.get().deposit(amount)
-		self.agent and self.agent.get().pool.get().deposit(amount)
+		self.agent and self.agent.get().pool.get().deposit(amount * ratios.agent)
 		for codebase in self.codebases():
 			codebase.deposit(amount)
 
@@ -118,12 +120,23 @@ class Codebase(db.TimeStampedBase):
 	pod = db.ForeignKey(kind=Pod)
 	owner = db.String() # bubbleboy14
 	repo = db.String()  # ctcomp
+	variety = db.String(choices=["platform", "research and development"])
+	dependencies = db.ForeignKey(kind="Codebase")
 
 	def deposit(self, amount):
+		log('compensating "%s/%s" codebase: %s'%(self.owner, self.repo, amount))
 		contz = self.contributions()
 		total = float(sum([cont.count for cont in contz]))
+		platcut = amount * ratios.code.get(self.variety, ratios.code.rnd)
+		log('dividing %s cut (%s) among %s contributors'%(self.variety, platcut, len(contz)))
 		for contrib in contz:
-			contrib.membership().deposit(amount * contrib.count / total)
+			contrib.membership().deposit(platcut * contrib.count / total)
+		depcut = amount * ratios.code.dependency
+		dnum = len(self.dependencies)
+		depshare = depcut / dnum
+		log('dividing dependency cut (%s) among %s codebases'%(depcut, dnum))
+		for dep in db.get_multi(self.dependencies):
+			dep.deposit(depshare)
 
 	def contributions(self, asmap=False):
 		clist = Contribution.query(Contribution.codebase == self.key).fetch()
@@ -155,7 +168,7 @@ class Contribution(db.TimeStampedBase):
 	def refresh(self, total):
 		diff = total - self.count
 		if diff:
-			self.membership().deposit(diff)
+			self.membership().deposit(diff * ratios.code.line)
 			self.count = total
 			self.put()
 
