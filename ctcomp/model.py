@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from cantools import db
 from cantools.util import log, error
-from cantools.web import email_admins
+from cantools.web import email_admins, fetch
 from ctcoop.model import Member
 from ctdecide.model import Proposal
 
@@ -136,7 +136,8 @@ class Codebase(db.TimeStampedBase):
 
 	def refresh(self):
 		contribs = self.contributions(True)
-		freshies = [] # TODO: acquire via github api!
+		freshies = fetch("api.github.com", "/repos/%s/%s/contributors"%(self.owner,
+			self.repo), asjson=True, protocol="https")
 		for item in freshies:
 			contrib = contribs.get(item["login"])
 			contrib and contrib.refresh(item["contributions"])
