@@ -89,12 +89,13 @@ class Pod(db.TimeStampedBase):
 		mems = Membership.query(Membership.pod == self.key).fetch()
 		return noperson and mems or [mem.person for mem in mems]
 
-	def deposit(self, member, amount):
+	def deposit(self, member, amount, nocode=False):
 		member.wallet.get().deposit(amount)
 		self.pool.get().deposit(amount)
 		self.agent and self.agent.get().pool.get().deposit(amount * ratios.agent)
-		for codebase in self.codebases():
-			codebase.deposit(amount)
+		if not nocode:
+			for codebase in self.codebases():
+				codebase.deposit(amount)
 
 	def service(self, member, service, recipient_count):
 		self.deposit(member, service.compensation * recipient_count)
@@ -113,8 +114,8 @@ class Membership(db.TimeStampedBase):
 	person = db.ForeignKey(kind=Person)
 	proposals = db.ForeignKey(kind=Proposal, repeated=True)
 
-	def deposit(self, amount):
-		self.pod.get().deposit(self.person.get(), amount)
+	def deposit(self, amount, nocode=False):
+		self.pod.get().deposit(self.person.get(), amount, nocode)
 
 class Codebase(db.TimeStampedBase):
 	pod = db.ForeignKey(kind=Pod)
@@ -130,7 +131,8 @@ class Codebase(db.TimeStampedBase):
 		platcut = amount * ratios.code.get(self.variety, ratios.code.rnd)
 		log('dividing %s cut (%s) among %s contributors'%(self.variety, platcut, len(contz)))
 		for contrib in contz:
-			contrib.membership().deposit(platcut * contrib.count / total)
+			memship = contrib.membership()
+			memship and memship.deposit(platcut * contrib.count / total, True)
 		depcut = amount * ratios.code.dependency
 		dnum = len(self.dependencies)
 		depshare = depcut / dnum
@@ -163,7 +165,7 @@ class Contribution(db.TimeStampedBase):
 	def membership():
 		person = Person.query(Person.contributor == self.contributor).get()
 		pod = db.get(self.codebase).pod
-		return Membership.query(Membership.pod == pod, Membership.person == person.key).get()
+		return person and pod and Membership.query(Membership.pod == pod, Membership.person == person.key).get()
 
 	def refresh(self, total):
 		diff = total - self.count
