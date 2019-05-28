@@ -19,4 +19,16 @@ This package includes the necessary blockchain/widget/api components for direct 
     routes = {
     	"/_comp": "_comp.py"
     }
+    cfg = {
+    	"ratios": { # payout ratios
+    		"view": 0.1,
+    		"agent": 1,
+    		"code": {
+    			"line": 0.1,
+    			"platform": 1,
+    			"dependency": 0.5,
+    			"rnd": 0.2
+    		}
+    	}
+    }
     requires = ["ctcoop"]
