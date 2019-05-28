@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from cantools import db, config
-from cantools.util import log, error
-from cantools.web import email_admins, fetch
+from cantools.util import error
+from cantools.web import email_admins, fetch, log
 from ctcoop.model import Member
 from ctdecide.model import Proposal
 
@@ -151,11 +151,11 @@ class Codebase(db.TimeStampedBase):
 		return contz
 
 	def refresh(self):
-		contribs = self.contributions(True)
 		freshies = fetch("api.github.com", "/repos/%s/%s/contributors"%(self.owner,
 			self.repo), asjson=True, protocol="https")
 		for item in freshies:
-			contrib = contribs.get(item["login"])
+			log("checking for: %s"%(item["login"],), 1)
+			contrib = getContribution(self, item["login"])
 			contrib and contrib.refresh(item["contributions"])
 
 class Contribution(db.TimeStampedBase):
@@ -163,7 +163,7 @@ class Contribution(db.TimeStampedBase):
 	contributor = db.ForeignKey(kind=Contributor)
 	count = db.Integer(default=0)
 
-	def membership():
+	def membership(self):
 		person = Person.query(Person.contributor == self.contributor).get()
 		pod = db.get(self.codebase).pod
 		return person and pod and Membership.query(Membership.pod == pod, Membership.person == person.key).get()
@@ -171,9 +171,19 @@ class Contribution(db.TimeStampedBase):
 	def refresh(self, total):
 		diff = total - self.count
 		if diff:
-			self.membership().deposit(diff * ratios.code.line)
+			self.membership().deposit(diff * ratios.code.line, True)
 			self.count = total
 			self.put()
+
+def getContribution(codebase, handle):
+	butor = Contributor.query(Contributor.handle == handle).get()
+	if butor:
+		bution = Contribution.query(Contribution.codebase == codebase.key,
+			Contribution.contributor == butor.key).get()
+		if not bution:
+			bution = Contribution(codebase=codebase.key, contributor=butor.key)
+			bution.put()
+		return bution
 
 class Content(db.TimeStampedBase):
 	membership = db.ForeignKey(kind=Membership)
