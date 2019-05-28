@@ -120,7 +120,7 @@ comp.pods = {
 											repo: project.name,
 											variety: variety
 										}, function(cbase) {
-											CT.db.add(cbase);
+											CT.data.add(cbase);
 											CT.dom.addContent(_.nodes.codebase_list, _.codebase(cbase));
 										});
 									}
