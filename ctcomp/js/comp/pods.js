@@ -14,7 +14,7 @@ comp.pods = {
 			main: CT.dom.div(null, "h1 mr160 relative"),
 			right: CT.dom.div(null, "h1 w160p up5 scrolly right")
 		},
-		sections: ["Proposals", "Commitments", "Services", "Requests", "Content"],
+		sections: ["Proposals", "Commitments", "Services", "Requests", "Content", "Codebases"],
 		proposal: function(key) {
 			var _ = comp.pods._,
 				memship = _.memberships[_.current.pod.key];
@@ -31,6 +31,28 @@ comp.pods = {
 				data.notes,
 				extras,
 				data.passed ? "passed" : "pending"
+			], "bordered padded margined");
+		},
+		codebase: function(c) {
+			var deps = CT.dom.div(null, "centered");
+			deps.update = function() {
+				CT.db.multi(c.dependencies, function(dz) {
+					CT.dom.setContent(deps, dz.map(function(d) {
+						return CT.dom.div(d.repo, "bordered padded margined round inline-block");
+					}));
+				});
+			};
+			return CT.dom.div([
+				CT.dom.div(c.variety, "right"),
+				CT.dom.div(c.repo, "big"),
+				deps, CT.dom.button("add dependencies", function() {
+					comp.core.dependencies(c, function() {
+						comp.core.edit({
+							key: c.key,
+							dependencies: c.dependencies
+						}, deps.update);
+					});
+				})
 			], "bordered padded margined");
 		},
 		content: function(c) {
@@ -180,6 +202,7 @@ comp.pods = {
 			["Requests", "Commitments", "Services"].forEach(function(section, i) {
 				CT.dom[i ? action : reaction]("tl" + section);
 			});
+			CT.dom[(pod.variety == "software") ? "show" : "hide"]("tlCodebases");
 			unrestricted || CT.dom.id("tlProposals").firstChild.onclick();
 		},
 		frame: function(data, item, plur) {
@@ -237,7 +260,7 @@ comp.pods = {
 			_.frame(data, "content");
 		});
 		comp.core.pod(pod.key, function(data) {
-			["service", "commitment", "request"].forEach(function(item) {
+			["service", "commitment", "request", "codebase"].forEach(function(item) {
 				_.frame(data, item, item + "s");
 			});
 			decide.core.util.proposals(_.nodes.proposals, data.proposals);
