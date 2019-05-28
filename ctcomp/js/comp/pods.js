@@ -42,6 +42,7 @@ comp.pods = {
 					}));
 				});
 			};
+			deps.update();
 			return CT.dom.div([
 				CT.dom.div(c.variety, "right"),
 				CT.dom.div(c.owner + " / " + c.repo, "big"),
