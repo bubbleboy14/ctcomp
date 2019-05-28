@@ -44,7 +44,7 @@ comp.pods = {
 			};
 			return CT.dom.div([
 				CT.dom.div(c.variety, "right"),
-				CT.dom.div(c.repo, "big"),
+				CT.dom.div(c.owner + " / " + c.repo, "big"),
 				deps, CT.dom.button("add dependencies", function() {
 					comp.core.dependencies(c, function() {
 						comp.core.edit({
@@ -100,9 +100,36 @@ comp.pods = {
 		},
 		submitter: function(stype) {
 			var _ = comp.pods._, lims = _.limits, cur = _.current,
-				pod = cur.pod, counts = cur.counts, diff;
+				pod = cur.pod, counts = cur.counts, diff, u;
 			return function() {
-				if (stype == "content") {
+				if (stype == "codebase") {
+					u = user.core.get();
+					if (!u.contributor)
+						return alert("first, go to the settings page to register your github account!");
+					CT.db.one(u.contributor, function(ucont) {
+						comp.core.choice({
+							data: ["platform", "research and development"],
+							cb: function(variety) {
+								comp.core.choice({
+									data: CT.net.get("https://api.github.com/users/" + ucont.handle + "/repos", null, true),
+									cb: function(project) {
+										comp.core.edit({
+											modelName: "codebase",
+											pod: pod.key,
+											owner: ucont.handle,
+											repo: project.name,
+											variety: variety
+										},
+										cb: function(cbase) {
+											CT.db.add(cbase);
+											CT.dom.addContent(_.nodes.codebase_list, _.codebase(cbase));
+										});
+									}
+								});
+							}
+						});
+					});
+				} else if (stype == "content") {
 					comp.core.prompt({
 						prompt: "enter a descriptor for this content item (url, for instance)",
 						cb: function(identifier) {
