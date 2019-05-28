@@ -1,9 +1,10 @@
 from cantools.web import respond, succeed, fail, cgi_get, local, send_mail
 from model import db, enroll, manage, Person, Content, View, Act, Commitment, Request
-from compTemplates import APPLY, APPLICATION, EXCLUDE, SERVICE, COMMITMENT
+from compTemplates import APPLY, APPLICATION, EXCLUDE, SERVICE, COMMITMENT, CONFCODE
+from cantools import config
 
 def response():
-	action = cgi_get("action", choices=["view", "service", "commitment", "request", "verify", "apply", "pod", "membership", "person", "enroll", "manage"])
+	action = cgi_get("action", choices=["view", "service", "commitment", "request", "verify", "apply", "pod", "membership", "person", "enroll", "manage", "confcode"])
 	if action == "view":
 		ip = local("response").ip
 		content = db.get(cgi_get("content")) # key
@@ -26,7 +27,7 @@ def response():
 		view.put()
 
 		membership = content.membership.get()
-		membership.pod.get().deposit(membership.person.get(), 0.1)
+		membership.pod.get().deposit(membership.person.get(), config.ctcomp.ratios.view)
 
 		succeed(view.key.urlsafe())
 	elif action == "service":
@@ -105,7 +106,8 @@ def response():
 			"proposals": [p.data() for p in db.get_multi(pod.proposals())],
 			"commitments": [c.data() for c in pod.commitments()],
 			"memberships": [m.data() for m in pod.members(True)],
-			"people": [p.data() for p in db.get_multi(pod.members())]
+			"people": [p.data() for p in db.get_multi(pod.members())],
+			"codebases": [c.data() for c in pod.codebases()]
 		})
 	elif action == "membership":
 		succeed({
@@ -122,5 +124,8 @@ def response():
 		succeed(enroll(cgi_get("agent"), cgi_get("person")))
 	elif action == "manage":
 		succeed(manage(cgi_get("agent"), cgi_get("membership"), cgi_get("content")))
+	elif action == "confcode":
+		send_mail(to=cgi_get("email"), subject="carecoin confirmation code",
+			body=CONFCODE%(cgi_get("code"),))
 
 respond(response)

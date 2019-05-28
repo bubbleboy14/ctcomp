@@ -43,3 +43,11 @@ COMMITMENT = """Hello!
 Please click <a href='""" + config.web.protocol + """://""" + config.web.domain + """/_comp?action=verify&verifiable=%s&person=%s'>here</a> if you consider this realistic.
 
 That's it!"""
+
+CONFCODE = """Hello!
+
+You've requested a confirmation code. Here it is:
+
+%s
+
+That's it!"""

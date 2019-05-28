@@ -14,7 +14,7 @@ comp.pods = {
 			main: CT.dom.div(null, "h1 mr160 relative"),
 			right: CT.dom.div(null, "h1 w160p up5 scrolly right")
 		},
-		sections: ["Proposals", "Commitments", "Services", "Requests", "Content"],
+		sections: ["Proposals", "Commitments", "Services", "Requests", "Content", "Codebases"],
 		proposal: function(key) {
 			var _ = comp.pods._,
 				memship = _.memberships[_.current.pod.key];
@@ -31,6 +31,29 @@ comp.pods = {
 				data.notes,
 				extras,
 				data.passed ? "passed" : "pending"
+			], "bordered padded margined");
+		},
+		codebase: function(c) {
+			var deps = CT.dom.div(null, "centered");
+			deps.update = function() {
+				CT.db.multi(c.dependencies, function(dz) {
+					CT.dom.setContent(deps, dz.map(function(d) {
+						return CT.dom.div(d.repo, "bordered padded margined round inline-block");
+					}));
+				});
+			};
+			deps.update();
+			return CT.dom.div([
+				CT.dom.div(c.variety, "right"),
+				CT.dom.div(c.owner + " / " + c.repo, "big"),
+				deps, CT.dom.button("add dependencies", function() {
+					comp.core.dependencies(c, function() {
+						comp.core.edit({
+							key: c.key,
+							dependencies: c.dependencies
+						}, deps.update);
+					});
+				})
 			], "bordered padded margined");
 		},
 		content: function(c) {
@@ -78,9 +101,35 @@ comp.pods = {
 		},
 		submitter: function(stype) {
 			var _ = comp.pods._, lims = _.limits, cur = _.current,
-				pod = cur.pod, counts = cur.counts, diff;
+				pod = cur.pod, counts = cur.counts, diff, u;
 			return function() {
-				if (stype == "content") {
+				if (stype == "codebase") {
+					u = user.core.get();
+					if (!u.contributor)
+						return alert("first, go to the settings page to register your github account!");
+					CT.db.one(u.contributor, function(ucont) {
+						comp.core.choice({
+							data: ["platform", "research and development"],
+							cb: function(variety) {
+								comp.core.choice({
+									data: CT.net.get("https://api.github.com/users/" + ucont.handle + "/repos", null, true),
+									cb: function(project) {
+										comp.core.edit({
+											modelName: "codebase",
+											pod: pod.key,
+											owner: ucont.handle,
+											repo: project.name,
+											variety: variety
+										}, function(cbase) {
+											CT.data.add(cbase);
+											CT.dom.addContent(_.nodes.codebase_list, _.codebase(cbase));
+										});
+									}
+								});
+							}
+						});
+					});
+				} else if (stype == "content") {
 					comp.core.prompt({
 						prompt: "enter a descriptor for this content item (url, for instance)",
 						cb: function(identifier) {
@@ -180,6 +229,7 @@ comp.pods = {
 			["Requests", "Commitments", "Services"].forEach(function(section, i) {
 				CT.dom[i ? action : reaction]("tl" + section);
 			});
+			CT.dom[(pod.variety == "software") ? "show" : "hide"]("tlCodebases");
 			unrestricted || CT.dom.id("tlProposals").firstChild.onclick();
 		},
 		frame: function(data, item, plur) {
@@ -237,7 +287,7 @@ comp.pods = {
 			_.frame(data, "content");
 		});
 		comp.core.pod(pod.key, function(data) {
-			["service", "commitment", "request"].forEach(function(item) {
+			["service", "commitment", "request", "codebase"].forEach(function(item) {
 				_.frame(data, item, item + "s");
 			});
 			decide.core.util.proposals(_.nodes.proposals, data.proposals);
