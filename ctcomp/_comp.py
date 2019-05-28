@@ -78,7 +78,7 @@ def response():
 		mpmail = memship.person.get().email
 		pod = memship.pod.get()
 		rkey = req.key.urlsafe()
-		if req.action == "include":
+		if req.change == "include":
 			send_mail(to=rpmail, subject="pod membership nomination",
 				body=APPLY%(mpmail, pod.name, rkey))
 		else: # exclude
