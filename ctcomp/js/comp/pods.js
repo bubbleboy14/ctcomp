@@ -75,7 +75,7 @@ comp.pods = {
 			return comp.pods._.item(CT.data.get(a.service).name, a);
 		},
 		request: function(r) {
-			return comp.pods._.item(r.action + " " + CT.data.get(r.person).email, r);
+			return comp.pods._.item(r.change + " " + CT.data.get(r.person).email, r);
 		},
 		commitment: function(c) {
 			return comp.pods._.item(CT.data.get(c.service).name,
