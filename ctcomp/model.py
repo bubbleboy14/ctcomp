@@ -122,7 +122,7 @@ class Codebase(db.TimeStampedBase):
 	owner = db.String() # bubbleboy14
 	repo = db.String()  # ctcomp
 	variety = db.String(choices=["platform", "research and development"])
-	dependencies = db.ForeignKey(kind="Codebase")
+	dependencies = db.ForeignKey(kind="Codebase", repeated=True)
 
 	def deposit(self, amount):
 		log('compensating "%s/%s" codebase: %s'%(self.owner, self.repo, amount))
