@@ -7,6 +7,10 @@
 	overflow: hidden;
 }
 
+.basicpopup {
+	text-align: center;
+}
+
 .basicpopup .choice_cell {
 	display: inline-block;
 }
