@@ -247,7 +247,7 @@ def payDay():
 	log("found %s registered codebases"%(len(cbz),), important=True)
 	for cb in cbz:
 		cb.refresh()
-	log("refreshed %s codebases", important=True)
+	log("refreshed %s codebases"%(len(cbz),), important=True)
 
 class Act(Verifiable):
 	service = db.ForeignKey(kind=Service)
