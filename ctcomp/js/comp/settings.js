@@ -12,6 +12,9 @@ comp.settings = {
 						contributor: cont.key
 					}, function() {
 						CT.dom.setContent(_.hnode, "you're all set!");
+						user.core.update({
+							contributor: cont.key
+						});
 					});
 				});
 			},
@@ -30,7 +33,9 @@ comp.settings = {
 				comp.core.prompt({
 					prompt: "what's your github handle?",
 					cb: function(handle) {
-						var data = CT.net.get("https://api.github.com/users/" + handle, null, true);
+						var data = CT.net.get("https://api.github.com/users/" + handle, {
+							oauth_token: core.config.keys.gh
+						}, true);
 						if (!data.email)
 							return alert("this github handle has no publicly associated email address! fix this and try again (you might need to wait for github's cache to refresh)!");
 						_.handle = handle;
