@@ -86,6 +86,29 @@ comp.core = {
 			data: comp.core._.pods[pod].people
 		})
 	},
+	dchoice: function(options, codebase, cb) {
+		comp.core.choice({
+			style: "multiple-choice",
+			data: options.filter(function(opt) {
+				return codebase.dependencies.indexOf(opt.key) == -1;
+			})
+		}, cb);
+	},
+	dependencies: function(codebase, cb) {
+		var _ = comp.core._, selected = function(selections) {
+			codebase.dependencies = codebase.dependencies.concat(selections.map(function(s) {
+				return s.key;
+			}));
+			cb();
+		};
+		if (_.codebases)
+			return comp.core.dchoice(_.codebases, codebase, selected);
+		CT.db.get("codebase", function(codebases) {
+			CT.data.addSet(codebases);
+			_.codebases = codebases;
+			comp.core.dchoice(codebases, codebase, selected);
+		});
+	},
 	service: function(name, variety, cb) {
 		comp.core.edit({
 			modelName: "service",
