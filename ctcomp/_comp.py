@@ -125,7 +125,7 @@ def response():
 	elif action == "manage":
 		succeed(manage(cgi_get("agent"), cgi_get("membership"), cgi_get("content")))
 	elif action == "confcode":
-		send_email(to=cgi_get("email"), subject="carecoin confirmation code",
+		send_mail(to=cgi_get("email"), subject="carecoin confirmation code",
 			body=CONFCODE%(cgi_get("code"),))
 
 respond(response)
