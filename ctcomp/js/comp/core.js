@@ -87,12 +87,16 @@ comp.core = {
 		})
 	},
 	dchoice: function(options, codebase, cb) {
+		var opts = options.filter(function(opt) {
+			return (opt.key != codebase.key) && (codebase.dependencies.indexOf(opt.key) == -1);
+		});
+		if (!opts.length)
+			return alert("no options! better register some more codebases :)");
 		comp.core.choice({
 			style: "multiple-choice",
-			data: options.filter(function(opt) {
-				return codebase.dependencies.indexOf(opt.key) == -1;
-			})
-		}, cb);
+			data: opts,
+			cb: cb
+		});
 	},
 	dependencies: function(codebase, cb) {
 		var _ = comp.core._, selected = function(selections) {
