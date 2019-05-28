@@ -119,8 +119,7 @@ comp.pods = {
 											owner: ucont.handle,
 											repo: project.name,
 											variety: variety
-										},
-										cb: function(cbase) {
+										}, function(cbase) {
 											CT.db.add(cbase);
 											CT.dom.addContent(_.nodes.codebase_list, _.codebase(cbase));
 										});
