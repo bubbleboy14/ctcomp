@@ -222,8 +222,11 @@ class Verifiable(db.TimeStampedBase):
 		return self.pod().members()
 
 	def fulfill(self):
+		if not self.verified():
+			return False
 		self.passed = True
 		self.put()
+		return True
 
 	def verify(self, person):
 		if person in self.signers():
