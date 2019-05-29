@@ -1,4 +1,4 @@
-from cantools.web import respond, succeed, fail, cgi_get, local, send_mail
+from cantools.web import respond, succeed, fail, cgi_get, local, send_mail, redirect
 from model import db, enroll, manage, Person, Content, View, Act, Commitment, Request
 from compTemplates import APPLY, APPLICATION, EXCLUDE, SERVICE, COMMITMENT, CONFCODE
 from cantools import config
@@ -89,6 +89,7 @@ def response():
 	elif action == "verify":
 		verifiable = db.get(cgi_get("verifiable")) # act or request or commitment
 		verifiable.verify(cgi_get("person"))
+		redirect("/comp/pods.html", "you did it!")
 	elif action == "apply":
 		req = db.get(cgi_get("request"))
 		memship = req.membership.get()
@@ -98,6 +99,7 @@ def response():
 		for mem in pod.members():
 			send_mail(to=mem.get().email, subject="pod membership application",
 				body=APPLICATION%(em, pod.name, rkey, mem.urlsafe()))
+		redirect("/comp/pods.html", "you did it!")
 	elif action == "pod":
 		pod = db.get(cgi_get("pod"))
 		succeed({
