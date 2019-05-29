@@ -228,6 +228,15 @@ class Verifiable(db.TimeStampedBase):
 		self.put()
 		return True
 
+	def unverify(self):
+		log("unverifying %s"%(self.key.urlsafe(),))
+		sigs = Verification.query(Verification.act == self.key).fetch()
+		log("unsigning %s verifications"%(len(sigs),), 1)
+		db.delete_multi(sigs)
+		log("unpassing", 1)
+		self.passed = False
+		self.put()
+
 	def verify(self, person):
 		if person in self.signers():
 			log("verification (%s %s) success"%(self.key, person))
