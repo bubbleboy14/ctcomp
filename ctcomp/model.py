@@ -231,7 +231,7 @@ class Verifiable(db.TimeStampedBase):
 			return self.fulfill()
 
 	def verified(self):
-		if person in self.signers():
+		for person in self.signers():
 			if not Verification.query(Verification.act == self.key, Verification.person == person).get():
 				return False
 		return True
