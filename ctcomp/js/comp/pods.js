@@ -6,6 +6,13 @@ comp.pods = {
 		classes: {
 			menu: "margined padded bordered round"
 		},
+		blurbs: {
+			commitment: "Register a weekly commitment.",
+			service: "Record a one-off service.",
+			request: "Include and exclude pod members.",
+			content: "Submit web content associated with this pod (most managed pods don't require manual registration).",
+			codebase: "Register the codebases associated with this software pod, including platform and r&d repositories."
+		},
 		nodes: {
 			list: CT.dom.div(),
 			views: CT.dom.div(),
@@ -239,6 +246,7 @@ comp.pods = {
 			CT.dom.setContent(_.nodes[plur], [
 				CT.dom.button("new", _.submitter(item), "right"),
 				CT.dom.div(CT.parse.capitalize(plur), "biggest"),
+				_.blurbs[item],
 				n
 			]);
 		},
