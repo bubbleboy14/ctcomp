@@ -85,8 +85,53 @@ comp.pods = {
 			return comp.pods._.item(r.change + " " + CT.data.get(r.person).email, r);
 		},
 		commitment: function(c) {
-			return comp.pods._.item(CT.data.get(c.service).name,
-				c, c.estimate + " hours per week");
+			var _ = comp.pods._, n = CT.dom.div(),
+				memship = _.memberships[_.current.pod.key],
+				ismem = c.membership == memship.key;
+			n.adjust = function() {
+				_.estimate(function(estimate) {
+					comp.core.edit({
+						key: c.key,
+						estimate: estimate
+					});
+					if (c.passed && (estimate > c.estimate)) { // requires reapproval
+						comp.core.c({
+							action: "unverify",
+							verifiable: c.key
+						});
+						c.passed = false;
+					}
+					c.estimate = estimate;
+					n.update();
+				}, c.estimate);
+			};
+			n.update = function() {
+				var extras = [c.estimate + " hours per week"];
+				if (ismem) {
+					extras.push(CT.dom.button("adjust", n.adjust));
+				}
+				CT.dom.setContent(n, comp.pods._.item(CT.data.get(c.service).name, c, extras));
+			};
+			n.update();
+			return n;
+		},
+		estimate: function(cb, curval) {
+			curval = curval || 0;
+			var _ = comp.pods._, lims = _.limits, cur = _.current,
+				counts = cur.counts, diff = lims.commitments - counts.commitments - curval;
+			if (!diff)
+				return alert("you're already committed to the max! scale back something else and try again ;)");
+			comp.core.prompt({
+				prompt: "how many hours per week?",
+				style: "number",
+				max: Math.min(5, diff),
+				initial: curval || Math.min(1, diff),
+				cb: function(estimate) {
+					counts.commitments += estimate - curval;
+					_.nodes.limits.update();
+					cb(estimate);
+				}
+			});
 		},
 		submit: function(opts, stype) {
 			var _ = comp.pods._, pkey = _.current.pod.key;
@@ -151,23 +196,12 @@ comp.pods = {
 						}
 					});
 				} else if (stype == "commitment") {
-					diff = lims.commitments - counts.commitments;
-					if (!diff)
-						return alert("you're already committed to the max! scale back something else and try again ;)");
 					comp.core.services(function(service) {
-						comp.core.prompt({
-							prompt: "how many hours per week?",
-							style: "number",
-							max: Math.min(5, diff),
-							initial: Math.min(1, diff),
-							cb: function(estimate) {
-								counts.commitments += estimate;
-								_.nodes.limits.update();
-								_.submit({
-									service: service.key,
-									estimate: estimate
-								}, stype);
-							}
+						_.estimate(function(estimate) {
+							_.submit({
+								service: service.key,
+								estimate: estimate
+							}, stype);
 						});
 					}, pod.variety);
 				} else if (stype == "service") {
