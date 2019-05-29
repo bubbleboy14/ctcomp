@@ -4,7 +4,7 @@ from compTemplates import APPLY, APPLICATION, EXCLUDE, SERVICE, COMMITMENT, CONF
 from cantools import config
 
 def response():
-	action = cgi_get("action", choices=["view", "service", "commitment", "request", "verify", "apply", "pod", "membership", "person", "enroll", "manage", "confcode"])
+	action = cgi_get("action", choices=["view", "service", "commitment", "request", "verify", "unverify", "apply", "pod", "membership", "person", "enroll", "manage", "confcode"])
 	if action == "view":
 		ip = local("response").ip
 		content = db.get(cgi_get("content")) # key
@@ -90,6 +90,18 @@ def response():
 		verifiable = db.get(cgi_get("verifiable")) # act or request or commitment
 		verifiable.verify(db.KeyWrapper(cgi_get("person")))
 		redirect("/comp/pods.html", "you did it!")
+	elif action == "unverify": # commitment only!!!!??!
+		vkey = cgi_get("verifiable")
+		verifiable = db.get(vkey)
+		verifiable.unverify()
+		service = verifiable.service.get()
+		memship = verifiable.membership.get()
+		person = memship.person.get()
+		pod = memship.pod.get()
+		for signer in pod.members():
+			send_mail(to=signer.get().email, subject="affirm commitment - estimate adjustment",
+				body=COMMITMENT%(person.email, pod.name, verifiable.estimate,
+					service.name, vkey, signer.urlsafe()))
 	elif action == "apply":
 		req = db.get(cgi_get("request"))
 		memship = req.membership.get()
