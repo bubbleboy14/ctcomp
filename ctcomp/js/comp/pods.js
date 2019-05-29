@@ -312,7 +312,7 @@ comp.pods = {
 		var _ = comp.pods._;
 		CT.dom.setContent(_.nodes.right, [
 			CT.dom.div([
-				CT.dom.link("new pod", comp.pods.fresh, null, "bold"),
+				CT.dom.link("create new pod", comp.pods.fresh, null, "bold"),
 				_.nodes.list
 			], _.classes.menu),
 			CT.dom.div([
