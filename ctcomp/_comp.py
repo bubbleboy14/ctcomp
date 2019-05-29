@@ -88,7 +88,7 @@ def response():
 		succeed(req.key.urlsafe())
 	elif action == "verify":
 		verifiable = db.get(cgi_get("verifiable")) # act or request or commitment
-		verifiable.verify(cgi_get("person"))
+		verifiable.verify(db.KeyWrapper(cgi_get("person")))
 		redirect("/comp/pods.html", "you did it!")
 	elif action == "apply":
 		req = db.get(cgi_get("request"))

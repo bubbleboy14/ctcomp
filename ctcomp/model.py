@@ -230,8 +230,10 @@ class Verifiable(db.TimeStampedBase):
 
 	def verify(self, person):
 		if person in self.signers():
+			log("verification (%s %s) success"%(self.key, person))
 			Verification(act=self.key, person=person).put()
 			return self.fulfill()
+		log("verification attempt (%s %s) failed -- unauthorized"%(self.key, person))
 
 	def verified(self):
 		for person in self.signers():
