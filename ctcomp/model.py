@@ -195,13 +195,16 @@ def enroll(agent, pkey, person):
 		error("wrong!")
 	return db.get(person).enroll(pod)
 
-def manage(agent, membership, content):
+def manage(agent, membership, identifier):
 	memship = db.get(membership)
 	pod = db.get(memship.pod)
 	if pod.agent != agent:
 		error("wrong!")
-	con = Content(identifier=content, membership=membership)
-	con.put()
+	con = Content.query(Content.membership == membership,
+		Content.identifier == identifier).get()
+	if not con:
+		con = Content(identifier=identifier, membership=membership)
+		con.put()
 	return con
 
 class View(db.TimeStampedBase):

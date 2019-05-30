@@ -15,19 +15,15 @@ def view(user, content):
 
 def views(user):
 	contents = cgi_get("content")
+	agent = cgi_get("agent", required=False)
 	if isinstance(contents, basestring):
 		contents = [contents]
 	for content in contents:
-		view(user, cont(content))
+		view(user, cont(content, agent))
 
-def cont(content):
-	if isinstance(content, basestring):
-		return db.get(content)
-	else:
-		mem = cgi_get("membership")
-		ide = cgi_get("identifier")
-		return Content.query(Content.membership == mem,
-			Content.identifier == ide).get() or manage(cgi_get("agent"), mem, ide)
+def cont(content, agent):
+	return isinstance(content, basestring) and db.get(content) or manage(agent,
+		content["membership"], content["identifier"])
 
 def response():
 	action = cgi_get("action", choices=["view", "service", "commitment", "request", "verify", "unverify", "apply", "pod", "membership", "person", "enroll", "manage", "confcode"])
