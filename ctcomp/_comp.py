@@ -1,14 +1,38 @@
-from cantools.web import respond, succeed, fail, cgi_get, local, send_mail, redirect
+from cantools.web import respond, succeed, fail, cgi_get, log, local, send_mail, redirect
 from model import db, enroll, manage, Person, Content, View, Act, Commitment, Request
 from compTemplates import APPLY, APPLICATION, EXCLUDE, SERVICE, COMMITMENT, CONFCODE
 from cantools import config
+
+def view(user, content):
+	if View.query(View.viewer == user.key, View.content == content.key).get():
+		return log("already viewed (user %s; content %s)"%(user.key.urlsafe(), content.key.urlsafe()))
+	view = View()
+	view.viewer = user.key
+	view.content = content.key
+	view.put()
+	membership = content.membership.get()
+	membership.pod.get().deposit(membership.person.get(), config.ctcomp.ratios.view)
+
+def views(user):
+	contents = cgi_get("content")
+	if isinstance(contents, basestring):
+		contents = [contents]
+	for content in contents:
+		view(user, cont(content))
+
+def cont(content):
+	if isinstance(content, basestring):
+		return db.get(content)
+	else:
+		mem = cgi_get("membership")
+		ide = cgi_get("identifier")
+		return Content.query(Content.membership == mem,
+			Content.identifier == ide).get() or manage(cgi_get("agent"), mem, ide)
 
 def response():
 	action = cgi_get("action", choices=["view", "service", "commitment", "request", "verify", "unverify", "apply", "pod", "membership", "person", "enroll", "manage", "confcode"])
 	if action == "view":
 		ip = local("response").ip
-		content = db.get(cgi_get("content")) # key
-
 		user = cgi_get("user", required=False) # key
 		if user:
 			user = db.get(user)
@@ -18,18 +42,7 @@ def response():
 			user = Person()
 			user.ip = ip
 			user.put()
-
-		if View.query(View.viewer == user.key, View.content == content.key).get():
-			succeed("already viewed")
-		view = View()
-		view.viewer = user.key
-		view.content = content.key
-		view.put()
-
-		membership = content.membership.get()
-		membership.pod.get().deposit(membership.person.get(), config.ctcomp.ratios.view)
-
-		succeed(view.key.urlsafe())
+		views(user)
 	elif action == "service":
 		act = Act()
 		act.membership = cgi_get("membership")
@@ -135,9 +148,9 @@ def response():
 			"commitments": sum([c.estimate for c in person.commitments()])
 		})
 	elif action == "enroll":
-		succeed(enroll(cgi_get("agent"), cgi_get("pod"), cgi_get("person")))
+		succeed(enroll(cgi_get("agent"), cgi_get("pod"), cgi_get("person")).urlsafe())
 	elif action == "manage":
-		succeed(manage(cgi_get("agent"), cgi_get("membership"), cgi_get("content")))
+		succeed(manage(cgi_get("agent"), cgi_get("membership"), cgi_get("content")).key.urlsafe())
 	elif action == "confcode":
 		send_mail(to=cgi_get("email"), subject="carecoin confirmation code",
 			body=CONFCODE%(cgi_get("code"),))
