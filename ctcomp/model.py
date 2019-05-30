@@ -189,12 +189,16 @@ class Content(db.TimeStampedBase):
 	membership = db.ForeignKey(kind=Membership)
 	identifier = db.String() # some hash, defaulting to url
 
-def enroll(agent, person):
-	return db.get(person).enroll(Pod.query(Pod.agent == agent).get()).urlsafe()
+def enroll(agent, pkey, person):
+	pod = db.get(pkey)
+	if pod.agent != agent:
+		error("wrong!")
+	return db.get(person).enroll(pod).urlsafe()
 
 def manage(agent, membership, content):
 	memship = db.get(membership)
-	if memship.pod != Pod.query(Pod.agent == agent).get().key:
+	pod = db.get(memship.pod)
+	if pod.agent != agent:
 		error("wrong!")
 	con = Content(identifier=content, membership=membership)
 	con.put()

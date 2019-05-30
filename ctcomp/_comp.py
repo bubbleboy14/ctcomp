@@ -135,7 +135,7 @@ def response():
 			"commitments": sum([c.estimate for c in person.commitments()])
 		})
 	elif action == "enroll":
-		succeed(enroll(cgi_get("agent"), cgi_get("person")))
+		succeed(enroll(cgi_get("agent"), cgi_get("pod"), cgi_get("person")))
 	elif action == "manage":
 		succeed(manage(cgi_get("agent"), cgi_get("membership"), cgi_get("content")))
 	elif action == "confcode":
