@@ -161,7 +161,7 @@ comp.pods = {
 						return alert("first, go to the settings page to register your github account!");
 					CT.db.one(u.contributor, function(ucont) {
 						comp.core.choice({
-							data: ["platform", "research and development"],
+							data: ["platform", "framework", "research and development"],
 							cb: function(variety) {
 								comp.core.choice({
 									data: CT.net.get("https://api.github.com/users/" + ucont.handle + "/repos", null, true),
