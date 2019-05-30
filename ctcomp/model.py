@@ -193,7 +193,7 @@ def enroll(agent, pkey, person):
 	pod = db.get(pkey)
 	if pod.agent != agent:
 		error("wrong!")
-	return db.get(person).enroll(pod).urlsafe()
+	return db.get(person).enroll(pod)
 
 def manage(agent, membership, content):
 	memship = db.get(membership)
@@ -202,7 +202,7 @@ def manage(agent, membership, content):
 		error("wrong!")
 	con = Content(identifier=content, membership=membership)
 	con.put()
-	return con.key.urlsafe()
+	return con
 
 class View(db.TimeStampedBase):
 	viewer = db.ForeignKey(kind=Person)
