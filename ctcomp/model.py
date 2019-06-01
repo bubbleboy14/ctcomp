@@ -198,7 +198,7 @@ def enroll(agent, pkey, person):
 def manage(agent, membership, identifier):
 	memship = db.get(membership)
 	pod = db.get(memship.pod)
-	if pod.agent != agent:
+	if pod.agent != (agent or global_pod().key):
 		error("wrong!")
 	con = Content.query(Content.membership == membership,
 		Content.identifier == identifier).get()
