@@ -11,7 +11,8 @@ comp.pods = {
 			service: "Record a one-off service.",
 			request: "Include and exclude pod members.",
 			content: "Submit web content associated with this pod (most managed pods don't require manual registration).",
-			codebase: "Register the codebases associated with this software pod, including platform and r&d repositories."
+			codebase: "Register the codebases associated with this software pod, including platform and r&d repositories.",
+			info: "Here's some basic info about this pod."
 		},
 		nodes: {
 			list: CT.dom.div(),
@@ -21,7 +22,7 @@ comp.pods = {
 			main: CT.dom.div(null, "h1 mr160 relative"),
 			right: CT.dom.div(null, "h1 w160p up5 scrolly right")
 		},
-		sections: ["Proposals", "Commitments", "Services", "Requests", "Content", "Codebases"],
+		sections: ["Info", "Proposals", "Commitments", "Services", "Requests", "Content", "Codebases"],
 		proposal: function(key) {
 			var _ = comp.pods._,
 				memship = _.memberships[_.current.pod.key];
@@ -271,7 +272,7 @@ comp.pods = {
 				CT.dom[i ? action : reaction]("tl" + section);
 			});
 			CT.dom[(pod.variety == "software") ? "show" : "hide"]("tlCodebases");
-			unrestricted || CT.dom.id("tlProposals").firstChild.onclick();
+			unrestricted || CT.dom.id("tlInfo").firstChild.onclick();
 		},
 		frame: function(data, item, plur) {
 			var _ = comp.pods._;
@@ -325,6 +326,14 @@ comp.pods = {
 		var _ = comp.pods._,
 			memship = _.memberships[pod.key];
 		_.current.pod = pod;
+		CT.dom.setContent(_.nodes.info, [
+			CT.dom.div("Info", "biggest"),
+			_.blurbs.info,
+			CT.dom.br(),
+			"[TODO: add TOC]",
+			CT.dom.br(),
+			"Your membership key: " + memship.key
+		]);
 		comp.core.membership(memship.key, function(data) {
 			_.frame(data, "content");
 		});
