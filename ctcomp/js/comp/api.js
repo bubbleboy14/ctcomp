@@ -1,11 +1,17 @@
 window.CC = {
 	_: {
+		send: function(entity, action, data) {
+			entity.iframe.contentWindow.postMessage({
+				action: action,
+				data: data
+			}, entity.iframe._targetOrigin);
+		},
 		sender: function(action, entity) {
 			return function(data) {
-				entity.iframe.contentWindow.postMessage({
-					action: action,
-					data: data
-				}, entity.iframe._targetOrigin);
+				if (entity.ready)
+					CC._.send(entity, action, data);
+				else
+					entity.pending.push({ action: action, data: data});
 			};
 		},
 		iframe: function() {
@@ -29,7 +35,14 @@ window.CC = {
 	},
 	viewer: function() {
 		var _ = CC._, v = {
-			iframe: _.iframe()
+			iframe: _.iframe(),
+			pending: []
+		};
+		v.iframe.onload = function() {
+			v.ready = true;
+			v.pending.forEach(function(p) {
+				_.send(v, p.action, p.data);
+			});
 		};
 		v.view = _.sender("view", v);
 		return v;
