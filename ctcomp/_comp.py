@@ -16,7 +16,7 @@ def view(user, content):
 def views(user):
 	contents = cgi_get("content")
 	agent = cgi_get("agent", required=False)
-	if isinstance(contents, basestring):
+	if type(contents) is not list:
 		contents = [contents]
 	for content in contents:
 		view(user, cont(content, agent))
