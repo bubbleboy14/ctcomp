@@ -14,3 +14,11 @@
 .basicpopup .choice_cell {
 	display: inline-block;
 }
+
+.embedded #ctmain {
+	top: 0;
+}
+
+.embedded .basicpopup {
+	max-height: 90%;
+}
