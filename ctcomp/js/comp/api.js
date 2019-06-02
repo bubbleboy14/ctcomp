@@ -11,16 +11,28 @@ window.CC = {
 				if (entity.ready)
 					CC._.send(entity, action, data);
 				else
-					entity.pending.push({ action: action, data: data});
+					entity.pending.push({ action: action, data: data });
 			};
 		},
-		iframe: function() {
+		puller: function(event) {
+			var d = event.data, _ = CC._;
+			if (d.action)
+				_.switcheroo.cb(d);
+		},
+		iframe: function(node) {
 			var ifr = document.createElement("iframe"),
 				loc = CC._.location();
 			ifr._targetOrigin = loc;
 			ifr.src = loc + "/comp/widget.html";
-			ifr.style.visibility = "hidden";
-			document.body.appendChild(ifr);
+			if (node) {
+				ifr.src += "#switcheroo";
+				ifr.style.border = "0";
+				ifr.style.width = ifr.style.height = "100%";
+				node.appendChild(ifr);
+			} else {
+				ifr.style.visibility = "hidden";
+				document.body.appendChild(ifr);
+			}
 			return ifr;
 		},
 		location: function() {
@@ -46,5 +58,24 @@ window.CC = {
 		};
 		v.view = _.sender("view", v);
 		return v;
+	},
+	switcher: function(node, onswitch) {
+		CC.init();
+		var _ = CC._, s = _.switcheroo = {
+			iframe: _.iframe(node),
+			cb: onswitch
+		};
+		s.iframe.onload = function() {
+			s.ready = true;
+			_.send(s, "ping"); // warms up the connection...
+		};
+		s.enroll = _.sender("enroll", s);
+		return s;
+	},
+	init: function() {
+		if (!CC._.initialized) {
+			CC._.initialized = true;
+			window.addEventListener("message", CC._.puller);
+		}
 	}
 };

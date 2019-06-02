@@ -39,8 +39,11 @@ class Person(Member):
 		self.put()
 
 	def enroll(self, pod):
-		memship = Membership(pod=pod.key, person=self.key)
-		memship.put()
+		memship = Membership.query(Membership.pod == pod.key,
+			Membership.person == self.key).get()
+		if not memship:
+			memship = Membership(pod=pod.key, person=self.key)
+			memship.put()
 		return memship.key
 
 	def memberships(self):
@@ -191,7 +194,7 @@ class Content(db.TimeStampedBase):
 
 def enroll(agent, pkey, person):
 	pod = db.get(pkey)
-	if pod.agent != agent:
+	if pod.agent.urlsafe() != agent:
 		error("wrong!")
 	return db.get(person).enroll(pod)
 
