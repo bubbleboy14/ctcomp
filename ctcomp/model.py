@@ -39,8 +39,11 @@ class Person(Member):
 		self.put()
 
 	def enroll(self, pod):
-		memship = Membership(pod=pod.key, person=self.key)
-		memship.put()
+		memship = Membership.query(Membership.pod == pod.key,
+			Membership.person == self.key).get()
+		if not memship:
+			memship = Membership(pod=pod.key, person=self.key)
+			memship.put()
 		return memship.key
 
 	def memberships(self):
