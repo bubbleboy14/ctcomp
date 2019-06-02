@@ -60,6 +60,7 @@ window.CC = {
 		return v;
 	},
 	switcher: function(node, onswitch) {
+		CC.init();
 		var _ = CC._, s = _.switcheroo = {
 			iframe: _.iframe(node),
 			cb: onswitch
