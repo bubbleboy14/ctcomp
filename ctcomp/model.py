@@ -194,7 +194,7 @@ class Content(db.TimeStampedBase):
 
 def enroll(agent, pkey, person):
 	pod = db.get(pkey)
-	if pod.agent != agent:
+	if pod.agent.urlsafe() != agent:
 		error("wrong!")
 	return db.get(person).enroll(pod)
 
