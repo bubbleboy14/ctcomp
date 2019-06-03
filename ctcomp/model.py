@@ -108,6 +108,7 @@ def global_pod():
 	if not p:
 		p = Pod()
 		p.name = "Global"
+		p.variety = "managed"
 		p.oncreate()
 		p.put()
 	return p
