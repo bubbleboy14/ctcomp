@@ -77,6 +77,9 @@ class Pod(db.TimeStampedBase):
 	def _collection(self, mod):
 		return sum([mod.query(mod.membership == m.key).fetch() for m in self.members(True)], [])
 
+	def expenses(self):
+		return self._collection(Expense)
+
 	def acts(self):
 		return self._collection(Act)
 
@@ -245,7 +248,7 @@ class Verifiable(db.TimeStampedBase):
 
 	def notify(self, subject, body):
 		for signer in self.signers():
-			send_email(to=signer.get().email, subject=subject, body=body(signer))
+			send_mail(to=signer.get().email, subject=subject, body=body(signer))
 
 	def unverify(self):
 		log("unverifying %s"%(self.key.urlsafe(),))
