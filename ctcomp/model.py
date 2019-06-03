@@ -103,7 +103,7 @@ class Pod(db.TimeStampedBase):
 		if not nocode:
 			for codebase in self.codebases():
 				codebase.deposit(amount)
-			depcut = amount * ratios.dependency
+			depcut = amount * ratios.code.dependency
 			for dependency in db.get_multi(self.dependencies):
 				dependency.deposit(depcut)
 
