@@ -1,6 +1,6 @@
 from cantools.web import respond, succeed, fail, cgi_get, log, local, send_mail, redirect
-from model import db, enroll, manage, Person, Content, View, Act, Commitment, Request
-from compTemplates import APPLY, APPLICATION, EXCLUDE, SERVICE, COMMITMENT, CONFCODE
+from model import db, enroll, manage, Person, Content, View, Act, Commitment, Request, Expense
+from compTemplates import APPLY, APPLICATION, EXCLUDE, SERVICE, COMMITMENT, EXPENSE, CONFCODE
 from cantools import config
 
 def view(user, content):
@@ -26,7 +26,7 @@ def cont(content, agent):
 		content["membership"], content["identifier"])
 
 def response():
-	action = cgi_get("action", choices=["view", "service", "commitment", "request", "verify", "unverify", "apply", "pod", "membership", "person", "enroll", "manage", "confcode"])
+	action = cgi_get("action", choices=["view", "service", "commitment", "request", "expense", "verify", "unverify", "apply", "pod", "membership", "person", "enroll", "manage", "confcode"])
 	if action == "view":
 		ip = local("response").ip
 		user = cgi_get("user", required=False) # key
@@ -53,9 +53,8 @@ def response():
 		person = memship.person.get()
 		pod = memship.pod.get()
 		workers = "\n".join([w.email for w in db.get_multi(act.workers)])
-		for signer in act.beneficiaries:
-			send_mail(to=signer.get().email, subject="verify service",
-				body=SERVICE%(person.email, pod.name, service.name, workers, akey, signer.urlsafe()))
+		act.notify("verify service", lambda signer : SERVICE%(person.email,
+			pod.name, service.name, workers, akey, signer.urlsafe()))
 		succeed(akey)
 	elif action == "commitment":
 		comm = Commitment()
@@ -70,10 +69,8 @@ def response():
 		memship = comm.membership.get()
 		person = memship.person.get()
 		pod = memship.pod.get()
-		for signer in pod.members():
-			send_mail(to=signer.get().email, subject="affirm commitment",
-				body=COMMITMENT%(person.email, pod.name, comm.estimate,
-					service.name, ckey, signer.urlsafe()))
+		comm.notify("affirm commitment", lambda signer : COMMITMENT%(person.email,
+			pod.name, comm.estimate, service.name, ckey, signer.urlsafe()))
 		succeed(ckey)
 	elif action == "request":
 		req = Request()
@@ -91,12 +88,32 @@ def response():
 			send_mail(to=rpmail, subject="pod membership nomination",
 				body=APPLY%(mpmail, pod.name, rkey))
 		else: # exclude
-			for mem in req.signers():
-				send_mail(to=mem.get().email, subject="pod membership exclusion proposal",
-					body=EXCLUDE%(mpmail, rpmail, pod.name, rkey, mem.urlsafe()))
+			req.notify("pod membership exclusion proposal",
+				lambda signer : EXCLUDE%(mpmail, rpmail, pod.name, rkey, signer.urlsafe()))
 		succeed(req.key.urlsafe())
+	elif action == "expense":
+		exp = Expense()
+		exp.membership = cgi_get("membership")
+		exp.executor = cgi_get("executor", required=False)
+		exp.variety = cgi_get("variety", choices=["dividend", "reimbursement"])
+		exp.amount = cgi_get("amount")
+		exp.recurring = cgi_get("recurring")
+		exp.notes = cgi_get("notes")
+		exp.put()
+		memship = exp.membership.get()
+		mpmail = memship.person.get().email
+		pod = memship.pod.get()
+		variety = exp.variety
+		amount = exp.amount
+		if exp.executor:
+			variety = "%s - executor: %s"%(variety, exp.executor.get().email)
+		else:
+			amount = "%s%%"%(amount * 100,)
+		exp.notify("approve expense", lambda signer: EXPENSE%(mpmail, pod.name,
+			variety, amount, exp.recurring, exp.notes, signer.urlsafe()))
+		succeed(exp.key.urlsafe())
 	elif action == "verify":
-		verifiable = db.get(cgi_get("verifiable")) # act or request or commitment
+		verifiable = db.get(cgi_get("verifiable")) # act/request/commitment/expense
 		verifiable.verify(db.KeyWrapper(cgi_get("person")))
 		redirect("/comp/pods.html", "you did it!")
 	elif action == "unverify": # commitment only!!!!??!
