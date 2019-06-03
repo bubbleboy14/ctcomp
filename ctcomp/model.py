@@ -62,6 +62,7 @@ class Pod(db.TimeStampedBase):
 	variety = db.String()
 	pool = db.ForeignKey(kind=Wallet)
 	agent = db.ForeignKey(kind="Pod")
+	dependencies = db.ForeignKey(kind="Codebase", repeated=True) # software pod only
 
 	def oncreate(self):
 		email_admins("New Pod", "name: %s\nvariety: %s"%(self.name, self.variety))
