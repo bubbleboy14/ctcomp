@@ -44,6 +44,20 @@ Please click <a href='""" + config.web.protocol + """://""" + config.web.domain 
 
 That's it!"""
 
+EXPENSE = """Hello!
+
+%s of the "%s" pod proposes the following expense:
+
+variety: %s
+amount: %s
+recurring: %s
+
+%s
+
+Please click <a href='""" + config.web.protocol + """://""" + config.web.domain + """/_comp?action=verify&verifiable=%s&person=%s'>here</a> if you approve.
+
+That's it!"""
+
 CONFCODE = """Hello!
 
 You've requested a confirmation code. Here it is:
