@@ -13,6 +13,7 @@ comp.pods = {
 			content: "Submit web content associated with this pod (most managed pods don't require manual registration).",
 			codebase: "Register the codebases associated with this software pod, including platform and r&d repositories.",
 			dependency: "Please select the frameworks used by this project.",
+			expense: "Propose an expense (currently supported: one-off dividend).",
 			info: "Here's some basic info about this pod."
 		},
 		nodes: {
@@ -23,7 +24,8 @@ comp.pods = {
 			main: CT.dom.div(null, "h1 mr160 relative"),
 			right: CT.dom.div(null, "h1 w160p up5 scrolly right")
 		},
-		sections: ["Info", "Proposals", "Commitments", "Services", "Requests", "Content", "Codebases", "Dependencies"],
+		sections: ["Info", "Proposals", "Commitments", "Services", "Requests",
+			"Content", "Codebases", "Dependencies", "Expenses"],
 		proposal: function(key) {
 			var _ = comp.pods._,
 				memship = _.memberships[_.current.pod.key];
@@ -86,6 +88,10 @@ comp.pods = {
 				CT.dom.br(),
 				"Unless you're crafting your site by hand (without the CC API), this is almost certainly not necessary."
 			], "bordered padded margined");
+		},
+		expense: function(e) {
+			return comp.pods._.item(e.variety + " - " + (e.amount * 100) + "%", e,
+				e.executor && ("executor: " + CT.data.get(e.executor).email));
 		},
 		service: function(a) { // act
 			return comp.pods._.item(CT.data.get(a.service).name, a);
@@ -218,6 +224,22 @@ comp.pods = {
 								CT.data.add(content);
 								CT.dom.addContent(_.nodes.content_list, _.content(content));
 							});
+						}
+					});
+				} else if (stype == "expense") {
+					comp.core.prompt({
+						prompt: "what percentage should be distributed?",
+						style: "number",
+						max: 100,
+						min: 1,
+						step: 1,
+						initial: 10,
+						cb: function(percentage) {
+							_.submit({
+								variety: "dividend",
+								recurring: false,
+								amount: percentage / 100
+							}, stype);
 						}
 					});
 				} else if (stype == "commitment") {
@@ -358,22 +380,23 @@ comp.pods = {
 		var _ = comp.pods._,
 			memship = _.memberships[pod.key];
 		_.current.pod = pod;
-		CT.dom.setContent(_.nodes.info, [
-			CT.dom.div("Info", "biggest"),
-			_.blurbs.info,
-			CT.dom.br(),
-			"variety: " + pod.variety,
-			CT.dom.br(),
-			"[TODO: add TOC]",
-			CT.dom.br(),
-			"Your membership key: " + memship.key
-		]);
 		_.setDependencies(pod);
 		comp.core.membership(memship.key, function(data) {
 			_.frame(data, "content");
 		});
 		comp.core.pod(pod.key, function(data) {
-			["service", "commitment", "request", "codebase"].forEach(function(item) {
+			CT.dom.setContent(_.nodes.info, [
+				CT.dom.div("Info", "biggest"),
+				_.blurbs.info,
+				CT.dom.br(),
+				"variety: " + pod.variety,
+				"members: " + data.memberships.length,
+				CT.dom.br(),
+				"[TODO: add TOC]",
+				CT.dom.br(),
+				"Your membership key: " + memship.key
+			]);
+			["service", "commitment", "request", "codebase", "expense"].forEach(function(item) {
 				_.frame(data, item, item + "s");
 			});
 			decide.core.util.proposals(_.nodes.proposals, data.proposals);
