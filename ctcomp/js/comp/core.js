@@ -98,6 +98,17 @@ comp.core = {
 			cb: cb
 		});
 	},
+	frameworks: function(cb) {
+		var _ = comp.core._;
+		if (_.frameworks)
+			return cb(_.frameworks);
+		CT.db.get("codebase", function(frameworks) {
+			_.frameworks = frameworks;
+			cb(frameworks);
+		}, null, null, null, {
+			variety: "framework"
+		});
+	},
 	dependencies: function(codebase, cb) {
 		var _ = comp.core._, selected = function(selections) {
 			codebase.dependencies = codebase.dependencies.concat(selections.map(function(s) {
