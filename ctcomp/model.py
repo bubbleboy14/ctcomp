@@ -100,6 +100,9 @@ class Pod(db.TimeStampedBase):
 		if not nocode:
 			for codebase in self.codebases():
 				codebase.deposit(amount)
+			depcut = amount * ratios.dependency
+			for dependency in db.get_multi(self.dependencies):
+				dependency.deposit(depcut)
 
 	def service(self, member, service, recipient_count):
 		self.deposit(member, service.compensation * recipient_count)
