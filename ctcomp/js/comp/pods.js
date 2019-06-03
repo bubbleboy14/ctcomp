@@ -12,6 +12,7 @@ comp.pods = {
 			request: "Include and exclude pod members.",
 			content: "Submit web content associated with this pod (most managed pods don't require manual registration).",
 			codebase: "Register the codebases associated with this software pod, including platform and r&d repositories.",
+			dependency: "Please select the frameworks used by this project.",
 			info: "Here's some basic info about this pod."
 		},
 		nodes: {
@@ -22,7 +23,7 @@ comp.pods = {
 			main: CT.dom.div(null, "h1 mr160 relative"),
 			right: CT.dom.div(null, "h1 w160p up5 scrolly right")
 		},
-		sections: ["Info", "Proposals", "Commitments", "Services", "Requests", "Content", "Codebases"],
+		sections: ["Info", "Proposals", "Commitments", "Services", "Requests", "Content", "Codebases", "Dependencies"],
 		proposal: function(key) {
 			var _ = comp.pods._,
 				memship = _.memberships[_.current.pod.key];
@@ -63,6 +64,9 @@ comp.pods = {
 					});
 				})
 			], "bordered padded margined");
+		},
+		dependency: function(d) {
+			return CT.dom.div(d.repo, "bordered padded margined round inline-block");
 		},
 		content: function(c) {
 			return CT.dom.div([
@@ -160,7 +164,23 @@ comp.pods = {
 			var _ = comp.pods._, lims = _.limits, cur = _.current,
 				pod = cur.pod, counts = cur.counts, diff, u;
 			return function() {
-				if (stype == "codebase") {
+				if (stype == "dependency") {
+					comp.core.frameworks(function(allfms) {
+						comp.core.choice({
+							style: "multiple-choice",
+							data: allfms.filter(function(f) { return pod.dependencies.indexOf(f.key) == -1 }),
+							cb: function(frameworks) {
+								pod.dependencies = pod.dependencies.concat(frameworks.map(function(fw) { return fw.key; }));
+								comp.core.edit({
+									key: pod.key,
+									dependencies: pod.dependencies
+								}, function() {
+									_.setDependencies(pod);
+								});
+							}
+						});
+					});
+				} else if (stype == "codebase") {
 					u = user.core.get();
 					if (!u.contributor)
 						return alert("first, go to the settings page to register your github account!");
@@ -271,11 +291,14 @@ comp.pods = {
 				size = comp.core.size(pod.key),
 				unrestricted = !pod.agent && (size > 1),
 				action = unrestricted ? "show" : "hide",
-				reaction = pod.agent ? "hide" : "show";
+				reaction = pod.agent ? "hide" : "show",
+				showSoft = (pod.variety == "software") ? "show" : "hide";
 			["Requests", "Commitments", "Services"].forEach(function(section, i) {
 				CT.dom[i ? action : reaction]("tl" + section);
 			});
-			CT.dom[(pod.variety == "software") ? "show" : "hide"]("tlCodebases");
+			["Codebases", "Dependencies"].forEach(function(section) {
+				CT.dom[showSoft]("tl" + section);
+			});
 			unrestricted || CT.dom.id("tlInfo").firstChild.onclick();
 		},
 		frame: function(data, item, plur) {
@@ -310,6 +333,11 @@ comp.pods = {
 					});
 				}
 			});
+		},
+		setDependencies: function(pod) {
+			CT.db.multi(pod.dependencies, function(deps) {
+				comp.pods._.frame({ dependencies: deps }, "dependency", "dependencies");
+			});
 		}
 	},
 	fresh: function() {
@@ -340,6 +368,7 @@ comp.pods = {
 			CT.dom.br(),
 			"Your membership key: " + memship.key
 		]);
+		_.setDependencies(pod);
 		comp.core.membership(memship.key, function(data) {
 			_.frame(data, "content");
 		});
