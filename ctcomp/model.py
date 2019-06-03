@@ -288,7 +288,7 @@ class Expense(Verifiable):
 		pool.outstanding -= div
 		pool.put()
 
-`	# reimbursement requires $$ conversion...
+	# reimbursement requires $$ conversion...
 	def reimbursement(self):
 		pass
 
