@@ -334,6 +334,8 @@ comp.pods = {
 			CT.dom.div("Info", "biggest"),
 			_.blurbs.info,
 			CT.dom.br(),
+			"variety: " + pod.variety,
+			CT.dom.br(),
 			"[TODO: add TOC]",
 			CT.dom.br(),
 			"Your membership key: " + memship.key
