@@ -147,7 +147,8 @@ def response():
 			"commitments": [c.data() for c in pod.commitments()],
 			"memberships": [m.data() for m in pod.members(True)],
 			"people": [p.data() for p in db.get_multi(pod.members())],
-			"codebases": [c.data() for c in pod.codebases()]
+			"codebases": [c.data() for c in pod.codebases()],
+			"expenses": [e.data() for e in pod.expenses()]
 		})
 	elif action == "membership":
 		succeed({
