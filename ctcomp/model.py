@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from cantools import db, config
 from cantools.util import error
-from cantools.web import email_admins, fetch, log
+from cantools.web import email_admins, fetch, log, send_mail
 from ctcoop.model import Member
 from ctdecide.model import Proposal
 
@@ -243,6 +243,10 @@ class Verifiable(db.TimeStampedBase):
 		self.put()
 		return True
 
+	def notify(self, subject, body):
+		for signer in self.signers():
+			send_email(to=signer.get().email, subject=subject, body=body(signer))
+
 	def unverify(self):
 		log("unverifying %s"%(self.key.urlsafe(),))
 		sigs = Verification.query(Verification.act == self.key).fetch()
@@ -254,6 +258,8 @@ class Verifiable(db.TimeStampedBase):
 
 	def verify(self, person):
 		if person in self.signers():
+			if Verification(Verification.act == self.key, Verification.person == person).get():
+				return log("already verified (%s %s)!"%(self.key, person), important=True)
 			log("verification (%s %s) success"%(self.key, person))
 			Verification(act=self.key, person=person).put()
 			return self.fulfill()
@@ -263,6 +269,33 @@ class Verifiable(db.TimeStampedBase):
 		for person in self.signers():
 			if not Verification.query(Verification.act == self.key, Verification.person == person).get():
 				return False
+		return True
+
+class Expense(Verifiable):
+	executor = db.ForeignKey(kind=Person) # reimbursement only
+	variety = db.String(choices=["dividend", "reimbursement"])
+	amount = db.Float(default=0.1) # for dividend, split amount * total
+	recurring = db.Boolean(default=False)
+
+	def dividend(self):
+		pod = self.pod()
+		pool = pod.pool.get()
+		people = db.get_multi(pod.members())
+		div = self.amount * pool.outstanding
+		cut = div / len(people)
+		for person in people:
+			person.wallet.get().deposit(cut)
+		pool.outstanding -= div
+		pool.put()
+
+`	# reimbursement requires $$ conversion...
+	def reimbursement(self):
+		pass
+
+	def fulfill(self):
+		if not self.verified() or (self.passed and not self.recurring):
+			return False
+		getattr(self, self.variety)()
 		return True
 
 class Commitment(Verifiable):
