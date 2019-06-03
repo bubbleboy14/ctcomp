@@ -296,7 +296,7 @@ class Expense(Verifiable):
 		pass
 
 	def fulfill(self):
-		if not self.verified() or (self.passed and not self.recurring):
+		if (self.passed and not self.recurring) or not self.verified():
 			return False
 		getattr(self, self.variety)()
 		return True
