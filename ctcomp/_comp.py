@@ -26,7 +26,7 @@ def cont(content, agent):
 		content["membership"], content["identifier"])
 
 def response():
-	action = cgi_get("action", choices=["view", "service", "commitment", "request", "expense", "verify", "unverify", "apply", "pod", "membership", "person", "enroll", "manage", "confcode"])
+	action = cgi_get("action", choices=["view", "service", "commitment", "request", "expense", "verify", "unverify", "apply", "join", "pod", "membership", "person", "enroll", "manage", "confcode"])
 	if action == "view":
 		ip = local("response").ip
 		user = cgi_get("user", required=False) # key
@@ -138,6 +138,12 @@ def response():
 			send_mail(to=mem.get().email, subject="pod membership application",
 				body=APPLICATION%(em, pod.name, rkey, mem.urlsafe()))
 		redirect("/comp/pods.html", "you did it!")
+	elif action == "join": # support only
+		pod = db.get(cgi_get("pod"))
+		if pod.variety != "support":
+			fail()
+		person = db.get(cgi_get("person"))
+		succeed(person.enroll(pod).urlsafe())
 	elif action == "pod":
 		pod = db.get(cgi_get("pod"))
 		succeed({
