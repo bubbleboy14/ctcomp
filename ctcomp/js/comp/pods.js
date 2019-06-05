@@ -1,6 +1,7 @@
 comp.pods = {
 	_: {
 		current: {},
+		agents: {},
 		memberships: {},
 		limits: { services: 10, commitments: 40 },
 		classes: {
@@ -377,7 +378,7 @@ comp.pods = {
 		}, ACP);
 	},
 	pod: function(pod) {
-		var _ = comp.pods._,
+		var _ = comp.pods._, content,
 			memship = _.memberships[pod.key];
 		_.current.pod = pod;
 		_.setDependencies(pod);
@@ -385,7 +386,7 @@ comp.pods = {
 			_.frame(data, "content");
 		});
 		comp.core.pod(pod.key, function(data) {
-			CT.dom.setContent(_.nodes.info, [
+			content = [
 				CT.dom.div("Info", "biggest"),
 				_.blurbs.info,
 				CT.dom.br(),
@@ -395,7 +396,18 @@ comp.pods = {
 				"[TODO: add TOC]",
 				CT.dom.br(),
 				"Your membership key: " + memship.key
-			]);
+			];
+			if (_.agents[pod.key]) {
+				content = content.concat([
+					"This pod's key: " + pod.key,
+					CT.dom.br(),
+					CT.dom.div("Managed Pods", "bigger"),
+					_.agents[pod.key].map(function(p) {
+						return p.name + ": " + p.key;
+					})
+				]);
+			}
+			CT.dom.setContent(_.nodes.info, content);
 			["service", "commitment", "request", "codebase", "expense"].forEach(function(item) {
 				_.frame(data, item, item + "s");
 			});
@@ -404,9 +416,16 @@ comp.pods = {
 		});
 	},
 	pods: function(pods) {
-		var h = location.hash.slice(1),
-			n = CT.panel.triggerList(pods, comp.pods.pod, comp.pods._.nodes.list);
-		comp.pods._.current.pods = pods;
+		var h = location.hash.slice(1), _ = comp.pods._,
+			n = CT.panel.triggerList(pods, comp.pods.pod, _.nodes.list);
+		pods.forEach(function(pod) {
+			if (pod.agent) {
+				if (!_.agents[pod.agent])
+					_.agents[pod.agent] = [];
+				_.agents[pod.agent].push(pod);
+			}
+		});
+		_.current.pods = pods;
 		if (h) location.hash = "";
 		(h && CT.dom.id("tl" + h) || n.firstChild).firstChild.onclick();
 	},
