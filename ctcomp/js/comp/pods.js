@@ -36,9 +36,15 @@ comp.pods = {
 				proposals: memship.proposals
 			});
 		},
+		name: function(pkey) {
+			var person = CT.data.get(pkey), n = person.firstName;
+			if (person.lastName)
+				n += " " + person.lastName;
+			return n;
+		},
 		item: function(header, data, extras) {
 			return CT.dom.div([
-				CT.dom.div("submitted by: " + CT.data.get(CT.data.get(data.membership).person).email, "right"),
+				CT.dom.div("submitted by: " + comp.pods._.name(CT.data.get(data.membership).person), "right"),
 				CT.dom.div(header, "big"),
 				data.notes,
 				extras,
@@ -73,7 +79,7 @@ comp.pods = {
 		},
 		content: function(c) {
 			return CT.dom.div([
-				CT.dom.div("submitted by: " + CT.data.get(CT.data.get(c.membership).person).email, "right"),
+				CT.dom.div("submitted by: " + comp.pods._.name(CT.data.get(c.membership).person), "right"),
 				CT.dom.div(c.identifier, "big"),
 				CT.dom.br(),
 				CT.dom.div("Manual Linking - Probably Not Necessary", "underline"),
@@ -92,13 +98,13 @@ comp.pods = {
 		},
 		expense: function(e) {
 			return comp.pods._.item(e.variety + " - " + (e.amount * 100) + "%", e,
-				e.executor && ("executor: " + CT.data.get(e.executor).email));
+				e.executor && ("executor: " + comp.pods._.name(e.executor)));
 		},
 		service: function(a) { // act
 			return comp.pods._.item(CT.data.get(a.service).name, a);
 		},
 		request: function(r) {
-			return comp.pods._.item(r.change + " " + CT.data.get(r.person).email, r);
+			return comp.pods._.item(r.change + " " + comp.pods._.name(r.person), r);
 		},
 		commitment: function(c) {
 			var _ = comp.pods._, n = CT.dom.div(),
