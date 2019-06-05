@@ -60,6 +60,7 @@ class Person(Member):
 class Pod(db.TimeStampedBase):
 	name = db.String()
 	variety = db.String()
+	terms = db.Text()
 	pool = db.ForeignKey(kind=Wallet)
 	agent = db.ForeignKey(kind="Pod")
 	dependencies = db.ForeignKey(kind="Codebase", repeated=True) # software pod only
@@ -261,7 +262,7 @@ class Verifiable(db.TimeStampedBase):
 
 	def verify(self, person):
 		if person in self.signers():
-			if Verification(Verification.act == self.key, Verification.person == person).get():
+			if Verification.query(Verification.act == self.key, Verification.person == person).get():
 				return log("already verified (%s %s)!"%(self.key, person), important=True)
 			log("verification (%s %s) success"%(self.key, person))
 			Verification(act=self.key, person=person).put()
