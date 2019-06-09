@@ -434,6 +434,9 @@ comp.pods = {
 		_.current.pods = pods;
 		if (h) location.hash = "";
 		(h && CT.dom.id("tl" + h) || n.firstChild).firstChild.onclick();
+		CT.dom.addContent(_.nodes.main.parentNode, CT.chat.widget(user.core.get("key"), pods.map(function(pod) {
+			return pod.name;
+		}), "Pods"));
 	},
 	memberships: function(memberships) {
 		var _ = comp.pods._;
@@ -458,7 +461,7 @@ comp.pods = {
 		CT.dom.setContent("ctmain", CT.dom.div([
 			_.nodes.right,
 			_.nodes.main
-		], "full"));
+		], "abs all0"));
 	},
 	slider: function() {
 		var _ = comp.pods._, nodes = _.nodes;
