@@ -1,3 +1,12 @@
+html, body {
+	height: 100%;
+	overflow: hidden;
+}
+
+#ctmain {
+	overflow-y: hidden;
+}
+
 #slider {
 	position: absolute;
 	top: 0px;
@@ -21,4 +30,9 @@
 
 .embedded .basicpopup {
 	max-height: 90%;
+}
+
+.ct_chat_widget {
+	background: black;
+	border: 1px solid green;
 }
