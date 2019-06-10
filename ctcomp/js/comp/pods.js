@@ -379,7 +379,7 @@ comp.pods = {
 		            slide: {
 		                origin: "bottomleft"
 		            },
-		            content: CT.dom.iframe("https://fzn.party/stream/widget.html#" + podname.replace(/ /g, ""),
+		            content: CT.dom.iframe("https://fzn.party/stream/widget.html#" + podname.replace(/ /g, "") + "_zoom",
 		            	"w1 h1", null, { allow: "microphone; camera" })
 		        });
 		        vbutt._modal.showHide();
