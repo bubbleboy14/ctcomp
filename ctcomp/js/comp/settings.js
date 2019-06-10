@@ -56,6 +56,19 @@ comp.settings = {
 			: CT.dom.button("click here to associate your github account", _.gh.assoc));
 		return _.hnode;
 	},
+	chat: function() {
+		var u = user.core.get();
+		return CT.dom.checkboxAndLabel(null, u.chat, "enable live chat", null, null, function(cbox) {
+			comp.core.edit({
+				key: u.key,
+				chat: cbox.checked
+			}, function() {
+				user.core.update({
+					chat: cbox.checked
+				});
+			});
+		});
+	},
 	wallet: function() {
 		var n = CT.dom.div();
 		
@@ -64,9 +77,13 @@ comp.settings = {
 	init: function() {
 		CT.dom.setContent("ctmain", CT.dom.div([
 			CT.dom.div([
+				CT.dom.div("your basic settings", "biggest"),
+				comp.settings.chat()
+			], "bordered padded round mb5"),
+			CT.dom.div([
 				CT.dom.div("your github account", "biggest"),
 				comp.settings.handle()
-			], "bordered padded round"),
+			], "bordered padded round mb5"),
 			CT.dom.div([
 				CT.dom.div("your wallet", "biggest"),
 				comp.settings.wallet()
