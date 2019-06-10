@@ -1,6 +1,14 @@
+* {
+	box-sizing: border-box;
+}
+
 html, body {
 	height: 100%;
 	overflow: hidden;
+}
+
+#ctheader {
+	height: 105px;
 }
 
 #ctmain {
@@ -32,7 +40,7 @@ html, body {
 	max-height: 90%;
 }
 
-.ct_chat_widget {
-	background: black;
-	border: 1px solid green;
+.vslide {
+	height: 257px;
+	width: calc(100% - 560px);
 }
