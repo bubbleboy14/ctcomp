@@ -456,9 +456,19 @@ comp.pods = {
 		_.current.pods = pods;
 		if (h) location.hash = "";
 		(h && CT.dom.id("tl" + h) || n.firstChild).firstChild.onclick();
-		CT.dom.addContent(_.nodes.main.parentNode, CT.chat.widget(user.core.get("key"), pods.map(function(pod) {
-			return pod.name;
-		}), "Pods", _.video));
+		comp.pods.chat(pods.map(function(pod) { return pod.name; }));
+	},
+	chat: function(channels) {
+		var _ = comp.pods._, u = user.core.get(), doit = function() {
+			CT.dom.addContent(_.nodes.main.parentNode, CT.chat.widget(u.key, channels, "Pods", _.video));
+		};
+		if (u.chat)
+			return doit();
+		var enabler = CT.dom.link("enable chat", function() {
+			CT.dom.remove(enabler);
+			doit();
+		}, null, "abs r0 b0 big bold above");
+		CT.dom.addContent(_.nodes.main.parentNode, enabler);
 	},
 	memberships: function(memberships) {
 		var _ = comp.pods._;
