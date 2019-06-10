@@ -368,8 +368,9 @@ comp.pods = {
 				comp.pods._.frame({ dependencies: deps }, "dependency", "dependencies");
 			});
 		},
-		video: function(podname) {
-			var vbutt = CT.dom.button("Video Chat");
+		video: function(podname, ukey) {
+			var vbutt = CT.dom.button("Video Chat"),
+				cname = ukey ? CT.chat.privateChatName(ukey, user.core.get("key")) : podname.replace(/ /g, "");
 			vbutt.onclick = function() {
 		        vbutt._modal = vbutt._modal || new CT.modal.Modal({
 		            center: false,
@@ -379,7 +380,7 @@ comp.pods = {
 		            slide: {
 		                origin: "bottomleft"
 		            },
-		            content: CT.dom.iframe("https://fzn.party/stream/widget.html#" + podname.replace(/ /g, "") + "_zoom",
+		            content: CT.dom.iframe("https://fzn.party/stream/widget.html#" + cname + "_zoom",
 		            	"w1 h1", null, { allow: "microphone; camera" })
 		        });
 		        vbutt._modal.showHide();
