@@ -29,6 +29,7 @@ class Person(Member):
 	ip = db.String()                              # optional
 	wallet = db.ForeignKey(kind=Wallet)           # optional
 	contributor = db.ForeignKey(kind=Contributor) # optional
+	chat = db.Boolean(default=True)
 
 	def onjoin(self):
 		email_admins("New Person", self.email)
