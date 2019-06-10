@@ -367,6 +367,28 @@ comp.pods = {
 			CT.db.multi(pod.dependencies, function(deps) {
 				comp.pods._.frame({ dependencies: deps }, "dependency", "dependencies");
 			});
+		},
+		video: function(podname) {
+			var vbutt = CT.dom.button("Video Chat");
+			vbutt.onclick = function() {
+		        vbutt._modal = vbutt._modal || new CT.modal.Modal({
+		            center: false,
+		            innerClass: "w1 h1 noflow",
+		            className: "vslide mosthigh fixed noflow",
+		            transition: "slide",
+		            slide: {
+		                origin: "bottomleft"
+		            },
+		            content: CT.dom.iframe("https://fzn.party/stream/widget.html#" + podname.replace(/ /g, ""),
+		            	"w1 h1", null, { allow: "microphone; camera" })
+		        });
+		        vbutt._modal.showHide();
+			};
+			return [
+				CT.dom.span(podname),
+				CT.dom.pad(),
+				vbutt
+			];
 		}
 	},
 	fresh: function() {
@@ -436,7 +458,7 @@ comp.pods = {
 		(h && CT.dom.id("tl" + h) || n.firstChild).firstChild.onclick();
 		CT.dom.addContent(_.nodes.main.parentNode, CT.chat.widget(user.core.get("key"), pods.map(function(pod) {
 			return pod.name;
-		}), "Pods"));
+		}), "Pods", _.video));
 	},
 	memberships: function(memberships) {
 		var _ = comp.pods._;
