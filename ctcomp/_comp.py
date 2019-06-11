@@ -54,7 +54,7 @@ def response():
 		pod = memship.pod.get()
 		workers = "\n".join([w.email for w in db.get_multi(act.workers)])
 		act.notify("verify service", lambda signer : SERVICE%(person.email,
-			pod.name, service.name, workers, akey, signer.urlsafe()))
+			pod.name, service.name, act.notes, workers, akey, signer.urlsafe()))
 		succeed(akey)
 	elif action == "commitment":
 		comm = Commitment()
@@ -70,7 +70,7 @@ def response():
 		person = memship.person.get()
 		pod = memship.pod.get()
 		comm.notify("affirm commitment", lambda signer : COMMITMENT%(person.email,
-			pod.name, comm.estimate, service.name, ckey, signer.urlsafe()))
+			pod.name, comm.estimate, service.name, comm.notes, ckey, signer.urlsafe()))
 		succeed(ckey)
 	elif action == "request":
 		req = Request()
