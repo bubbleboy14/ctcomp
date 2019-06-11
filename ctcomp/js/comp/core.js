@@ -78,13 +78,37 @@ comp.core = {
 	size: function(pod) {
 		return comp.core._.pods[pod].people.length;
 	},
-	mates: function(pod, prompt, cb, style) {
+	others: function(pod) {
+		var u = user.core.get("key");
+		return comp.core._.pods[pod].people.filter(function(p) {
+			return p.key != u;
+		});
+	},
+	mates: function(pod, prompt, cb, style, nome) {
 		comp.core.choice({
 			cb: cb,
 			prompt: prompt,
 			style: style || "multiple-choice",
-			data: comp.core._.pods[pod].people
+			data: nome && comp.core.others(pod) || comp.core._.pods[pod].people
 		})
+	},
+	facilitator: function(pod, cb) {
+		if (!pod) {
+			if (confirm("proceed to support page to join conflict resolution pod?"))
+				location = "/comp/support.html";
+			return;
+		}
+		comp.core.choice({
+			prompt: "would you like someone in particular, or someone random?",
+			data: ["random", "choice"],
+			cb: function(which) {
+				if (which == "random")
+					cb(CT.data.random(comp.core.others(pod.key)));
+				else // choice
+					comp.core.mates(pod.key, "please select a facilitator",
+						cb, "single-choice", true);
+			}
+		});
 	},
 	dchoice: function(options, codebase, cb) {
 		var opts = options.filter(function(opt) {
