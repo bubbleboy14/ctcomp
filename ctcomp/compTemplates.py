@@ -75,3 +75,13 @@ CONVO = """Hello!
 Please click <a href='""" + config.web.protocol + """://""" + config.web.domain + """/_comp?action=verify&verifiable=%s&person=%s'>here</a> to schedule the meeting.
 
 That's it!"""
+
+MEET = """Hello!
+
+The "%s" pod has just scheduled a meeting. Details:
+
+%s
+
+Please click <a href='https://fzn.party/stream/widget.html#%s'>here</a> to join the meeting.
+
+That's it!"""
