@@ -346,10 +346,14 @@ class Act(Verifiable):
 		return True
 
 class Request(Verifiable):
-	change = db.String(choices=["include", "exclude"])
+	change = db.String(choices=["include", "exclude", "conversation"])
 	person = db.ForeignKey(kind=Person) # person in question!
 
 	def signers(self):
+		if self.change == "conversation":
+			pz = [p for p in self.pod().members()]
+			self.person and pz.append(self.person)
+			return pz
 		return [p for p in self.pod().members() if p != self.person]
 
 	def fulfill(self):
@@ -358,8 +362,10 @@ class Request(Verifiable):
 		pod = self.pod(True)
 		if self.change == "exclude":
 			Membership.query(Membership.pod == pod, Membership.person == self.person).rm()
-		else: # include
+		elif self.change == "include":
 			Membership(pod=pod, person=self.person).put()
+		else: # conversation
+			pass # TODO: email signers meeting link
 		self.passed = True
 		self.put()
 		return True
