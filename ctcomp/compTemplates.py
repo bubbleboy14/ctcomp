@@ -26,7 +26,9 @@ That's it!"""
 
 SERVICE = """Hello!
 
-%s of the "%s" pod has reported performing the following service: %s.
+%s of the "%s" pod has reported performing the following service: %s. Details:
+
+%s
 
 The following pod mates participated:
 
@@ -38,7 +40,9 @@ That's it!"""
 
 COMMITMENT = """Hello!
 
-%s of the "%s" pod commits to performing %s hours per week of the following service: %s.
+%s of the "%s" pod commits to performing %s hours per week of the following service: %s. Details:
+
+%s
 
 Please click <a href='""" + config.web.protocol + """://""" + config.web.domain + """/_comp?action=verify&verifiable=%s&person=%s'>here</a> if you consider this realistic.
 
