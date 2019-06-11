@@ -4,6 +4,7 @@ from cantools.util import error
 from cantools.web import email_admins, fetch, log, send_mail
 from ctcoop.model import Member
 from ctdecide.model import Proposal
+from compTemplates import MEET
 
 ratios = config.ctcomp.ratios
 
@@ -365,7 +366,8 @@ class Request(Verifiable):
 		elif self.change == "include":
 			Membership(pod=pod, person=self.person).put()
 		else: # conversation
-			pass # TODO: email signers meeting link
+			body = MEET%(self.pod().name, self.notes, self.key.urlsafe())
+			self.notify("meeting scheduled", lambda signer : body)
 		self.passed = True
 		self.put()
 		return True
