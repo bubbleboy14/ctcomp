@@ -82,6 +82,6 @@ The "%s" pod has just scheduled a meeting. Details:
 
 %s
 
-Please click <a href='https://fzn.party/stream/widget.html#%s'>here</a> to join the meeting.
+Please click <a href='https://fzn.party/stream/widget.html#%s_chat'>here</a> to join the meeting.
 
 That's it!"""
