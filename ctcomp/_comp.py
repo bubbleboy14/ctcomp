@@ -1,6 +1,6 @@
 from cantools.web import respond, succeed, fail, cgi_get, log, local, send_mail, redirect
 from model import db, enroll, manage, Person, Content, View, Act, Commitment, Request, Expense
-from compTemplates import APPLY, APPLICATION, EXCLUDE, SERVICE, COMMITMENT, EXPENSE, CONFCODE
+from compTemplates import APPLY, APPLICATION, EXCLUDE, SERVICE, COMMITMENT, EXPENSE, CONFCODE, CONVO
 from cantools import config
 
 def view(user, content):
@@ -54,7 +54,7 @@ def response():
 		pod = memship.pod.get()
 		workers = "\n".join([w.email for w in db.get_multi(act.workers)])
 		act.notify("verify service", lambda signer : SERVICE%(person.email,
-			pod.name, service.name, workers, akey, signer.urlsafe()))
+			pod.name, service.name, act.notes, workers, akey, signer.urlsafe()))
 		succeed(akey)
 	elif action == "commitment":
 		comm = Commitment()
@@ -70,7 +70,7 @@ def response():
 		person = memship.person.get()
 		pod = memship.pod.get()
 		comm.notify("affirm commitment", lambda signer : COMMITMENT%(person.email,
-			pod.name, comm.estimate, service.name, ckey, signer.urlsafe()))
+			pod.name, comm.estimate, service.name, comm.notes, ckey, signer.urlsafe()))
 		succeed(ckey)
 	elif action == "request":
 		req = Request()
@@ -87,9 +87,12 @@ def response():
 		if req.change == "include":
 			send_mail(to=rpmail, subject="pod membership nomination",
 				body=APPLY%(mpmail, pod.name, rkey))
-		else: # exclude
+		elif req.change == "exclude":
 			req.notify("pod membership exclusion proposal",
 				lambda signer : EXCLUDE%(mpmail, rpmail, pod.name, rkey, signer.urlsafe()))
+		else: # conversation
+			req.notify("pod conversation request",
+				lambda signer : CONVO%(mpmail, pod.name, req.notes, rkey, signer.urlsafe()))
 		succeed(req.key.urlsafe())
 	elif action == "expense":
 		exp = Expense()

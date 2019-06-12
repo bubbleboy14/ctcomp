@@ -10,7 +10,7 @@ comp.pods = {
 		blurbs: {
 			commitment: "Register a weekly commitment.",
 			service: "Record a one-off service.",
-			request: "Include and exclude pod members.",
+			request: "Include and exclude pod members. Schedule conversations.",
 			content: "Submit web content associated with this pod (most managed pods don't require manual registration).",
 			codebase: "Register the codebases associated with this software pod, including platform and r&d repositories.",
 			dependency: "Please select the frameworks used by this project.",
@@ -155,11 +155,11 @@ comp.pods = {
 				}
 			});
 		},
-		submit: function(opts, stype) {
+		submit: function(opts, stype, noteprompt) {
 			var _ = comp.pods._, pkey = _.current.pod.key;
 			opts.membership = _.memberships[pkey].key;
 			comp.core.prompt({
-				prompt: "any notes?",
+				prompt: noteprompt || "any notes?",
 				isTA: true,
 				cb: function(notes) {
 					opts.notes = notes;
@@ -277,7 +277,7 @@ comp.pods = {
 				} else if (stype == "request") {
 					if (comp.core.size(pod.key) > 2) {
 						comp.core.choice({
-							data: ["include", "exclude"],
+							data: ["include", "exclude", "conversation"],
 							cb: _.change
 						});
 					} else
@@ -306,13 +306,32 @@ comp.pods = {
 						});
 					}
 				});
-			} else { // exclude
+			} else if (change == "exclude") { // exclude
 				comp.core.mates(_.current.pod.key, "kick out whom?", function(person) {
 					_.submit({
 						person: person.key,
 						change: change
 					}, "request");
 				}, "single-choice");
+			} else { // conversation
+				comp.core.choice({
+					prompt: "request facilitator from conflict resolution pod?",
+					data: ["no", "yes"],
+					cb: function(answer) {
+						if (answer == "yes") {
+							comp.core.facilitator(_.conres, function(facilitator) {
+								_.submit({
+									person: facilitator.key,
+									change: change
+								}, "request", "what would you like to discuss? also, when?");
+							});
+						} else {
+							_.submit({
+								change: change
+							}, "request", "what would you like to discuss? also, when?");
+						}
+					}
+				});
 			}
 		},
 		restrictions: function() {
@@ -452,7 +471,8 @@ comp.pods = {
 				if (!_.agents[pod.agent])
 					_.agents[pod.agent] = [];
 				_.agents[pod.agent].push(pod);
-			}
+			} else if (pod.variety == "support" && pod.name == "conflict resolution")
+				_.conres = pod;
 		});
 		_.current.pods = pods;
 		if (h) location.hash = "";
