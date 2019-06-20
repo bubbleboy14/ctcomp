@@ -122,6 +122,17 @@ def global_pod():
 		p.put()
 	return p
 
+def blogger_pod():
+	p = Pod.query(Pod.name == "bloggers", Pod.variety == "managed").get()
+	if not p:
+		p = Pod()
+		p.name = "bloggers"
+		p.variety = "managed"
+		p.agent = global_pod().agent
+		p.oncreate()
+		p.put()
+	return p
+
 class Membership(db.TimeStampedBase):
 	pod = db.ForeignKey(kind=Pod)
 	person = db.ForeignKey(kind=Person)
