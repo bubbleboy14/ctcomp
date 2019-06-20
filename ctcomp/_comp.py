@@ -1,29 +1,7 @@
 from cantools.web import respond, succeed, fail, cgi_get, log, local, send_mail, redirect
-from model import db, enroll, manage, Person, Content, View, Act, Commitment, Request, Expense
+from model import db, enroll, manage, Person, Content, Act, Commitment, Request, Expense
 from compTemplates import APPLY, APPLICATION, EXCLUDE, SERVICE, COMMITMENT, EXPENSE, CONFCODE, CONVO
-from cantools import config
-
-def view(user, content):
-	if View.query(View.viewer == user.key, View.content == content.key).get():
-		return log("already viewed (user %s; content %s)"%(user.key.urlsafe(), content.key.urlsafe()))
-	view = View()
-	view.viewer = user.key
-	view.content = content.key
-	view.put()
-	membership = content.membership.get()
-	membership.pod.get().deposit(membership.person.get(), config.ctcomp.ratios.view)
-
-def views(user):
-	contents = cgi_get("content")
-	agent = cgi_get("agent", required=False)
-	if type(contents) is not list:
-		contents = [contents]
-	for content in contents:
-		view(user, cont(content, agent))
-
-def cont(content, agent):
-	return isinstance(content, basestring) and db.get(content) or manage(agent,
-		content["membership"], content["identifier"])
+from ctcomp.view import views
 
 def response():
 	action = cgi_get("action", choices=["view", "service", "commitment", "request", "expense", "verify", "unverify", "apply", "join", "pod", "membership", "person", "enroll", "manage", "confcode"])
