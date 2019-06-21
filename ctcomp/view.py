@@ -1,5 +1,5 @@
 from cantools.web import cgi_get
-from model import db, enroll, manage, blogger_pod
+from model import db, enroll, manage, blogger_pod, View
 from cantools import config
 
 def view(user, content):
