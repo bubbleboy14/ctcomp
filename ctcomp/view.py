@@ -1,4 +1,4 @@
-from cantools.web import cgi_get
+from cantools.web import cgi_get, log
 from model import db, enroll, manage, blogger_pod, View
 from cantools import config
 

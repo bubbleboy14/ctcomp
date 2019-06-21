@@ -1,4 +1,4 @@
-from cantools.web import respond, succeed, fail, cgi_get, log, local, send_mail, redirect
+from cantools.web import respond, succeed, fail, cgi_get, local, send_mail, redirect
 from model import db, enroll, manage, Person, Content, Act, Commitment, Request, Expense
 from compTemplates import APPLY, APPLICATION, EXCLUDE, SERVICE, COMMITMENT, EXPENSE, CONFCODE, CONVO
 from ctcomp.view import views
