@@ -67,7 +67,6 @@ comp.pods = {
 			return CT.dom.div([
 				CT.dom.div("submitted by: " + comp.pods._.name(CT.data.get(c.membership).person), "right"),
 				CT.dom.div(c.identifier, "big"),
-				CT.dom.br(),
 				CT.dom.link("manual link - probs unnecessary", function() {
 					comp.core.modal({
 						content: [
