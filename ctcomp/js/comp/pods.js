@@ -68,18 +68,24 @@ comp.pods = {
 				CT.dom.div("submitted by: " + comp.pods._.name(CT.data.get(c.membership).person), "right"),
 				CT.dom.div(c.identifier, "big"),
 				CT.dom.br(),
-				CT.dom.div("Manual Linking - Probably Not Necessary", "underline"),
-				[
-					"To manually link this content, add <b>&lt;iframe src='",
-					location.protocol,
-					"//",
-					location.host,
-					"/comp/view.html#",
-					c.key,
-					"'&gt;&lt;/iframe&gt;</b> to your web page."
-				].join(""),
-				CT.dom.br(),
-				"Unless you're crafting your site by hand (without the CC API), this is almost certainly not necessary."
+				CT.dom.link("manual link - probs unnecessary", function() {
+					comp.core.modal({
+						content: [
+							CT.dom.div("Manual Linking - Probably Not Necessary", "bigger underline"),
+							[
+								"To manually link this content, add <b>&lt;iframe src='",
+								location.protocol,
+								"//",
+								location.host,
+								"/comp/view.html#",
+								c.key,
+								"'&gt;&lt;/iframe&gt;</b> to your web page."
+							].join(""),
+							CT.dom.br(),
+							"Unless you're crafting your site by hand (without the CC API), this is almost certainly not necessary."
+						]
+					});
+				}, null, "centered block")
 			], "bordered padded margined");
 		},
 		expense: function(e) {
