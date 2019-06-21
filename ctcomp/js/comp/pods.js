@@ -3,20 +3,6 @@ comp.pods = {
 		current: {},
 		agents: {},
 		memberships: {},
-		limits: { services: 10, commitments: 40 },
-		classes: {
-			menu: "margined padded bordered round"
-		},
-		blurbs: {
-			commitment: "Register a weekly commitment.",
-			service: "Record a one-off service.",
-			request: "Include and exclude pod members. Schedule conversations.",
-			content: "Submit web content associated with this pod (most managed pods don't require manual registration).",
-			codebase: "Register the codebases associated with this software pod, including platform and r&d repositories.",
-			dependency: "Please select the frameworks used by this project.",
-			expense: "Propose an expense (currently supported: one-off dividend).",
-			info: "Here's some basic info about this pod."
-		},
 		nodes: {
 			list: CT.dom.div(),
 			views: CT.dom.div(),
@@ -139,8 +125,9 @@ comp.pods = {
 		},
 		estimate: function(cb, curval) {
 			curval = curval || 0;
-			var _ = comp.pods._, lims = _.limits, cur = _.current,
-				counts = cur.counts, diff = lims.commitments - counts.commitments - curval;
+			var _ = comp.pods._, cfg = core.config.ctcomp,
+				lims = cfg.limits, cur = _.current, counts = cur.counts,
+				diff = lims.commitments - counts.commitments - curval;
 			if (!diff)
 				return alert("you're already committed to the max! scale back something else and try again ;)");
 			comp.core.prompt({
@@ -174,8 +161,8 @@ comp.pods = {
 			});
 		},
 		submitter: function(stype) {
-			var _ = comp.pods._, lims = _.limits, cur = _.current,
-				pod = cur.pod, counts = cur.counts, diff, u;
+			var _ = comp.pods._, lims = core.config.ctcomp.limits,
+				cur = _.current, pod = cur.pod, counts = cur.counts, diff, u;
 			return function() {
 				if (stype == "dependency") {
 					comp.core.frameworks(function(allfms) {
@@ -350,13 +337,13 @@ comp.pods = {
 			unrestricted || CT.dom.id("tlInfo").firstChild.onclick();
 		},
 		frame: function(data, item, plur) {
-			var _ = comp.pods._;
+			var _ = comp.pods._, cfg = core.config.ctcomp;
 			plur = plur || item;
 				n = _.nodes[item + "_list"] = CT.dom.div(data[plur].map(_[item]));
 			CT.dom.setContent(_.nodes[plur], [
 				CT.dom.button("new", _.submitter(item), "right"),
 				CT.dom.div(CT.parse.capitalize(plur), "biggest"),
-				_.blurbs[item],
+				cfg.blurbs[item],
 				n
 			]);
 		},
@@ -426,8 +413,8 @@ comp.pods = {
 		}, ACP);
 	},
 	pod: function(pod) {
-		var _ = comp.pods._, content,
-			memship = _.memberships[pod.key];
+		var _ = comp.pods._, cfg = core.config.ctcomp,
+			memship = _.memberships[pod.key], content;
 		_.current.pod = pod;
 		_.setDependencies(pod);
 		comp.core.membership(memship.key, function(data) {
@@ -436,7 +423,7 @@ comp.pods = {
 		comp.core.pod(pod.key, function(data) {
 			content = [
 				CT.dom.div("Info", "biggest"),
-				_.blurbs.info,
+				cfg.blurbs.info,
 				CT.dom.br(),
 				"variety: " + pod.variety,
 				"members: " + data.memberships.length,
@@ -499,16 +486,16 @@ comp.pods = {
 		}), comp.pods.pods);
 	},
 	menu: function() {
-		var _ = comp.pods._;
+		var _ = comp.pods._, cfg = core.config.ctcomp;
 		CT.dom.setContent(_.nodes.right, [
 			CT.dom.div([
 				CT.dom.link("create new pod", comp.pods.fresh, null, "bold"),
 				_.nodes.list
-			], _.classes.menu),
+			], cfg.classes.menu),
 			CT.dom.div([
 				CT.dom.div("Views", "bold"),
 				_.nodes.views
-			], _.classes.menu)
+			], cfg.classes.menu)
 		]);
 		CT.dom.setContent(_.nodes.main, _.nodes.slider);
 		CT.dom.setContent("ctmain", CT.dom.div([
@@ -525,7 +512,8 @@ comp.pods = {
 		});
 	},
 	limits: function(data) {
-		var _ = comp.pods._, n = _.nodes.limits, lims = _.limits;
+		var _ = comp.pods._, n = _.nodes.limits,
+			lims = core.config.ctcomp.limits;
 		_.current.counts = data;
 		n.update = function() {
 			CT.dom.setContent(n, [
