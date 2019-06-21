@@ -28,10 +28,6 @@ html, body {
 	text-align: center;
 }
 
-.basicpopup .choice_cell {
-	display: inline-block;
-}
-
 .embedded #ctmain {
 	top: 0;
 }
