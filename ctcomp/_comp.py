@@ -32,7 +32,7 @@ def response():
 		pod = memship.pod.get()
 		pment.notify("confirm payment", lambda signer : PAYMENT%(pment.amount,
 			person.firstName, pod.name, pment.notes, pkey, signer.urlsafe()))
-		succeed()
+		succeed(pkey)
 	elif action == "service":
 		act = Act()
 		act.membership = cgi_get("membership")
