@@ -58,6 +58,20 @@ Please click <a href='""" + config.web.protocol + """://""" + config.web.domain 
 
 That's it!"""
 
+PAID = """Hello!
+
+Looks like the transfer went through!
+
+Amount: %s
+Payer: %s
+Recipient: %s of the "%s" pod
+
+Details:
+
+%s
+
+That's it!"""
+
 EXPENSE = """Hello!
 
 %s of the "%s" pod proposes the following expense:
