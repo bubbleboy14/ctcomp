@@ -1,10 +1,11 @@
 comp.core = {
 	_: { pods: {}, memships: {} },
-	c: function(opts, cb) {
+	c: function(opts, cb, eb) {
 		CT.net.post({
 			path: "/_comp",
 			params: opts,
-			cb: cb
+			cb: cb,
+			eb: eb
 		});
 	},
 	edit: function(data, cb) {
