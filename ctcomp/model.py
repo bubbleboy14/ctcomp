@@ -287,6 +287,24 @@ class Verifiable(db.TimeStampedBase):
 				return False
 		return True
 
+class Payment(Verifiable):
+	payer = db.ForeignKey(kind=Person)
+	amount = db.Float()
+
+	def signers(self):
+		return [self.payer]
+
+	def fulfill(self):
+		if self.passed or not self.verified():
+			return False
+		paywall = self.payer.get().wallet.get()
+		paywall.outstanding -= self.amount
+		self.membership.get().deposit(self.amount)
+		self.passed = True
+		paywall.put()
+		self.put()
+		return True
+
 class Expense(Verifiable):
 	executor = db.ForeignKey(kind=Person) # reimbursement only
 	variety = db.String(choices=["dividend", "reimbursement"])
