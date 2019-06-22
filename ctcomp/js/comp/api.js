@@ -17,22 +17,20 @@ window.CC = {
 		puller: function(event) {
 			var d = event.data, _ = CC._;
 			if (d.action)
-				_.switcheroo.cb(d);
+				_[d.action + "eroo"].cb(d);
 		},
-		iframe: function(node) {
+		iframe: function(node, hash) {
 			var ifr = document.createElement("iframe"),
 				loc = CC._.location();
 			ifr._targetOrigin = loc;
 			ifr.src = loc + "/comp/widget.html";
 			if (node) {
-				ifr.src += "#switcheroo";
+				ifr.src += "#" + hash + "eroo";
 				ifr.style.border = "0";
 				ifr.style.width = ifr.style.height = "100%";
-				node.appendChild(ifr);
-			} else {
+			} else
 				ifr.style.visibility = "hidden";
-				document.body.appendChild(ifr);
-			}
+			(node || document.body).appendChild(ifr);
 			return ifr;
 		},
 		location: function() {
@@ -59,10 +57,21 @@ window.CC = {
 		v.view = _.sender("view", v);
 		return v;
 	},
+	payer: function(node, onpay, item) { // membership, amount, notes
+		var _ = CC._, p = _.payeroo = {
+			iframe: _.iframe(node, "pay"),
+			cb: onpay
+		};
+		p.iframe.onload = function() {
+			p.ready = true;
+			_.send(p, "payment", item);
+		};
+		return p;
+	},
 	switcher: function(node, onswitch) {
 		CC.init();
 		var _ = CC._, s = _.switcheroo = {
-			iframe: _.iframe(node),
+			iframe: _.iframe(node, "switch"),
 			cb: onswitch
 		};
 		s.iframe.onload = function() {
