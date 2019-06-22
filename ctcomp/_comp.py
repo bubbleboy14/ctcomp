@@ -1,10 +1,10 @@
 from cantools.web import respond, succeed, fail, cgi_get, local, send_mail, redirect
-from model import db, enroll, manage, Person, Content, Act, Commitment, Request, Expense
-from compTemplates import APPLY, APPLICATION, EXCLUDE, SERVICE, COMMITMENT, EXPENSE, CONFCODE, CONVO
+from model import db, enroll, manage, Person, Content, Payment, Act, Commitment, Request, Expense
+from compTemplates import APPLY, APPLICATION, EXCLUDE, SERVICE, COMMITMENT, PAYMENT, EXPENSE, CONFCODE, CONVO
 from ctcomp.view import views
 
 def response():
-	action = cgi_get("action", choices=["view", "service", "commitment", "request", "expense", "verify", "unverify", "apply", "join", "pod", "membership", "person", "enroll", "manage", "confcode"])
+	action = cgi_get("action", choices=["view", "pay", "service", "commitment", "request", "expense", "verify", "unverify", "apply", "join", "pod", "membership", "person", "enroll", "manage", "confcode"])
 	if action == "view":
 		ip = local("response").ip
 		user = cgi_get("user", required=False) # key
@@ -17,6 +17,22 @@ def response():
 			user.ip = ip
 			user.put()
 		views(user)
+	elif action == "pay":
+		pment = Payment()
+		pment.membership = cgi_get("membership")
+		pment.payer = cgi_get("payer")
+		pment.amount = cgi_get("amount")
+		pment.notes = cgi_get("notes")
+		if db.get(pment.payer).wallet.get().outstanding < pment.amount:
+			fail("you don't have enough in your account!")
+		pment.put()
+		pkey = pment.key.urlsafe()
+		memship = pment.membership.get()
+		person = memship.person.get()
+		pod = memship.pod.get()
+		pment.notify("confirm payment", lambda signer : PAYMENT%(pment.amount,
+			person.firstName, pod.name, pment.notes, pkey, signer.urlsafe()))
+		succeed()
 	elif action == "service":
 		act = Act()
 		act.membership = cgi_get("membership")
