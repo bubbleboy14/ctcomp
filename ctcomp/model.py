@@ -4,7 +4,7 @@ from cantools.util import error
 from cantools.web import email_admins, fetch, log, send_mail
 from ctcoop.model import Member
 from ctdecide.model import Proposal
-from compTemplates import MEET
+from compTemplates import MEET, PAID
 
 ratios = config.ctcomp.ratios
 
@@ -297,12 +297,19 @@ class Payment(Verifiable):
 	def fulfill(self):
 		if self.passed or not self.verified():
 			return False
-		paywall = self.payer.get().wallet.get()
+		payer = self.payer.get()
+		memship = self.membership.get()
+		recip = memship.person.get()
+		pod = memship.pod.get()
+		paywall = payer.wallet.get()
 		paywall.outstanding -= self.amount
-		self.membership.get().deposit(self.amount)
+		memship.deposit(self.amount)
 		self.passed = True
 		paywall.put()
 		self.put()
+		body = PAID%(self.amount, payer.firstName, recip.firstName, pod.name, self.notes)
+		for target in [payer, recip]:
+			send_mail(to=target.email, subject="payment confirmation", body=body)
 		return True
 
 class Expense(Verifiable):
