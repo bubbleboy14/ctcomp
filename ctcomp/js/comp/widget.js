@@ -60,10 +60,11 @@ comp.widget = {
 						action: "pay",
 						payer: user.core.get("key")
 					}), function(pkey) {
-						alert("you did it! now check your email, click the confirmation link, and you're done!");
+						CT.dom.setContent(_.pnode,
+							"you did it! now check your email, click the confirmation link, and you're done!");
 						_.done(pkey, "pay");
 					}, function(emsg) {
-						alert(emsg);
+						CT.dom.setContent(_.pnode, emsg);
 					});
 				})
 			] : "Who Are You?");
