@@ -154,8 +154,10 @@ def response():
 			"expenses": [e.data() for e in pod.expenses()]
 		})
 	elif action == "membership":
+		memship = db.get(cgi_get("membership"))
 		succeed({
-			"content": [c.data() for c in Content.query(Content.membership == cgi_get("membership")).fetch()]
+			"content": [c.data() for c in Content.query(Content.membership == memship.key).fetch()],
+			"products": [p.data() for p in db.get_multi(memship.products)]
 		})
 	elif action == "person":
 		person = db.get(cgi_get("person"))
