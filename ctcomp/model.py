@@ -4,6 +4,7 @@ from cantools.util import error
 from cantools.web import email_admins, fetch, log, send_mail
 from ctcoop.model import Member
 from ctdecide.model import Proposal
+from ctstore.model import Product
 from compTemplates import MEET, PAID
 
 ratios = config.ctcomp.ratios
@@ -137,6 +138,7 @@ class Membership(db.TimeStampedBase):
 	pod = db.ForeignKey(kind=Pod)
 	person = db.ForeignKey(kind=Person)
 	proposals = db.ForeignKey(kind=Proposal, repeated=True)
+	products = db.ForeignKey(kind=Product, repeated=True)
 
 	def deposit(self, amount, nocode=False):
 		self.pod.get().deposit(self.person.get(), amount, nocode)
