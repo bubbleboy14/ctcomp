@@ -42,7 +42,8 @@ comp.widget = {
 			setTimeout(upyou, 1000);
 		},
 		setPayer: function() {
-			var _ = comp.widget._, _.pnode = CT.dom.div(null, "biggerest bigpadded down30");
+			var _ = comp.widget._;
+			_.pnode = CT.dom.div(null, "biggerest bigpadded down30");
 			CT.dom.setContent("ctmain", CT.dom.div([
 				user.core.links(null, true),
 				_.pnode
