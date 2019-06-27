@@ -265,7 +265,14 @@ comp.pods = {
 																ctfile.upload("/_db", function(url) {
 																	prod.image = url;
 																	CT.data.add(prod);
-																	CT.dom.addContent(_.nodes.product_list, _.product(prod));
+																	var memship = _.memberships[pod.key];
+																	memship.products.push(prod.key);
+																	comp.core.edit({
+																		key: memship.key,
+																		products: memship.products
+																	}, function() {
+																		CT.dom.addContent(_.nodes.product_list, _.product(prod));
+																	});
 																}, {
 																	action: "blob",
 																	key: prod.key,
