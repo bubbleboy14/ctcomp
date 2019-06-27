@@ -309,7 +309,7 @@ class Payment(Verifiable):
 		self.passed = True
 		paywall.put()
 		self.put()
-		body = PAID%(self.amount, payer.firstName, recip.firstName, pod.name, self.notes)
+		body = PAID%(self.amount, payer.email, recip.email, pod.name, self.notes)
 		for target in [payer, recip]:
 			send_mail(to=target.email, subject="payment confirmation", body=body)
 		return True
