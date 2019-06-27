@@ -233,41 +233,48 @@ comp.pods = {
 						}
 					});
 				} else if (stype == "product") {
-					comp.core.prompt({
-						prompt: "what's it called?",
-						cb: function(name) {
+					comp.core.choice({
+						prompt: "what type of thing is it?",
+						data: ["object", "consultation", "donation"],
+						cb: function(variety) {
 							comp.core.prompt({
-								prompt: "please describe",
-								cb: function(description) {
+								prompt: "what's it called?",
+								cb: function(name) {
 									comp.core.prompt({
-										prompt: "how much does it cost?",
-										style: "number",
-										max: 20,
-										min: 0.1,
-										step: 0.1,
-										initial: 1,
-										cb: function(price) {
-											comp.core.edit({
-												modelName: "product",
-												name: name,
-												description: description,
-												price: price
-											}, function(prod) {
-												comp.core.prompt({
-													prompt: "please select an image",
-													style: "file",
-													cb: function(ctfile) {
-														ctfile.upload("/_db", function(url) {
-															prod.image = url;
-															CT.data.add(prod);
-															CT.dom.addContent(_.nodes.product_list, _.product(prod));
-														}, {
-															action: "blob",
-															key: prod.key,
-															property: "image"
+										prompt: "please describe",
+										cb: function(description) {
+											comp.core.prompt({
+												prompt: "how much does it cost?",
+												style: "number",
+												max: 20,
+												min: 0.1,
+												step: 0.1,
+												initial: 1,
+												cb: function(price) {
+													comp.core.edit({
+														modelName: "product",
+														name: name,
+														variety: variety,
+														description: description,
+														price: price
+													}, function(prod) {
+														comp.core.prompt({
+															prompt: "please select an image",
+															style: "file",
+															cb: function(ctfile) {
+																ctfile.upload("/_db", function(url) {
+																	prod.image = url;
+																	CT.data.add(prod);
+																	CT.dom.addContent(_.nodes.product_list, _.product(prod));
+																}, {
+																	action: "blob",
+																	key: prod.key,
+																	property: "image"
+																});
+															}
 														});
-													}
-												});
+													});
+												}
 											});
 										}
 									});
