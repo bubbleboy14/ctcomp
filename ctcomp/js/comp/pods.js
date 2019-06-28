@@ -88,9 +88,9 @@ comp.pods = {
 		},
 		product: function(p) {
 			return CT.dom.div([
-				CT.dom.div(p.price + " carecoins", "right bold"),
-				CT.dom.div(p.name, "big"),
 				CT.dom.img(p.image, "right wm1-2 hm400p"),
+				CT.dom.div(p.name, "big"),
+				CT.dom.div(p.price + " carecoins", "bold"),
 				p.description,
 				CT.dom.div(null, "clearnode")
 			], "bordered padded margined");
