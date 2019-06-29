@@ -26,4 +26,4 @@ cfg = {
 		}
 	}
 }
-requires = ["ctcoop"]
+requires = ["ctcoop", "ctstore"]

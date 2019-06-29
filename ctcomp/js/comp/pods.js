@@ -12,7 +12,7 @@ comp.pods = {
 			right: CT.dom.div(null, "h1 w160p up5 scrolly right")
 		},
 		sections: ["Info", "Proposals", "Commitments", "Services", "Requests",
-			"Content", "Codebases", "Dependencies", "Expenses"],
+			"Content", "Products", "Codebases", "Dependencies", "Expenses"],
 		proposal: function(key) {
 			var _ = comp.pods._,
 				memship = _.memberships[_.current.pod.key];
@@ -65,7 +65,6 @@ comp.pods = {
 		},
 		content: function(c) {
 			return CT.dom.div([
-				CT.dom.div("submitted by: " + comp.pods._.name(CT.data.get(c.membership).person), "right"),
 				CT.dom.div(c.identifier, "big"),
 				CT.dom.link("manual link - probs unnecessary", function() {
 					comp.core.modal({
@@ -85,6 +84,16 @@ comp.pods = {
 						]
 					});
 				}, null, "centered block")
+			], "bordered padded margined");
+		},
+		product: function(p) {
+			return CT.dom.div([
+				CT.dom.img(p.image, "right wm1-2 hm400p"),
+				CT.dom.div(p.variety, "right italic ph10"),
+				CT.dom.div(p.name, "big"),
+				CT.dom.div(p.price + " carecoins", "bold"),
+				p.description,
+				CT.dom.div(null, "clearnode")
 			], "bordered padded margined");
 		},
 		expense: function(e) {
@@ -222,6 +231,63 @@ comp.pods = {
 							}, function(content) {
 								CT.data.add(content);
 								CT.dom.addContent(_.nodes.content_list, _.content(content));
+							});
+						}
+					});
+				} else if (stype == "product") {
+					comp.core.choice({
+						prompt: "what type of thing is it?",
+						data: ["object", "consultation", "donation"],
+						cb: function(variety) {
+							comp.core.prompt({
+								prompt: "what's it called?",
+								cb: function(name) {
+									comp.core.prompt({
+										prompt: "please describe",
+										cb: function(description) {
+											comp.core.prompt({
+												prompt: "how much does it cost?",
+												style: "number",
+												max: 20,
+												min: 0.1,
+												step: 0.1,
+												initial: 1,
+												cb: function(price) {
+													comp.core.edit({
+														modelName: "product",
+														name: name,
+														variety: variety,
+														description: description,
+														price: price
+													}, function(prod) {
+														comp.core.prompt({
+															prompt: "please select an image",
+															style: "file",
+															cb: function(ctfile) {
+																ctfile.upload("/_db", function(url) {
+																	prod.image = url;
+																	CT.data.add(prod);
+																	var memship = _.memberships[pod.key];
+																	memship.products.push(prod.key);
+																	comp.core.edit({
+																		key: memship.key,
+																		products: memship.products
+																	}, function() {
+																		CT.dom.addContent(_.nodes.product_list, _.product(prod));
+																	});
+																}, {
+																	action: "blob",
+																	key: prod.key,
+																	property: "image"
+																});
+															}
+														});
+													});
+												}
+											});
+										}
+									});
+								}
 							});
 						}
 					});
@@ -424,6 +490,7 @@ comp.pods = {
 		_.setDependencies(pod);
 		comp.core.membership(memship.key, function(data) {
 			_.frame(data, "content");
+			_.frame(data, "product", "products");
 		});
 		comp.core.pod(pod.key, function(data) {
 			content = [

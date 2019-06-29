@@ -48,6 +48,30 @@ Please click <a href='""" + config.web.protocol + """://""" + config.web.domain 
 
 That's it!"""
 
+PAYMENT = """Hello!
+
+Would you like to pay %s coins to %s of the "%s" pod? Here are some details:
+
+%s
+
+Please click <a href='""" + config.web.protocol + """://""" + config.web.domain + """/_comp?action=verify&verifiable=%s&person=%s'>here</a> to confirm.
+
+That's it!"""
+
+PAID = """Hello!
+
+Looks like the transfer went through!
+
+Amount: %s
+Payer: %s
+Recipient: %s of the "%s" pod
+
+Details:
+
+%s
+
+That's it!"""
+
 EXPENSE = """Hello!
 
 %s of the "%s" pod proposes the following expense:

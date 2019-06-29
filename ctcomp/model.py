@@ -4,7 +4,8 @@ from cantools.util import error
 from cantools.web import email_admins, fetch, log, send_mail
 from ctcoop.model import Member
 from ctdecide.model import Proposal
-from compTemplates import MEET
+from ctstore.model import Product
+from compTemplates import MEET, PAID
 
 ratios = config.ctcomp.ratios
 
@@ -137,6 +138,7 @@ class Membership(db.TimeStampedBase):
 	pod = db.ForeignKey(kind=Pod)
 	person = db.ForeignKey(kind=Person)
 	proposals = db.ForeignKey(kind=Proposal, repeated=True)
+	products = db.ForeignKey(kind=Product, repeated=True)
 
 	def deposit(self, amount, nocode=False):
 		self.pod.get().deposit(self.person.get(), amount, nocode)
@@ -285,6 +287,31 @@ class Verifiable(db.TimeStampedBase):
 		for person in self.signers():
 			if not Verification.query(Verification.act == self.key, Verification.person == person).get():
 				return False
+		return True
+
+class Payment(Verifiable):
+	payer = db.ForeignKey(kind=Person)
+	amount = db.Float()
+
+	def signers(self):
+		return [self.payer]
+
+	def fulfill(self):
+		if self.passed or not self.verified():
+			return False
+		payer = self.payer.get()
+		memship = self.membership.get()
+		recip = memship.person.get()
+		pod = memship.pod.get()
+		paywall = payer.wallet.get()
+		paywall.outstanding -= self.amount
+		memship.deposit(self.amount)
+		self.passed = True
+		paywall.put()
+		self.put()
+		body = PAID%(self.amount, payer.email, recip.email, pod.name, self.notes)
+		for target in [payer, recip]:
+			send_mail(to=target.email, subject="payment confirmation", body=body)
 		return True
 
 class Expense(Verifiable):
