@@ -14,6 +14,7 @@
 		"codebase": "Register the codebases associated with this software pod, including platform and r&d repositories.",
 		"dependency": "Please select the frameworks used by this project.",
 		"expense": "Propose an expense (currently supported: one-off dividend).",
-		"info": "Here's some basic info about this pod."
+		"info": "Here's some basic info about this pod.",
+		"product": "Sell goods and services."
 	}
 }
