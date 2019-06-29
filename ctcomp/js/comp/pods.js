@@ -90,6 +90,7 @@ comp.pods = {
 			return CT.dom.div([
 				CT.dom.img(p.image, "right wm1-2 hm400p"),
 				CT.dom.div(p.name, "big"),
+				CT.dom.div(p.variety, "right italic ph10"),
 				CT.dom.div(p.price + " carecoins", "bold"),
 				p.description,
 				CT.dom.div(null, "clearnode")
