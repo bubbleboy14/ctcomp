@@ -29,7 +29,8 @@ This package includes the necessary blockchain/widget/api components for direct 
     			"framework": 1,
     			"dependency": 0.5,
     			"rnd": 0.2
-    		}
+    		},
+    		"pay": 0.9 # member cut -- remainder goes to pod
     	}
     }
     requires = ["ctcoop", "ctstore"]
@@ -55,6 +56,6 @@ This package includes the necessary blockchain/widget/api components for direct 
     		"dependency": "Please select the frameworks used by this project.",
     		"expense": "Propose an expense (currently supported: one-off dividend).",
     		"info": "Here's some basic info about this pod.",
-    		"product": "Sell goods and services."
+    		"product": "Sell goods and services. Ten percent goes to your pod."
     	}
     }
