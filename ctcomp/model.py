@@ -99,8 +99,14 @@ class Pod(db.TimeStampedBase):
 		mems = Membership.query(Membership.pod == self.key).fetch()
 		return noperson and mems or [mem.person for mem in mems]
 
-	def deposit(self, member, amount, nocode=False):
-		member.wallet.get().deposit(amount)
+	def deposit(self, member, amount, nocode=False, pay=False):
+		memwall = member.wallet.get()
+		if pay:
+			memcut = amount * ratios.pay
+			amount -= memcut
+			memwall.deposit(memcut)
+		else:
+			memwall.deposit(amount)
 		self.pool.get().deposit(amount)
 		self.agent and self.agent.get().pool.get().deposit(amount * ratios.agent)
 		if not nocode:
@@ -140,8 +146,8 @@ class Membership(db.TimeStampedBase):
 	proposals = db.ForeignKey(kind=Proposal, repeated=True)
 	products = db.ForeignKey(kind=Product, repeated=True)
 
-	def deposit(self, amount, nocode=False):
-		self.pod.get().deposit(self.person.get(), amount, nocode)
+	def deposit(self, amount, nocode=False, pay=False):
+		self.pod.get().deposit(self.person.get(), amount, nocode, pay)
 
 class Codebase(db.TimeStampedBase):
 	pod = db.ForeignKey(kind=Pod)
@@ -305,7 +311,7 @@ class Payment(Verifiable):
 		pod = memship.pod.get()
 		paywall = payer.wallet.get()
 		paywall.outstanding -= self.amount
-		memship.deposit(self.amount)
+		memship.deposit(self.amount, pay=True)
 		self.passed = True
 		paywall.put()
 		self.put()
