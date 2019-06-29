@@ -23,7 +23,8 @@ cfg = {
 			"framework": 1,
 			"dependency": 0.5,
 			"rnd": 0.2
-		}
+		},
+		"pay": 0.9 # member cut -- remainder goes to pod
 	}
 }
 requires = ["ctcoop", "ctstore"]
