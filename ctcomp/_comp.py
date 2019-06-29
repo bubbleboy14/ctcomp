@@ -18,18 +18,21 @@ def response():
 			user.put()
 		views(user)
 	elif action == "pay":
+		payer = db.get(cgi_get("payer"))
+		memship = db.get(cgi_get("membership"))
+		person = memship.person.get()
+		pod = memship.pod.get()
 		pment = Payment()
-		pment.membership = cgi_get("membership")
-		pment.payer = cgi_get("payer")
+		pment.membership = memship.key
+		pment.payer = payer.key
 		pment.amount = cgi_get("amount")
 		pment.notes = cgi_get("notes")
-		if db.get(pment.payer).wallet.get().outstanding < pment.amount:
+		if payer.key.urlsafe() == person.key.urlsafe():
+			fail("pay yourself?")
+		if payer.wallet.get().outstanding < pment.amount:
 			fail("you don't have enough in your account!")
 		pment.put()
 		pkey = pment.key.urlsafe()
-		memship = pment.membership.get()
-		person = memship.person.get()
-		pod = memship.pod.get()
 		pment.notify("confirm payment", lambda signer : PAYMENT%(pment.amount,
 			person.firstName, pod.name, pment.notes, pkey, signer.urlsafe()))
 		succeed(pkey)
