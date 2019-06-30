@@ -63,6 +63,7 @@ class Person(Member):
 class Pod(db.TimeStampedBase):
 	name = db.String()
 	variety = db.String()
+	blurb = db.Text()
 	pool = db.ForeignKey(kind=Wallet)
 	agent = db.ForeignKey(kind="Pod")
 	dependencies = db.ForeignKey(kind="Codebase", repeated=True) # software pod only
