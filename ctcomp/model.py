@@ -410,6 +410,9 @@ class Request(Verifiable):
 			Membership.query(Membership.pod == pod, Membership.person == self.person).rm()
 		elif self.change == "include":
 			Membership(pod=pod, person=self.person).put()
+		elif self.change == "blurb":
+			pod.blurb = self.notes
+			pod.put()
 		else: # conversation
 			body = MEET%(self.pod().name, self.notes, self.key.urlsafe())
 			self.notify("meeting scheduled", lambda signer : body)
