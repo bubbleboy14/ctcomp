@@ -467,6 +467,26 @@ comp.pods = {
 				CT.dom.pad(),
 				vbutt
 			];
+		},
+		blurb: function(pod) {
+			if (pod.blurb)
+				return CT.dom.div(pod.blurb);
+			var container = CT.dom.div(CT.dom.smartField({
+				isTA: true,
+				noBreak: true,
+				classname: "w1 h200p m5",
+				blurs: ["how would you describe this pod?", "what's this pod all about?", "explain the pod, please"],
+				cb: function(blurb) {
+					pod.blurb = blurb;
+					comp.core.edit({
+						key: pod.key,
+						blurb: blurb
+					}, function() {
+						CT.dom.setContent(container, pod.blurb);
+					});
+				}
+			}));
+			return container;
 		}
 	},
 	fresh: function() {
@@ -500,7 +520,7 @@ comp.pods = {
 				"variety: " + pod.variety,
 				"members: " + data.memberships.length,
 				CT.dom.br(),
-				"[TODO: add TOC]",
+				_.blurb(pod),
 				CT.dom.br(),
 				"Your membership key: " + memship.key
 			];
