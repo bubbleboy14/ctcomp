@@ -24,6 +24,16 @@ Please click <a href='""" + config.web.protocol + """://""" + config.web.domain 
 
 That's it!"""
 
+BLURB = """Hello!
+
+%s has proposed updating the "%s" pod's official blurb. Here's the new version:
+
+%s
+
+Please click <a href='""" + config.web.protocol + """://""" + config.web.domain + """/_comp?action=verify&verifiable=%s&person=%s'>here</a> if you agree that this should be your pod's new blurb.
+
+That's it!"""
+
 SERVICE = """Hello!
 
 %s of the "%s" pod has reported performing the following service: %s. Details:
