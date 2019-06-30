@@ -335,7 +335,7 @@ comp.pods = {
 				} else if (stype == "request") {
 					if (comp.core.size(pod.key) > 2) {
 						comp.core.choice({
-							data: ["include", "exclude", "conversation"],
+							data: ["include", "exclude", "blurb", "conversation"],
 							cb: _.change
 						});
 					} else
@@ -371,7 +371,9 @@ comp.pods = {
 						change: change
 					}, "request");
 				}, "single-choice");
-			} else { // conversation
+			} else if (change == "blurb")
+				_.submit({ change: change }, "request", "ok, what's the new blurb?");
+			else { // conversation
 				comp.core.choice({
 					prompt: "request facilitator from conflict resolution pod?",
 					data: ["no", "yes"],
