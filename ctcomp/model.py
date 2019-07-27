@@ -11,7 +11,7 @@ ratios = config.ctcomp.ratios
 
 class Wallet(db.TimeStampedBase):
 	identifier = db.String() # public key
-	outstanding = db.Integer(default=0)
+	outstanding = db.Float(default=0)
 
 	def deposit(self, amount):
 		if self.identifier:
