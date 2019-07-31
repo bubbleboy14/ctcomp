@@ -14,7 +14,7 @@ def person(email, pw, pod=None):
 
 def services(serz):
 	sz = []
-	for variety, examples in serz.items():
+	for variety, examples in list(serz.items()):
 		for example in examples:
 			sz.append(Service(name=example, variety=variety))
 	db.put_multi(sz)

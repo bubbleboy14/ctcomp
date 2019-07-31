@@ -1,6 +1,7 @@
 from cantools.web import cgi_get, log
 from model import db, enroll, manage, blogger_pod, View
 from cantools import config
+from six import string_types
 
 def view(user, content):
 	if View.query(View.viewer == user.key, View.content == content.key).get():
@@ -27,4 +28,4 @@ def hoc(content, agent):
 	return manage(agent, content["membership"], content["identifier"])
 
 def cont(content, agent):
-	return isinstance(content, basestring) and db.get(content) or hoc(content, agent)
+	return isinstance(content, string_types) and db.get(content) or hoc(content, agent)
