@@ -6,7 +6,7 @@ from ctcoop.model import Member
 from ctdecide.model import Proposal
 from ctstore.model import Product
 from compTemplates import MEET, PAID
-from mint import mint
+from ctcomp.mint import mint
 
 ratios = config.ctcomp.ratios
 
