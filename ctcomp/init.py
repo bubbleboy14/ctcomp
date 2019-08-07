@@ -25,6 +25,11 @@ cfg = {
 			"rnd": 0.2
 		},
 		"pay": 0.9 # member cut -- remainder goes to pod
+	},
+	"contract": {
+		"abi": None,
+		"owner": None,
+		"address": None
 	}
 }
 requires = ["ctcoop", "ctstore"]
