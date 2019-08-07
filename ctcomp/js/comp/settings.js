@@ -53,7 +53,32 @@ comp.settings = {
 			iden: function(wall) {
 				return CT.dom.div(wall.identifier && [
 					"(get balance from contract)",
-					wall.identifier
+					wall.identifier,
+					CT.dom.button("transfer from carecoin wallet to ethereum wallet", function() {
+						comp.core.prompt({
+							prompt: "how much do you want to tranfer?",
+							style: "number",
+							max: wall.outstanding,
+							min: 0.1,
+							step: 0.1,
+							initial: 1,
+							cb: function(amount) {
+								comp.core.c({
+									action: "mint",
+									user: user.core.get("key"),
+									amount: amount
+								}, function() {
+									wall.outstanding -= amount;
+									CT.dom.setContent(comp.settings._.wall.balance,
+										"balance: " + wall.outstanding);
+									// TODO: update contract-derived balance
+									alert("ok!");
+								}, function(emsg) {
+									alert(emsg);
+								});
+							}
+						});
+					})
 				] || "(no public key)");
 			},
 			pkey: function(wall) {
@@ -109,10 +134,11 @@ comp.settings = {
 		});
 	},
 	wallet: function() {
-		var n = CT.dom.div();
+		var n = CT.dom.div(), _w = comp.settings._.wall;
 		CT.db.one(user.core.get().wallet, function(wall) {
+			_w.balance = CT.dom.div("balance: " + wall.outstanding);
 			CT.dom.setContent(n, [
-				"balance: " + wall.outstanding,
+				_w.balance,
 				comp.settings._.wall.pkey(wall)
 			]);
 		});
