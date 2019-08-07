@@ -48,6 +48,38 @@ comp.settings = {
 					}
 				});
 			}
+		},
+		wall: {
+			pkey: function(wall) {
+				var iden = CT.dom.div(wall.identifier);
+				return CT.dom.div([
+					CT.dom.button("set your key", function() {
+						comp.core.prompt({
+							prompt: "what's your public key?",
+							cb: function(pkey) {
+								comp.core.edit({
+									key: wall.key,
+									identifier: pkey
+								}, function() {
+									wall.identifier = pkey;
+									CT.dom.setContent(iden, pkey);
+								});
+							}
+						});
+					}, "left"),
+					CT.dom.link("what's this?", function() {
+						comp.core.modal({
+							content: [
+								CT.dom.div("public keys", "bigger"),
+								"This is your address on the block chain.",
+								"(explain more, provide linx)"
+							]
+						});
+					}, null, "right"),
+					CT.dom.div("your public key", "bigger"),
+					iden
+				], "bordered padded round");
+			}
 		}
 	},
 	handle: function() {
@@ -71,7 +103,12 @@ comp.settings = {
 	},
 	wallet: function() {
 		var n = CT.dom.div();
-		
+		CT.db.one(user.core.get().wallet, function(wall) {
+			CT.dom.setContent(n, [
+				"balance: " + wall.outstanding,
+				comp.settings._.wall.pkey(wall)
+			]);
+		});
 		return n;
 	},
 	init: function() {
