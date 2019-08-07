@@ -50,8 +50,15 @@ comp.settings = {
 			}
 		},
 		wall: {
+			iden: function(wall) {
+				return CT.dom.div(wall.identifier && [
+					"(get balance from contract)",
+					wall.identifier
+				] || "(no public key)");
+			},
 			pkey: function(wall) {
-				var iden = CT.dom.div(wall.identifier);
+				var _w = comp.settings._.wall,
+					iden = CT.dom.div(_w.iden(wall));
 				return CT.dom.div([
 					CT.dom.button("set your key", function() {
 						comp.core.prompt({
@@ -62,7 +69,7 @@ comp.settings = {
 									identifier: pkey
 								}, function() {
 									wall.identifier = pkey;
-									CT.dom.setContent(iden, pkey);
+									CT.dom.setContent(iden, _w.iden(wall));
 								});
 							}
 						});
