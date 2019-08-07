@@ -9,16 +9,16 @@ class Mint(object):
 			self.contract = w3.eth.contract(read(abi)).at(address)
 
 	def balance(self, account):
-		if account and self.contract and w3.isConnected():
+		if account and w3.isConnected() and self.contract:
 			return self.contract.balanceOf(account)
 
 	def mint(self, account, amount):
-		if account and amount and self.contract and w3.isConnected():
+		if account and amount and w3.isConnected() and self.contract:
 			self.contract.mint(account, amount)
 			return True
 		return False
 
-cfg = config.contract
-minter = mint(cfg.abi, cfg.owner, cfg.address)
+cfg = config.ctcomp.contract
+minter = Mint(cfg.abi, cfg.owner, cfg.address)
 mint = minter.mint
 balance = minter.balance
