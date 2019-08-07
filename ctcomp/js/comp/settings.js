@@ -59,8 +59,8 @@ comp.settings = {
 							prompt: "how much do you want to tranfer?",
 							style: "number",
 							max: wall.outstanding,
-							min: 0.1,
-							step: 0.1,
+							min: 1,
+							step: 1,
 							initial: 1,
 							cb: function(amount) {
 								comp.core.c({
