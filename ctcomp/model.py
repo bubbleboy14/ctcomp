@@ -6,13 +6,18 @@ from ctcoop.model import Member
 from ctdecide.model import Proposal
 from ctstore.model import Product
 from compTemplates import MEET, PAID
-from ctcomp.mint import mint
+from ctcomp.mint import mint, balance
 
 ratios = config.ctcomp.ratios
 
 class Wallet(db.TimeStampedBase):
 	identifier = db.String() # public key
 	outstanding = db.Float(default=0)
+
+	def balance(self):
+		if not self.identifier:
+			error("your wallet is not set up")
+		return balance(self.identifier)
 
 	def mint(self, amount):
 		if not self.identifier:
