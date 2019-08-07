@@ -11,6 +11,7 @@ class Mint(object):
 	def balance(self, account):
 		if account and w3.isConnected() and self.contract:
 			return self.contract.balanceOf(account)
+		return 0
 
 	def mint(self, account, amount):
 		if account and amount and w3.isConnected() and self.contract:
