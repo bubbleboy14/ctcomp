@@ -48,6 +48,82 @@ comp.settings = {
 					}
 				});
 			}
+		},
+		wall: {
+			iden: function(wall) {
+				var cbal = CT.dom.div("your ethereum balance"), ukey = user.core.get("key");
+				wall.identifier && comp.core.c({
+					action: "balance",
+					user: ukey
+				}, function(bal) {
+					cbal._val = bal;
+					CT.dom.setContent(cbal, "ethereum (blockchain wallet) balance: " + bal);
+				});
+				return CT.dom.div(wall.identifier && [
+					cbal,
+					wall.identifier,
+					CT.dom.button("transfer from carecoin wallet to ethereum wallet", function() {
+						comp.core.prompt({
+							prompt: "how much do you want to tranfer?",
+							style: "number",
+							max: wall.outstanding,
+							min: 1,
+							step: 1,
+							initial: 1,
+							cb: function(amount) {
+								comp.core.c({
+									action: "mint",
+									user: ukey,
+									amount: amount
+								}, function() {
+									wall.outstanding -= amount;
+									cbal._val += amount;
+									CT.dom.setContent(comp.settings._.wall.balance,
+										"carecoin (platform wallet) balance: " + wall.outstanding);
+									CT.dom.setContent(cbal,
+										"ethereum (blockchain wallet) balance: " + cbal._val);
+									alert("ok!");
+								}, function(emsg) {
+									alert(emsg);
+								});
+							}
+						});
+					})
+				] || "(no public key)");
+			},
+			pkey: function(wall) {
+				var _w = comp.settings._.wall,
+					iden = CT.dom.div(_w.iden(wall));
+				return CT.dom.div([
+					CT.dom.button("set your key", function() {
+						comp.core.prompt({
+							prompt: "what's your public key?",
+							cb: function(pkey) {
+								comp.core.edit({
+									key: wall.key,
+									identifier: pkey
+								}, function() {
+									wall.identifier = pkey;
+									CT.dom.setContent(iden, _w.iden(wall));
+								});
+							}
+						});
+					}, "left"),
+					CT.dom.link("what's this?", function() {
+						comp.core.modal({
+							content: CT.dom.div([
+								CT.dom.div("public keys", "bigger"),
+								"Your public key is your address on the ethereum block chain.",
+								"The coins you store here can be used like any other ethereum token, or traded on the exchanges.",
+								"The coins you retain in your carecoin wallet, on the other hand, can be used for internal transactions, such as purchasing goods and services from other users.",
+								"(explain more, provide linx)"
+							], "subpadded")
+						});
+					}, null, "right"),
+					CT.dom.div("your public key", "bigger"),
+					iden
+				], "bordered padded round");
+			}
 		}
 	},
 	handle: function() {
@@ -70,8 +146,14 @@ comp.settings = {
 		});
 	},
 	wallet: function() {
-		var n = CT.dom.div();
-		
+		var n = CT.dom.div(), _w = comp.settings._.wall;
+		CT.db.one(user.core.get().wallet, function(wall) {
+			_w.balance = CT.dom.div("carecoin (platform wallet) balance: " + wall.outstanding);
+			CT.dom.setContent(n, [
+				_w.balance,
+				comp.settings._.wall.pkey(wall)
+			]);
+		});
 		return n;
 	},
 	init: function() {
