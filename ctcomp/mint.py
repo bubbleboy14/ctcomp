@@ -9,7 +9,7 @@ except:
 
 class Mint(object):
 	def __init__(self, abi, owner, address):
-		if abi and owner and address and w3.isConnected():
+		if abi and owner and address and ACTIVE and w3.isConnected():
 			w3.eth.defaultAccount = owner
 			self.contract = w3.eth.contract(read(abi)).at(address)
 		self.log("initialized with: %s, %s, %s"%(abi, owner, address))
