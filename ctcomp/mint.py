@@ -11,24 +11,24 @@ class Mint(object):
 	def __init__(self, abi, owner, address):
 		if abi and owner and address and ACTIVE and w3.isConnected():
 			w3.eth.defaultAccount = owner
-			self.contract = w3.eth.contract(read(abi)).at(address)
+			self.caller = w3.eth.contract(abi=read(abi, isjson=True)['abi'], address=address).caller()
 		self.log("initialized with: %s, %s, %s"%(abi, owner, address))
 
 	def log(self, msg):
 		log("Mint (%s) :: %s"%(self.active() and "active" or "inactive", msg), important=True)
 
 	def active(self):
-		return ACTIVE and w3.isConnected() and self.contract
+		return ACTIVE and w3.isConnected() and self.caller
 
 	def balance(self, account):
 		if account and self.active():
-			return self.contract.balanceOf(account)
+			return self.caller.balanceOf(account)
 		return 0
 
 	def mint(self, account, amount):
 		self.log("minting %s to %s"%(amount, account))
 		if account and amount and self.active():
-			self.contract.mint(account, amount)
+			self.caller.mint(account, amount)
 			return True
 		return False
 
