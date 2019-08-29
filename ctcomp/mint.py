@@ -29,8 +29,7 @@ class Mint(object):
 	def mint(self, account, amount):
 		self.log("minting %s to %s"%(amount, account))
 		if account and amount and self.active():
-			self.caller.mint(account, amount)
-			return True
+			return self.caller.mint(account, amount)
 		return False
 
 cfg = config.ctcomp.contract
