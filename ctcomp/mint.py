@@ -12,7 +12,7 @@ class Mint(object):
 		if abi and owner and address and ACTIVE and w3.isConnected():
 			w3.eth.defaultAccount = owner
 			self.contract = w3.eth.contract(abi=read(abi, isjson=True)['abi'], address=address)
-			self.caller = self.contract.caller()
+			self.caller = self.contract.caller({ 'from': owner, 'gas': 100000 })
 		self.log("initialized with: %s, %s, %s"%(abi, owner, address))
 
 	def log(self, msg):
