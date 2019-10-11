@@ -11,8 +11,9 @@ comp.pods = {
 			main: CT.dom.div(null, "h1 mr160 relative"),
 			right: CT.dom.div(null, "h1 w160p up5 scrolly right")
 		},
-		sections: ["Info", "Proposals", "Commitments", "Services", "Requests",
-			"Content", "Products", "Codebases", "Dependencies", "Expenses"],
+		sections: ["Info", "Proposals", "Responsibilities",
+			"Commitments", "Services", "Requests", "Content",
+			"Products", "Codebases", "Dependencies", "Expenses"],
 		proposal: function(key) {
 			var _ = comp.pods._,
 				memship = _.memberships[_.current.pod.key];
@@ -596,11 +597,11 @@ comp.pods = {
 		], "abs all0"));
 	},
 	slider: function() {
-		var _ = comp.pods._, nodes = _.nodes;
-		nodes.slider._slider = CT.panel.slider([], nodes.views,
-			nodes.slider, null, null, null, true);
+		var _ = comp.pods._, nodes = _.nodes,
+			slide = nodes.slider._slider = CT.panel.slider([],
+				nodes.views, nodes.slider, null, null, null, true);
 		_.sections.forEach(function(section, i) {
-			nodes[section.toLowerCase()] = nodes.slider._slider.add(section, !i);
+			nodes[section.toLowerCase()] = slide.add(section, !i);
 		});
 	},
 	limits: function(data) {
