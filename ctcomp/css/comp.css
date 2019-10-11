@@ -28,6 +28,10 @@ html, body {
 	text-align: center;
 }
 
+.basicpopup textarea {
+	width: 100%;
+}
+
 .embedded #ctmain {
 	top: 0;
 }
