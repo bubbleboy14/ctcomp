@@ -110,15 +110,13 @@ comp.settings = {
 						});
 					}, "left"),
 					CT.dom.link("what's this?", function() {
-						comp.core.modal({
-							content: CT.dom.div([
-								CT.dom.div("public keys", "bigger"),
-								"Your public key is your address on the ethereum block chain.",
-								"The coins you store here can be used like any other ethereum token, or traded on the exchanges.",
-								"The coins you retain in your carecoin wallet, on the other hand, can be used for internal transactions, such as purchasing goods and services from other users.",
-								"(explain more, provide linx)"
-							], "subpadded")
-						});
+						CT.modal.modal(CT.dom.div([
+							CT.dom.div("public keys", "bigger"),
+							"Your public key is your address on the ethereum block chain.",
+							"The coins you store here can be used like any other ethereum token, or traded on the exchanges.",
+							"The coins you retain in your carecoin wallet, on the other hand, can be used for internal transactions, such as purchasing goods and services from other users.",
+							"(explain more, provide linx)"
+						], "subpadded"));
 					}, null, "right"),
 					CT.dom.div("your public key", "bigger"),
 					iden
