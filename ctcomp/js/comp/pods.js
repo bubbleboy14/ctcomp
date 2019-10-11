@@ -400,7 +400,7 @@ comp.pods = {
 				action = unrestricted ? "show" : "hide",
 				reaction = pod.agent ? "hide" : "show",
 				showSoft = (pod.variety == "software") ? "show" : "hide";
-			["Requests", "Commitments", "Services"].forEach(function(section, i) {
+			["Responsibilities", "Commitments", "Services", "Requests"].forEach(function(section, i) {
 				CT.dom[i ? action : reaction]("tl" + section);
 			});
 			["Codebases", "Dependencies"].forEach(function(section) {
