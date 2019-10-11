@@ -1,4 +1,5 @@
 CT.require("CT.align");
+CT.require("CT.cal");
 CT.require("CT.chat");
 CT.require("CT.data");
 CT.require("CT.db");
@@ -13,6 +14,7 @@ CT.require("CT.storage");
 CT.require("CT.trans");
 CT.require("core");
 CT.require("user.core");
+CT.require("coop.cal");
 CT.require("comp.core");
 CT.require("comp.pods");
 CT.require("decide");
