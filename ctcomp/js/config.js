@@ -7,6 +7,7 @@
 		"menu": "margined padded bordered round"
 	},
 	"blurbs": {
+		"responsibility": "Task management, including scheduling of and volunteering for pod-related activities.",
 		"commitment": "Register a weekly commitment.",
 		"service": "Record a one-off service.",
 		"request": "Include and exclude pod members. Schedule conversations. Update your pod's blurb.",
