@@ -409,15 +409,17 @@ comp.pods = {
 			unrestricted || CT.dom.id("tlInfo").firstChild.onclick();
 		},
 		frame: function(data, item, plur) {
-			var _ = comp.pods._, cfg = core.config.ctcomp;
+			var _ = comp.pods._, cfg = core.config.ctcomp, n, content;
 			plur = plur || item;
-				n = _.nodes[item + "_list"] = CT.dom.div(data && data[plur].map(_[item]));
-			CT.dom.setContent(_.nodes[plur], [
-				CT.dom.button("new", _.submitter(item), "right"),
+			n = _.nodes[item + "_list"] = CT.dom.div(data && data[plur].map(_[item]));
+			content = [
 				CT.dom.div(CT.parse.capitalize(plur), "biggest"),
 				cfg.blurbs[item],
 				n
-			]);
+			];
+			data && content.unshift(CT.dom.button("new",
+				_.submitter(item), "right"));
+			CT.dom.setContent(_.nodes[plur], content);
 			return n;
 		},
 		pod: function(opts, label, cb) {
