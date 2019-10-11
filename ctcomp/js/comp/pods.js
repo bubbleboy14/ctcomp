@@ -411,13 +411,14 @@ comp.pods = {
 		frame: function(data, item, plur) {
 			var _ = comp.pods._, cfg = core.config.ctcomp;
 			plur = plur || item;
-				n = _.nodes[item + "_list"] = CT.dom.div(data[plur].map(_[item]));
+				n = _.nodes[item + "_list"] = CT.dom.div(data && data[plur].map(_[item]));
 			CT.dom.setContent(_.nodes[plur], [
 				CT.dom.button("new", _.submitter(item), "right"),
 				CT.dom.div(CT.parse.capitalize(plur), "biggest"),
 				cfg.blurbs[item],
 				n
 			]);
+			return n;
 		},
 		pod: function(opts, label, cb) {
 			label = label || "this pod";
@@ -444,6 +445,13 @@ comp.pods = {
 		setDependencies: function(pod) {
 			CT.db.multi(pod.dependencies, function(deps) {
 				comp.pods._.frame({ dependencies: deps }, "dependency", "dependencies");
+			});
+		},
+		setResponsibilities: function(pod) {
+			new coop.cal.Cal({
+				parent: comp.pods._.frame(null,
+					"responsibility", "responsibilities"),
+				tasks: pod.tasks
 			});
 		},
 		video: function(podname, ukey) {
@@ -509,6 +517,7 @@ comp.pods = {
 			memship = _.memberships[pod.key], content;
 		_.current.pod = pod;
 		_.setDependencies(pod);
+		_.setResponsibilities(pod);
 		comp.core.membership(memship.key, function(data) {
 			_.frame(data, "content");
 			_.frame(data, "product", "products");
