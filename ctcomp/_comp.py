@@ -123,7 +123,7 @@ def response():
 			variety, amount, exp.recurring, exp.notes, signer.urlsafe()))
 		succeed(exp.key.urlsafe())
 	elif action == "verify":
-		verifiable = db.get(cgi_get("verifiable")) # act/request/commitment/expense
+		verifiable = db.get(cgi_get("verifiable")) # act/request/commitment/expense/appointment
 		verifiable.verify(db.KeyWrapper(cgi_get("person")))
 		redirect("/comp/pods.html", "you did it!")
 	elif action == "unverify": # commitment only!!!!??!
