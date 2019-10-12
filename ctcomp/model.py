@@ -57,6 +57,12 @@ class Person(Member):
 			memship.put()
 		return memship.key
 
+	def tasks(self):
+		return db.get_multi(sum([p.tasks for p in self.pods()], []))
+
+	def pods(self):
+		return db.get_multi([m.pod for m in self.memberships()])
+
 	def memberships(self):
 		return Membership.query(Membership.person == self.key).fetch()
 
