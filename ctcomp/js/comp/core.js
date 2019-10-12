@@ -64,16 +64,10 @@ comp.core = {
 		CT.data.add(data);
 		comp.core._.pods[pod][section].push(data);
 	},
-	modal: function(opts) {
-		(new CT.modal.Modal(CT.merge(opts, {
-			transition: "slide"
-		}))).show();
-	},
 	prompt: function(opts) {
-		(new CT.modal.Prompt(CT.merge(opts, {
-			noClose: true,
-			transition: "slide"
-		}))).show();
+		CT.modal.prompt(CT.merge(opts, {
+			noClose: true
+		}));
 	},
 	choice: function(opts) {
 		comp.core.prompt(CT.merge(opts, {

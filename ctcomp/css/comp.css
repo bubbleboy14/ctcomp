@@ -1,14 +1,6 @@
-* {
-	box-sizing: border-box;
-}
-
 html, body {
 	height: 100%;
 	overflow: hidden;
-}
-
-#ctheader {
-	height: 105px;
 }
 
 #ctmain.pods {
@@ -26,6 +18,10 @@ html, body {
 
 .basicpopup {
 	text-align: center;
+}
+
+.basicpopup textarea {
+	width: 100%;
 }
 
 .embedded #ctmain {

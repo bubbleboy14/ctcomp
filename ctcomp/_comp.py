@@ -4,7 +4,7 @@ from compTemplates import APPLY, APPLICATION, EXCLUDE, BLURB, SERVICE, COMMITMEN
 from ctcomp.view import views
 
 def response():
-	action = cgi_get("action", choices=["view", "pay", "service", "commitment", "request", "expense", "verify", "unverify", "apply", "join", "pod", "membership", "person", "enroll", "manage", "confcode", "mint", "balance"])
+	action = cgi_get("action", choices=["view", "pay", "service", "commitment", "request", "expense", "verify", "unverify", "apply", "join", "pod", "membership", "person", "enroll", "manage", "confcode", "mint", "balance", "responsibilities"])
 	if action == "view":
 		ip = local("response").ip
 		user = cgi_get("user", required=False) # key
@@ -179,6 +179,9 @@ def response():
 			"memberships": [m.data() for m in person.memberships()],
 			"commitments": sum([c.estimate for c in person.commitments()])
 		})
+	elif action == "responsibilities":
+		person = db.get(cgi_get("person"))
+		succeed([t.data() for t in person.tasks()])
 	elif action == "enroll":
 		succeed(enroll(cgi_get("agent"), cgi_get("pod"), cgi_get("person")).urlsafe())
 	elif action == "manage":

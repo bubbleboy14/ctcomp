@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from cantools import db, config
 from cantools.util import error
 from cantools.web import email_admins, fetch, log, send_mail
-from ctcoop.model import Member
+from ctcoop.model import *
 from ctdecide.model import Proposal
 from ctstore.model import Product
 from compTemplates import MEET, PAID
@@ -57,6 +57,12 @@ class Person(Member):
 			memship.put()
 		return memship.key
 
+	def tasks(self):
+		return db.get_multi(sum([p.tasks for p in self.pods()], []))
+
+	def pods(self):
+		return db.get_multi([m.pod for m in self.memberships()])
+
 	def memberships(self):
 		return Membership.query(Membership.person == self.key).fetch()
 
@@ -74,6 +80,7 @@ class Pod(db.TimeStampedBase):
 	blurb = db.Text()
 	pool = db.ForeignKey(kind=Wallet)
 	agent = db.ForeignKey(kind="Pod")
+	tasks = db.ForeignKey(kind=Task, repeated=True)
 	dependencies = db.ForeignKey(kind="Codebase", repeated=True) # software pod only
 
 	def oncreate(self):

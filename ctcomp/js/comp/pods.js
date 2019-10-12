@@ -11,8 +11,9 @@ comp.pods = {
 			main: CT.dom.div(null, "h1 mr160 relative"),
 			right: CT.dom.div(null, "h1 w160p up5 scrolly right")
 		},
-		sections: ["Info", "Proposals", "Commitments", "Services", "Requests",
-			"Content", "Products", "Codebases", "Dependencies", "Expenses"],
+		sections: ["Info", "Proposals", "Responsibilities",
+			"Commitments", "Services", "Requests", "Content",
+			"Products", "Codebases", "Dependencies", "Expenses"],
 		proposal: function(key) {
 			var _ = comp.pods._,
 				memship = _.memberships[_.current.pod.key];
@@ -67,22 +68,20 @@ comp.pods = {
 			return CT.dom.div([
 				CT.dom.div(c.identifier, "big"),
 				CT.dom.link("manual link - probs unnecessary", function() {
-					comp.core.modal({
-						content: [
-							CT.dom.div("Manual Linking - Probably Not Necessary", "bigger underline"),
-							[
-								"To manually link this content, add <b>&lt;iframe src='",
-								location.protocol,
-								"//",
-								location.host,
-								"/comp/view.html#",
-								c.key,
-								"'&gt;&lt;/iframe&gt;</b> to your web page."
-							].join(""),
-							CT.dom.br(),
-							"Unless you're crafting your site by hand (without the CC API), this is almost certainly not necessary."
-						]
-					});
+					CT.modal.modal([
+						CT.dom.div("Manual Linking - Probably Not Necessary", "bigger underline"),
+						[
+							"To manually link this content, add <b>&lt;iframe src='",
+							location.protocol,
+							"//",
+							location.host,
+							"/comp/view.html#",
+							c.key,
+							"'&gt;&lt;/iframe&gt;</b> to your web page."
+						].join(""),
+						CT.dom.br(),
+						"Unless you're crafting your site by hand (without the CC API), this is almost certainly not necessary."
+					]);
 				}, null, "centered block")
 			], "bordered padded margined");
 		},
@@ -401,7 +400,7 @@ comp.pods = {
 				action = unrestricted ? "show" : "hide",
 				reaction = pod.agent ? "hide" : "show",
 				showSoft = (pod.variety == "software") ? "show" : "hide";
-			["Requests", "Commitments", "Services"].forEach(function(section, i) {
+			["Responsibilities", "Commitments", "Services", "Requests"].forEach(function(section, i) {
 				CT.dom[i ? action : reaction]("tl" + section);
 			});
 			["Codebases", "Dependencies"].forEach(function(section) {
@@ -410,15 +409,18 @@ comp.pods = {
 			unrestricted || CT.dom.id("tlInfo").firstChild.onclick();
 		},
 		frame: function(data, item, plur) {
-			var _ = comp.pods._, cfg = core.config.ctcomp;
+			var _ = comp.pods._, cfg = core.config.ctcomp, n, content;
 			plur = plur || item;
-				n = _.nodes[item + "_list"] = CT.dom.div(data[plur].map(_[item]));
-			CT.dom.setContent(_.nodes[plur], [
-				CT.dom.button("new", _.submitter(item), "right"),
+			n = _.nodes[item + "_list"] = CT.dom.div(data && data[plur].map(_[item]));
+			content = [
 				CT.dom.div(CT.parse.capitalize(plur), "biggest"),
 				cfg.blurbs[item],
 				n
-			]);
+			];
+			data && content.unshift(CT.dom.button("new",
+				_.submitter(item), "right"));
+			CT.dom.setContent(_.nodes[plur], content);
+			return n;
 		},
 		pod: function(opts, label, cb) {
 			label = label || "this pod";
@@ -445,6 +447,20 @@ comp.pods = {
 		setDependencies: function(pod) {
 			CT.db.multi(pod.dependencies, function(deps) {
 				comp.pods._.frame({ dependencies: deps }, "dependency", "dependencies");
+			});
+		},
+		setResponsibilities: function(pod) {
+			new coop.cal.Cal({
+				parent: comp.pods._.frame(null,
+					"responsibility", "responsibilities"),
+				tasks: pod.tasks,
+				ontask: function(task) {
+					pod.tasks.push(task.key);
+					comp.core.edit({
+						key: pod.key,
+						tasks: pod.tasks
+					});
+				}
 			});
 		},
 		video: function(podname, ukey) {
@@ -510,6 +526,7 @@ comp.pods = {
 			memship = _.memberships[pod.key], content;
 		_.current.pod = pod;
 		_.setDependencies(pod);
+		_.setResponsibilities(pod);
 		comp.core.membership(memship.key, function(data) {
 			_.frame(data, "content");
 			_.frame(data, "product", "products");
@@ -598,11 +615,11 @@ comp.pods = {
 		], "abs all0"));
 	},
 	slider: function() {
-		var _ = comp.pods._, nodes = _.nodes;
-		nodes.slider._slider = CT.panel.slider([], nodes.views,
-			nodes.slider, null, null, null, true);
+		var _ = comp.pods._, nodes = _.nodes,
+			slide = nodes.slider._slider = CT.panel.slider([],
+				nodes.views, nodes.slider, null, null, null, true);
 		_.sections.forEach(function(section, i) {
-			nodes[section.toLowerCase()] = nodes.slider._slider.add(section, !i);
+			nodes[section.toLowerCase()] = slide.add(section, !i);
 		});
 	},
 	limits: function(data) {
