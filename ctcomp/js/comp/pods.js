@@ -454,6 +454,10 @@ comp.pods = {
 				parent: comp.pods._.frame(null,
 					"responsibility", "responsibilities"),
 				tasks: pod.tasks,
+				mode: {
+					prompt: "please select a compensation mode",
+					choices: ["automatic", "email confirmation"]
+				},
 				ontask: function(task) {
 					pod.tasks.push(task.key);
 					comp.core.edit({
