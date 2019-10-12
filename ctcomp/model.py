@@ -373,6 +373,36 @@ class Commitment(Verifiable):
 			service.compensation, self.estimate, numdays))
 		self.membership.get().deposit(service.compensation * self.estimate * numdays / 7.0)
 
+def isToday(slot):
+	now = datetime.now()
+	if slot.schedule == "daily":
+		return True
+	elif slot.schedule == "weekly":
+		return slot.when.weekday() == now.weekday()
+	elif slot.schedule == "once":
+		return slot.when.date() == now.date()
+	elif slot.schedule == "exception":
+		pass # TODO: exceptions!!!!
+
+def task2pod(task):
+	return Pod.query(Pod.tasks.contains(task.key.urlsafe())).get()
+
+def payCal():
+	for stew in Stewardship.query().all():
+		task = None
+		pod = None
+		person = None
+		for slot in db.get_multi(stew.timeslots):
+			if isToday(slot):
+				if not task:
+					task = stew.task()
+					pod = task2pod(task)
+					person = db.get(stew.steward)
+				if task.mode == "automatic":
+					pod.deposit(person, slot.duration)
+				elif task.mode == "email confirmation":
+					pass # TODO: this!!
+
 def payDay():
 	log("payday!", important=True)
 	commz = Commitment.query(Commitment.passed == True).fetch()
@@ -385,6 +415,7 @@ def payDay():
 	for cb in cbz:
 		cb.refresh()
 	log("refreshed %s codebases"%(len(cbz),), important=True)
+	payCal()
 
 class Act(Verifiable):
 	service = db.ForeignKey(kind=Service)
