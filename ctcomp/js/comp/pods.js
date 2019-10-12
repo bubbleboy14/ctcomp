@@ -453,7 +453,14 @@ comp.pods = {
 			new coop.cal.Cal({
 				parent: comp.pods._.frame(null,
 					"responsibility", "responsibilities"),
-				tasks: pod.tasks
+				tasks: pod.tasks,
+				ontask: function(task) {
+					pod.tasks.push(task.key);
+					comp.core.edit({
+						key: pod.key,
+						tasks: pod.tasks
+					});
+				}
 			});
 		},
 		video: function(podname, ukey) {
