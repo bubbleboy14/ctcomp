@@ -426,6 +426,7 @@ def task2pod(task):
 	return Pod.query(Pod.tasks.contains(task.key.urlsafe())).get()
 
 def payCal():
+	log("paycal!", important=True)
 	for stew in Stewardship.query().all():
 		task = None
 		pod = None
@@ -436,6 +437,7 @@ def payCal():
 					task = stew.task()
 					pod = task2pod(task)
 					person = db.get(stew.steward)
+				log("task: %s (%s)"%(task.name, task.mode))
 				if task.mode == "automatic":
 					pod.deposit(person, slot.duration)
 				elif task.mode == "email confirmation":
