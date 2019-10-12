@@ -5,7 +5,7 @@ from cantools.web import email_admins, fetch, log, send_mail
 from ctcoop.model import *
 from ctdecide.model import Proposal
 from ctstore.model import Product
-from compTemplates import MEET, PAID
+from compTemplates import MEET, PAID, APPOINTMENT
 from ctcomp.mint import mint, balance
 
 ratios = config.ctcomp.ratios
@@ -35,6 +35,10 @@ class Wallet(db.TimeStampedBase):
 class Contributor(db.TimeStampedBase):
 	handle = db.String()
 
+def membership(person, pod):
+	return Membership.query(Membership.pod == pod.key,
+		Membership.person == person.key).get()
+
 class Person(Member):
 	ip = db.String()                              # optional
 	wallet = db.ForeignKey(kind=Wallet)           # optional
@@ -50,8 +54,7 @@ class Person(Member):
 		self.put()
 
 	def enroll(self, pod):
-		memship = Membership.query(Membership.pod == pod.key,
-			Membership.person == self.key).get()
+		memship = membership(self, pod)
 		if not memship:
 			memship = Membership(pod=pod.key, person=self.key)
 			memship.put()
@@ -311,6 +314,41 @@ class Verifiable(db.TimeStampedBase):
 				return False
 		return True
 
+class Appointment(Verifiable):
+	timeslot = db.ForeignKey(kind=Timeslot)
+
+	def signers(self):
+		return self.task().editors
+
+	def task(self):
+		return self.stewardship().task()
+
+	def stewardship(self):
+		return slot2stewardship(self.timeslot.get())
+
+	def fulfill(self):
+		if not self.verified():
+			return False
+		self.membership.get().deposit(self.timeslot.get().duration)
+		self.passed = True
+		self.put()
+		return True
+
+def appointment(slot, task, pod, person):
+	app = Appointment()
+	app.membership = membership(person, pod).key
+	app.notes = "\n\n".join([
+		task.name, task.description,
+		"time: " + slot.when.isoformat()[:5],
+		"duration: %s hours"%(slot.duration,)
+	])
+	app.timeslot = slot.key
+	app.put()
+	app.notify("confirm appointment",
+		lambda signer : APPOINTMENT%(person.email,
+			pod.name, task.name, app.notes,
+			app.key.urlsafe(), signer.urlsafe()))
+
 class Payment(Verifiable):
 	payer = db.ForeignKey(kind=Person)
 	amount = db.Float()
@@ -401,7 +439,7 @@ def payCal():
 				if task.mode == "automatic":
 					pod.deposit(person, slot.duration)
 				elif task.mode == "email confirmation":
-					pass # TODO: this!!
+					appointment(slot, task, pod, person)
 
 def payDay():
 	log("payday!", important=True)
