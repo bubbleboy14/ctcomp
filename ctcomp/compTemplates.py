@@ -34,6 +34,16 @@ Please click <a href='""" + config.web.protocol + """://""" + config.web.domain 
 
 That's it!"""
 
+APPOINTMENT = """Hello!
+
+%s of the "%s" pod committed to the following appointment: %s. Details:
+
+%s
+
+Please click <a href='""" + config.web.protocol + """://""" + config.web.domain + """/_comp?action=verify&verifiable=%s&person=%s'>here</a> to confirm that this appointment took place.
+
+That's it!"""
+
 SERVICE = """Hello!
 
 %s of the "%s" pod has reported performing the following service: %s. Details:
