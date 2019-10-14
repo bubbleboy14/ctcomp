@@ -324,7 +324,7 @@ class Appointment(Verifiable):
 		return self.stewardship().task()
 
 	def stewardship(self):
-		return slot2stewardship(self.timeslot.get())
+		return self.timeslot.get().slotter()
 
 	def fulfill(self):
 		if not self.verified():
