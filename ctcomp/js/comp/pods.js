@@ -512,7 +512,8 @@ comp.pods = {
 		}
 	},
 	fresh: function() {
-		var _ = comp.pods._, ACP = "Agent/Client Pair (Managed Mode)";
+		var _ = comp.pods._, opts = {},
+			ACP = "Agent/Client Pair (Managed Mode)";
 		comp.core.varieties(function(variety) {
 			if (variety == ACP) {
 				_.pod({ variety: "software" }, "the agent pod", function(agent) {
@@ -521,13 +522,24 @@ comp.pods = {
 						agent: agent.key
 					}, "the managed pod");
 				});
-			} else
-				_.pod({ variety: variety });
+			} else {
+				opts.variety = variety;
+				comp.core.choice({
+					prompt: "how would you like to admit new members? the default mode, 'full', requires every member to approve new admissions. with the alternative, 'limited', you may designate a subset of the pod's membership to make these decisions.",
+					data: ["full", "limited"],
+					cb: function(selection) {
+						if (selection == "limited")
+							opts.includers = [ user.core.get("key") ];
+						_.pod(opts);
+					}
+				})
+			}
 		}, ACP);
 	},
 	pod: function(pod) {
 		var _ = comp.pods._, cfg = core.config.ctcomp,
-			memship = _.memberships[pod.key], content;
+			memship = _.memberships[pod.key],
+			inclz = CT.dom.div(), content;
 		_.current.pod = pod;
 		_.setDependencies(pod);
 		_.setResponsibilities(pod);
@@ -556,6 +568,35 @@ comp.pods = {
 						return p.name + ": " + p.key;
 					})
 				]);
+			}
+			if (pod.includers.includes(user.core.get("key"))) {
+				CT.db.multi(pod.includers, function(iz) {
+					CT.dom.setContent(inclz, iz.map(function(inc) {
+						return inc.firstName;
+					}));
+				});
+				content = content.concat([
+					CT.dom.br(),
+					"includers:",
+					inclz
+				]);
+				if (pod.includers.length != comp.core.size(pod.key)) {
+					content.push(CT.dom.button("add includer", function() {
+						comp.core.mates(pod.key, "appoint your podmates to participate in determining whether to include others", function(pmz) {
+							pod.includers = pod.includers.concat(pmz.map(function(pm) {
+								return pm.key;
+							}));
+							comp.core.edit({
+								key: pod.key,
+								includers: pod.includers
+							}, function() {
+								CT.dom.setContent(inclz, pod.includers.map(function(pi) {
+									return CT.data.get(pi).firstName;
+								}));
+							});
+						}, null, null, pod.includers);
+					}));
+				}
 			}
 			CT.dom.setContent(_.nodes.info, content);
 			["service", "commitment", "request", "codebase", "expense"].forEach(function(item) {
