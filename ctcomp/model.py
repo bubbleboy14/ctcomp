@@ -84,6 +84,7 @@ class Pod(db.TimeStampedBase):
 	pool = db.ForeignKey(kind=Wallet)
 	agent = db.ForeignKey(kind="Pod")
 	tasks = db.ForeignKey(kind=Task, repeated=True)
+	includers = db.ForeignKey(kind=Person, repeated=True)
 	dependencies = db.ForeignKey(kind="Codebase", repeated=True) # software pod only
 
 	def oncreate(self):
@@ -482,11 +483,14 @@ class Request(Verifiable):
 	person = db.ForeignKey(kind=Person) # person in question!
 
 	def signers(self):
+		pod = self.pod()
 		if self.change == "conversation":
-			pz = [p for p in self.pod().members()]
+			pz = [p for p in pod.members()]
 			self.person and pz.append(self.person)
 			return pz
-		return [p for p in self.pod().members() if p != self.person]
+		elif self.change == "include" and pod.includers:
+			return pod.includers
+		return [p for p in pod.members() if p != self.person]
 
 	def fulfill(self):
 		if self.passed or not self.verified():
