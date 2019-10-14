@@ -84,12 +84,19 @@ comp.core = {
 			return p.key != u;
 		});
 	},
-	mates: function(pod, prompt, cb, style, nome) {
+	mates: function(pod, prompt, cb, style, nome, exclude) {
+		var data = nome && comp.core.others(pod)
+			|| comp.core._.pods[pod].people;
+		if (exclude) {
+			data = data.filter(function(d) {
+				return !exclude.includes(d.key);
+			});
+		}
 		comp.core.choice({
 			cb: cb,
 			prompt: prompt,
 			style: style || "multiple-choice",
-			data: nome && comp.core.others(pod) || comp.core._.pods[pod].people
+			data: data
 		})
 	},
 	facilitator: function(pod, cb) {
