@@ -17,6 +17,8 @@ html, body {
 }
 
 .basicpopup {
+	max-width: 80%;
+	max-height: 90%;
 	text-align: center;
 }
 
