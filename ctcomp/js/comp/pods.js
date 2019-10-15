@@ -3,6 +3,7 @@ comp.pods = {
 		current: {},
 		agents: {},
 		memberships: {},
+		responsibilities: {},
 		nodes: {
 			list: CT.dom.div(),
 			views: CT.dom.div(),
@@ -453,9 +454,12 @@ comp.pods = {
 			});
 		},
 		setResponsibilities: function(pod) {
-			new coop.cal.Cal({
-				parent: comp.pods._.frame(null,
-					"responsibility", "responsibilities"),
+			var _ = comp.pods._, rz = _.responsibilities,
+				frame = _.frame(null, "responsibility", "responsibilities");
+			if (rz[pod.key])
+				return rz[pod.key].setParent(frame);
+			rz[pod.key] = new coop.cal.Cal({
+				parent: frame,
 				tasks: pod.tasks,
 				mode: {
 					prompt: "please select a compensation mode",
