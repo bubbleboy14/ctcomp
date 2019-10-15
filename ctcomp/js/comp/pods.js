@@ -458,12 +458,27 @@ comp.pods = {
 					prompt: "please select a compensation mode",
 					choices: ["automatic", "email confirmation"]
 				},
-				ontask: function(task) {
-					pod.tasks.push(task.key);
-					comp.core.edit({
-						key: pod.key,
-						tasks: pod.tasks
-					});
+				on: {
+					task: function(task) {
+						pod.tasks.push(task.key);
+						comp.core.edit({
+							key: pod.key,
+							tasks: pod.tasks
+						});
+					},
+					editors: function(task) {
+						comp.core.mates(pod.key,
+							"who should be allowed to edit this task?",
+							function(mz) {
+								task.editors = task.editors.concat(mz.map(function(te) {
+									return te.key;
+								}));
+								comp.core.edit({
+									key: task.key,
+									editors: task.editors
+								});
+							}, null, null, task.editors);
+					}
 				}
 			});
 		},
