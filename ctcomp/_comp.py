@@ -1,6 +1,6 @@
 from cantools.web import respond, succeed, fail, cgi_get, local, send_mail, redirect
 from model import db, enroll, manage, Person, Content, Payment, Act, Commitment, Request, Expense
-from compTemplates import APPLY, APPLICATION, EXCLUDE, BLURB, SERVICE, COMMITMENT, PAYMENT, EXPENSE, CONFCODE, CONVO
+from compTemplates import APPLICATION, SERVICE, COMMITMENT, PAYMENT, EXPENSE, CONFCODE
 from ctcomp.view import views
 
 def response():
@@ -83,23 +83,7 @@ def response():
 		req.person = cgi_get("person")
 		req.notes = cgi_get("notes")
 		req.put()
-		rpmail = req.person.get().email
-		memship = req.membership.get()
-		mpmail = memship.person.get().email
-		pod = memship.pod.get()
-		rkey = req.key.urlsafe()
-		if req.change == "include":
-			send_mail(to=rpmail, subject="pod membership nomination",
-				body=APPLY%(mpmail, pod.name, rkey))
-		elif req.change == "exclude":
-			req.notify("pod membership exclusion proposal",
-				lambda signer : EXCLUDE%(mpmail, rpmail, pod.name, rkey, signer.urlsafe()))
-		elif req.change == "blurb":
-			req.notify("pod blurb update proposal",
-				lambda signer: BLURB%(mpmail, pod.name, req.notes, rkey, signer.urlsafe()))
-		else: # conversation
-			req.notify("pod conversation request",
-				lambda signer : CONVO%(mpmail, pod.name, req.notes, rkey, signer.urlsafe()))
+		req.remind()
 		succeed(req.key.urlsafe())
 	elif action == "expense":
 		exp = Expense()
