@@ -466,6 +466,13 @@ comp.pods = {
 					choices: ["automatic", "email confirmation"]
 				},
 				on: {
+					untask: function(task) {
+						CT.data.remove(pod.tasks, task.key);
+						comp.core.edit({
+							key: pod.key,
+							tasks: pod.tasks
+						});
+					},
 					task: function(task) {
 						pod.tasks.push(task.key);
 						comp.core.edit({
