@@ -5,7 +5,7 @@ from cantools.web import email_admins, fetch, log, send_mail
 from ctcoop.model import *
 from ctdecide.model import Proposal
 from ctstore.model import Product
-from compTemplates import MEET, PAID, APPOINTMENT
+from compTemplates import MEET, PAID, APPOINTMENT, APPLY, EXCLUDE, BLURB, CONVO
 from ctcomp.mint import mint, balance
 
 ratios = config.ctcomp.ratios
@@ -481,6 +481,25 @@ class Act(Verifiable):
 class Request(Verifiable):
 	change = db.String(choices=["include", "exclude", "conversation"])
 	person = db.ForeignKey(kind=Person) # person in question!
+
+	def remind(self):
+		rpmail = self.person.get().email
+		memship = self.membership.get()
+		mpmail = memship.person.get().email
+		pod = memship.pod.get()
+		rkey = self.key.urlsafe()
+		if self.change == "include":
+			send_mail(to=rpmail, subject="pod membership nomination",
+				body=APPLY%(mpmail, pod.name, rkey))
+		elif self.change == "exclude":
+			self.notify("pod membership exclusion proposal",
+				lambda signer : EXCLUDE%(mpmail, rpmail, pod.name, rkey, signer.urlsafe()))
+		elif self.change == "blurb":
+			self.notify("pod blurb update proposal",
+				lambda signer: BLURB%(mpmail, pod.name, self.notes, rkey, signer.urlsafe()))
+		else: # conversation
+			self.notify("pod conversation request",
+				lambda signer : CONVO%(mpmail, pod.name, self.notes, rkey, signer.urlsafe()))
 
 	def signers(self):
 		pod = self.pod()
