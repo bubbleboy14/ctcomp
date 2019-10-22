@@ -16,16 +16,6 @@ html, body {
 	overflow: hidden;
 }
 
-.basicpopup {
-	max-width: 80%;
-	max-height: 90%;
-	text-align: center;
-}
-
-.basicpopup textarea {
-	width: 100%;
-}
-
 .embedded #ctmain {
 	top: 0;
 }
