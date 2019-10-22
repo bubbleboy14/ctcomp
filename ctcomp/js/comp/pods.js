@@ -461,10 +461,7 @@ comp.pods = {
 			rz[pod.key] = new coop.cal.Cal({
 				parent: frame,
 				tasks: pod.tasks,
-				mode: {
-					prompt: "please select a compensation mode",
-					choices: ["automatic", "email confirmation"]
-				},
+				mode: core.config.ctcoop.cal.mode,
 				on: {
 					untask: function(task) {
 						CT.data.remove(pod.tasks, task.key);
