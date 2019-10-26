@@ -16,6 +16,14 @@ Please click <a href='""" + config.web.protocol + """://""" + config.web.domain 
 
 That's it!"""
 
+INVITATION = """Hello!
+
+%s has invited you to join a pod called "%s".
+
+Please click <a href='""" + config.web.protocol + """://""" + config.web.domain + """/user/register.html'>here</a> if you wish to join our site.
+
+That's it!"""
+
 EXCLUDE = """Hello!
 
 %s has proposed excluding %s from the "%s" pod.
