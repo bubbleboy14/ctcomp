@@ -5,7 +5,7 @@ from cantools.web import email_admins, fetch, log, send_mail
 from ctcoop.model import *
 from ctdecide.model import Proposal
 from ctstore.model import Product
-from compTemplates import MEET, PAID, APPOINTMENT, REMINDER, APPLY, EXCLUDE, BLURB, CONVO
+from compTemplates import MEET, PAID, APPOINTMENT, INVITATION, REMINDER, APPLY, EXCLUDE, BLURB, CONVO
 from ctcomp.mint import mint, balance
 
 ratios = config.ctcomp.ratios
@@ -53,6 +53,8 @@ class Person(Member):
 		wallet.put()
 		self.wallet = wallet.key
 		self.put()
+		for invitation in Invitation.query(Invitation.email == self.email).fetch():
+			invitation.send(self)
 
 	def enroll(self, pod):
 		memship = membership(self, pod)
@@ -169,6 +171,25 @@ class Membership(db.TimeStampedBase):
 
 	def deposit(self, amount, nocode=False, pay=False):
 		self.pod.get().deposit(self.person.get(), amount, nocode, pay)
+
+class Invitation(db.TimeStampedBase):
+	membership = db.ForeignKey(kind=Membership)
+	email = db.String()
+	notes = db.Text()
+
+	def invite(self):
+		memship = self.membership.get()
+		send_mail(to=self.email, subject="invitation",
+			body=INVITATION%(memship.person.get().email, memship.pod.get().name))
+
+	def send(self, person):
+		req = Request()
+		req.membership = self.membership
+		req.person = person.key
+		req.change = "include"
+		req.notes = self.notes
+		req.put()
+		req.remind()
 
 class Codebase(db.TimeStampedBase):
 	pod = db.ForeignKey(kind=Pod)
