@@ -5,7 +5,7 @@ from cantools.web import email_admins, fetch, log, send_mail
 from ctcoop.model import *
 from ctdecide.model import Proposal
 from ctstore.model import Product
-from compTemplates import MEET, PAID, APPOINTMENT, APPLY, EXCLUDE, BLURB, CONVO
+from compTemplates import MEET, PAID, APPOINTMENT, REMINDER, APPLY, EXCLUDE, BLURB, CONVO
 from ctcomp.mint import mint, balance
 
 ratios = config.ctcomp.ratios
@@ -44,6 +44,7 @@ class Person(Member):
 	wallet = db.ForeignKey(kind=Wallet)           # optional
 	contributor = db.ForeignKey(kind=Contributor) # optional
 	chat = db.Boolean(default=True)
+	remind = db.Boolean(default=True)
 
 	def onjoin(self):
 		email_admins("New Person", self.email)
@@ -412,8 +413,7 @@ class Commitment(Verifiable):
 			service.compensation, self.estimate, numdays))
 		self.membership.get().deposit(service.compensation * self.estimate * numdays / 7.0)
 
-def isToday(slot):
-	now = datetime.now()
+def isDay(slot, now):
 	if slot.schedule == "daily":
 		return True
 	elif slot.schedule == "weekly":
@@ -426,23 +426,38 @@ def isToday(slot):
 def task2pod(task):
 	return Pod.query(Pod.tasks.contains(task.key.urlsafe())).get()
 
+def remember(slot, task, pod, person, reminders):
+	ukey = person.key.urlsafe()
+	if ukey not in reminders:
+		reminders[ukey] = []
+	reminders[ukey].append("%s (%s pod) at %s"%(task.name,
+		pod.name, slot.when.strftime("%H:%M")))
+
+def remind(reminders):
+	for pkey in reminders:
+		send_mail(to=db.KeyWrapper(pkey).get().email, subject="commitment reminder",
+			body=REMINDER%("\n".join(reminders[pkey]),))
+
 def payCal():
 	log("paycal!", important=True)
+	now = datetime.now()
+	tomorrow = now + timedelta(1)
+	reminders = {}
 	for stew in Stewardship.query().all():
-		task = None
-		pod = None
-		person = None
+		task = stew.task()
+		pod = task2pod(task)
+		person = db.get(stew.steward)
 		for slot in db.get_multi(stew.timeslots):
-			if isToday(slot):
-				if not task:
-					task = stew.task()
-					pod = task2pod(task)
-					person = db.get(stew.steward)
-				log("task: %s (%s)"%(task.name, task.mode))
+			if isDay(slot, now):
+				log("confirm: %s (%s)"%(task.name, task.mode))
 				if task.mode == "automatic":
 					pod.deposit(person, slot.duration)
 				elif task.mode == "email confirmation":
 					appointment(slot, task, pod, person)
+			elif person.remind and isDay(slot, tomorrow):
+				log("remind: %s (%s)"%(task.name, task.mode))
+				remember(slot, task, pod, person, reminders)
+	remind(reminders)
 
 def payDay():
 	log("payday!", important=True)
