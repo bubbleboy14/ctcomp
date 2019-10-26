@@ -156,7 +156,7 @@ comp.pods = {
 				}
 			});
 		},
-		submit: function(opts, stype, noteprompt) {
+		submit: function(opts, stype, noteprompt, cb) {
 			var _ = comp.pods._, pkey = _.current.pod.key;
 			opts.membership = _.memberships[pkey].key;
 			comp.core.prompt({
@@ -166,7 +166,7 @@ comp.pods = {
 					opts.notes = notes;
 					comp.core.c(CT.merge(opts, {
 						action: stype
-					}), function(ckey) {
+					}), cb || function(ckey) {
 						opts.key = ckey;
 						comp.core.podup(pkey, stype + "s", opts);
 						CT.dom.addContent(_.nodes[stype + "_list"], _[stype](opts));
@@ -353,12 +353,18 @@ comp.pods = {
 							return alert("that's not an email address!");
 						CT.db.get("person", function(peeps) {
 							var person = peeps[0];
-							if (!person)
-								return alert(email + " isn't in our system! ask your friend to join first :)");
-							_.submit({
-								person: person.key,
-								change: change
-							}, "request");
+							if (!person) {
+								_.submit({
+									email: email
+								}, "invite", null, function() {
+									alert("your friend isn't in our system yet -- we sent them an invitation!");
+								});
+							} else {
+								_.submit({
+									person: person.key,
+									change: change
+								}, "request");
+							}
 						}, 1, 0, null, {
 							email: email
 						});
