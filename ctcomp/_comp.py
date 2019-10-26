@@ -1,10 +1,10 @@
 from cantools.web import respond, succeed, fail, cgi_get, local, send_mail, redirect
-from model import db, enroll, manage, Person, Content, Payment, Act, Commitment, Request, Expense
+from model import db, enroll, manage, Person, Content, Payment, Act, Commitment, Request, Expense, Invitation
 from compTemplates import APPLICATION, SERVICE, COMMITMENT, PAYMENT, EXPENSE, CONFCODE
 from ctcomp.view import views
 
 def response():
-	action = cgi_get("action", choices=["view", "pay", "service", "commitment", "request", "expense", "verify", "unverify", "apply", "join", "pod", "membership", "person", "enroll", "manage", "confcode", "mint", "balance", "responsibilities"])
+	action = cgi_get("action", choices=["view", "pay", "service", "commitment", "request", "invite", "expense", "verify", "unverify", "apply", "join", "pod", "membership", "person", "enroll", "manage", "confcode", "mint", "balance", "responsibilities"])
 	if action == "view":
 		ip = local("response").ip
 		user = cgi_get("user", required=False) # key
@@ -85,6 +85,13 @@ def response():
 		req.put()
 		req.remind()
 		succeed(req.key.urlsafe())
+	elif action == "invite":
+		inv = Invitation()
+		inv.membership = cgi_get("membership")
+		inv.email = cgi_get("email")
+		inv.notes = cgi_get("notes")
+		inv.put()
+		inv.invite()
 	elif action == "expense":
 		exp = Expense()
 		exp.membership = cgi_get("membership")
