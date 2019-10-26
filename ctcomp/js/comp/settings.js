@@ -132,7 +132,7 @@ comp.settings = {
 	},
 	chat: function() {
 		var u = user.core.get();
-		return CT.dom.checkboxAndLabel(null, u.chat, "enable live chat", null, null, function(cbox) {
+		return CT.dom.checkboxAndLabel("chat", u.chat, "enable live chat", null, null, function(cbox) {
 			comp.core.edit({
 				key: u.key,
 				chat: cbox.checked
@@ -142,6 +142,20 @@ comp.settings = {
 				});
 			});
 		});
+	},
+	remind: function() {
+		var u = user.core.get();
+		return CT.dom.checkboxAndLabel("remind", u.remind,
+				"remind me of upcoming commitments", null, null, function(cbox) {
+				comp.core.edit({
+					key: u.key,
+					remind: cbox.checked
+				}, function() {
+					user.core.update({
+						remind: cbox.checked
+					});
+				});
+			});
 	},
 	wallet: function() {
 		var n = CT.dom.div(), _w = comp.settings._.wall;
@@ -158,7 +172,8 @@ comp.settings = {
 		CT.dom.setContent("ctmain", CT.dom.div([
 			CT.dom.div([
 				CT.dom.div("your basic settings", "biggest"),
-				comp.settings.chat()
+				comp.settings.chat(),
+				comp.settings.remind()
 			], "bordered padded round mb5"),
 			CT.dom.div([
 				CT.dom.div("your github account", "biggest"),
