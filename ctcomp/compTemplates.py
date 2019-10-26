@@ -44,6 +44,16 @@ Please click <a href='""" + config.web.protocol + """://""" + config.web.domain 
 
 That's it!"""
 
+REMINDER = """Hello!
+
+You have committed to the following activities tomorrow:
+
+%s
+
+Please click <a href='""" + config.web.protocol + """://""" + config.web.domain + """/coop/cal.html'>here</a> to review your calendar.
+
+That's it!"""
+
 SERVICE = """Hello!
 
 %s of the "%s" pod has reported performing the following service: %s. Details:
