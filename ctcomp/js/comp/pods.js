@@ -469,6 +469,7 @@ comp.pods = {
 					parent: _.nodes.updates,
 					subject: pod.name + " : ",
 					shortSub: true,
+					noNew: false,
 					updates: ups.reverse(),
 					on: {
 						update: _.update
