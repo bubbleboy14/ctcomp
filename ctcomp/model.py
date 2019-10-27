@@ -87,6 +87,7 @@ class Pod(db.TimeStampedBase):
 	pool = db.ForeignKey(kind=Wallet)
 	agent = db.ForeignKey(kind="Pod")
 	tasks = db.ForeignKey(kind=Task, repeated=True)
+	updates = db.ForeignKey(kind=Update, repeated=True)
 	includers = db.ForeignKey(kind=Person, repeated=True)
 	dependencies = db.ForeignKey(kind="Codebase", repeated=True) # software pod only
 
