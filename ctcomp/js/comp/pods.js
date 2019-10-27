@@ -432,7 +432,7 @@ comp.pods = {
 			n = _.nodes[item + "_list"] = CT.dom.div(data && data[plur].map(_[item]));
 			content = [
 				CT.dom.div(CT.parse.capitalize(plur), "biggest"),
-				cfg.blurbs[item],
+				cfg.blurbs[CT.parse.capitalize(plur)],
 				n
 			];
 			data && content.unshift(CT.dom.button("new",
@@ -608,7 +608,7 @@ comp.pods = {
 		comp.core.pod(pod.key, function(data) {
 			content = [
 				CT.dom.div("Info", "biggest"),
-				cfg.blurbs.info,
+				cfg.blurbs.Info,
 				CT.dom.br(),
 				"variety: " + pod.variety,
 				"members: " + data.memberships.length,
@@ -721,7 +721,8 @@ comp.pods = {
 	slider: function() {
 		var _ = comp.pods._, nodes = _.nodes,
 			slide = nodes.slider._slider = CT.panel.slider([],
-				nodes.views, nodes.slider, null, null, null, true);
+				nodes.views, nodes.slider, null, null,
+				null, true, core.config.ctcomp.blurbs);
 		_.sections.forEach(function(section, i) {
 			nodes[section.toLowerCase()] = slide.add(section, !i);
 		});
