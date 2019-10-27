@@ -473,7 +473,10 @@ comp.pods = {
 					updates: ups.reverse(),
 					on: {
 						update: _.update
-					}
+					},
+					recipients: comp.core.members(pod.key).map(function(u) {
+						return u.key;
+					})
 				});
 			});
 		},
@@ -598,7 +601,6 @@ comp.pods = {
 		_.current.pod = pod;
 		_.setDependencies(pod);
 		_.setResponsibilities(pod);
-		_.setUpdates(pod);
 		comp.core.membership(memship.key, function(data) {
 			_.frame(data, "content");
 			_.frame(data, "product", "products");
@@ -658,6 +660,7 @@ comp.pods = {
 			["service", "commitment", "request", "codebase", "expense"].forEach(function(item) {
 				_.frame(data, item, item + "s");
 			});
+			_.setUpdates(pod);
 			decide.core.util.proposals(_.nodes.proposals, data.proposals);
 			_.restrictions();
 		});
