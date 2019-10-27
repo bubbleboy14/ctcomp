@@ -31,6 +31,11 @@ This package includes the necessary blockchain/widget/api components for direct 
     			"rnd": 0.2
     		},
     		"pay": 0.9 # member cut -- remainder goes to pod
+    	},
+    	"contract": {
+    		"abi": None,
+    		"owner": None,
+    		"address": None
     	}
     }
     requires = ["ctcoop", "ctstore"]
@@ -48,14 +53,17 @@ This package includes the necessary blockchain/widget/api components for direct 
     		"menu": "margined padded bordered round"
     	},
     	"blurbs": {
-    		"commitment": "Register a weekly commitment.",
-    		"service": "Record a one-off service.",
-    		"request": "Include and exclude pod members. Schedule conversations. Update your pod's blurb.",
-    		"content": "Submit web content associated with this pod (most managed pods don't require manual registration).",
-    		"codebase": "Register the codebases associated with this software pod, including platform and r&d repositories.",
-    		"dependency": "Please select the frameworks used by this project.",
-    		"expense": "Propose an expense (currently supported: one-off dividend).",
-    		"info": "Here's some basic info about this pod.",
-    		"product": "Sell goods and services. Ten percent goes to your pod."
+    		"Responsibilities": "Task management, including scheduling of and volunteering for pod-related activities.",
+    		"Commitments": "Register a weekly commitment.",
+    		"Services": "Record a one-off service.",
+    		"Requests": "Include and exclude pod members. Schedule conversations. Update your pod's blurb.",
+    		"Content": "Submit web content associated with this pod (most managed pods don't require manual registration).",
+    		"Codebases": "Register the codebases associated with this software pod, including platform and r&d repositories.",
+    		"Dependencies": "Please select the frameworks used by this project.",
+    		"Expenses": "Propose an expense (currently supported: one-off dividend).",
+    		"Info": "Here's some basic info about this pod.",
+    		"Products": "Sell goods and services. Ten percent goes to your pod.",
+    		"Proposals": "Discuss and vote on your agenda and policies.",
+    		"Updates": "Send updates to your podmates and hammer out the details."
     	}
     }
