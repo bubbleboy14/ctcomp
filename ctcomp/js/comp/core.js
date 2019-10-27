@@ -75,18 +75,20 @@ comp.core = {
 			style: "single-choice"
 		}));
 	},
+	members: function(pod) {
+		return comp.core._.pods[pod].people;
+	},
 	size: function(pod) {
-		return comp.core._.pods[pod].people.length;
+		return comp.core.members(pod).length;
 	},
 	others: function(pod) {
 		var u = user.core.get("key");
-		return comp.core._.pods[pod].people.filter(function(p) {
+		return comp.core.members(pod).filter(function(p) {
 			return p.key != u;
 		});
 	},
 	mates: function(pod, prompt, cb, style, nome, exclude) {
-		var data = nome && comp.core.others(pod)
-			|| comp.core._.pods[pod].people;
+		var data = comp.core[noname ? "others" : "members"](pod);
 		if (exclude) {
 			data = data.filter(function(d) {
 				return !exclude.includes(d.key);
