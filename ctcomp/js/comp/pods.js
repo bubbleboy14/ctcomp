@@ -12,7 +12,7 @@ comp.pods = {
 			main: CT.dom.div(null, "h1 mr160 relative"),
 			right: CT.dom.div(null, "h1 w160p up5 scrolly right")
 		},
-		sections: ["Info", "Proposals", "Responsibilities",
+		sections: ["Info", "Updates", "Proposals", "Responsibilities",
 			"Commitments", "Services", "Requests", "Content",
 			"Products", "Codebases", "Dependencies", "Expenses"],
 		proposal: function(key) {
@@ -22,6 +22,14 @@ comp.pods = {
 			comp.core.edit({
 				key: memship.key,
 				proposals: memship.proposals
+			});
+		},
+		update: function(up) {
+			var _ = comp.pods._, pod = _.current.pod;
+			pod.updates.push(up.key);
+			comp.core.edit({
+				key: pod.key,
+				updates: pod.updates
 			});
 		},
 		name: function(pkey) {
@@ -407,7 +415,7 @@ comp.pods = {
 				action = unrestricted ? "show" : "hide",
 				reaction = pod.agent ? "hide" : "show",
 				showSoft = (pod.variety == "software") ? "show" : "hide";
-			["Commitments", "Services"].forEach(function(section) {
+			["Updates", "Commitments", "Services"].forEach(function(section) {
 				CT.dom[action]("tl" + section);
 			});
 			["Requests", "Responsibilities"].forEach(function(section) {
@@ -452,6 +460,20 @@ comp.pods = {
 						});
 					});
 				}
+			});
+		},
+		setUpdates: function(pod) {
+			var _ = comp.pods._;
+			CT.db.multi(pod.updates, function(ups) {
+				new coop.Updates({
+					parent: _.nodes.updates,
+					subject: pod.name + " : ",
+					shortSub: true,
+					updates: ups.reverse(),
+					on: {
+						update: _.update
+					}
+				});
 			});
 		},
 		setDependencies: function(pod) {
@@ -575,6 +597,7 @@ comp.pods = {
 		_.current.pod = pod;
 		_.setDependencies(pod);
 		_.setResponsibilities(pod);
+		_.setUpdates(pod);
 		comp.core.membership(memship.key, function(data) {
 			_.frame(data, "content");
 			_.frame(data, "product", "products");
