@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from cantools import db, config
-from cantools.util import error
-from cantools.web import email_admins, fetch, log, send_mail
+from cantools.util import error, log
+from cantools.web import email_admins, fetch, send_mail
 from ctcoop.model import *
 from ctdecide.model import Proposal
 from ctstore.model import Product
@@ -53,8 +53,22 @@ class Person(Member):
 		wallet.put()
 		self.wallet = wallet.key
 		self.put()
+		self.process_invites()
+
+	def process_invites(self):
+		log("processing invitations for %s"%(self.email,))
+		podz = set()
 		for invitation in Invitation.query(Invitation.email == self.email).fetch():
-			invitation.send(self)
+			imem = invitation.membership.get()
+			ipod = imem.pod.get().name
+			memem = imem.person.get().email
+			log("pod: %s. inviter: %s"%(ipod, memem), 1)
+			if ipod in podz:
+				log("skipping invitation -- already invited to pod", 2)
+			else:
+				log("sending invitation", 2)
+				podz.add(ipod)
+				invitation.send(self)
 
 	def enroll(self, pod):
 		memship = membership(self, pod)
