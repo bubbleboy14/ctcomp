@@ -449,16 +449,6 @@ class Commitment(Verifiable):
 			service.compensation, self.estimate, numdays))
 		self.membership.get().deposit(service.compensation * self.estimate * numdays / 7.0)
 
-def isDay(slot, now):
-	if slot.schedule == "daily":
-		return True
-	elif slot.schedule == "weekly":
-		return slot.when.weekday() == now.weekday()
-	elif slot.schedule == "once":
-		return slot.when.date() == now.date()
-	elif slot.schedule == "exception":
-		pass # TODO: exceptions!!!!
-
 def task2pod(task):
 	return Pod.query(Pod.tasks.contains(task.key.urlsafe())).get()
 
@@ -476,23 +466,22 @@ def remind(reminders):
 
 def payCal():
 	log("paycal!", important=True)
-	now = datetime.now()
-	tomorrow = now + timedelta(1)
+	today = datetime.now()
+	tomorrow = today + timedelta(1)
 	reminders = {}
 	for stew in Stewardship.query().all():
 		task = stew.task()
 		pod = task2pod(task)
 		person = db.get(stew.steward)
-		for slot in db.get_multi(stew.timeslots):
-			if isDay(slot, now):
-				log("confirm: %s (%s)"%(task.name, task.mode))
-				if task.mode == "automatic":
-					pod.deposit(person, slot.duration)
-				elif task.mode == "email confirmation":
-					appointment(slot, task, pod, person)
-			elif person.remind and isDay(slot, tomorrow):
-				log("remind: %s (%s)"%(task.name, task.mode))
-				remember(slot, task, pod, person, reminders)
+		if stew.happening(today):
+			log("confirm: %s (%s)"%(task.name, task.mode))
+			if task.mode == "automatic":
+				pod.deposit(person, slot.duration)
+			elif task.mode == "email confirmation":
+				appointment(slot, task, pod, person)
+		if person.remind and stew.happening(tomorrow):
+			log("remind: %s (%s)"%(task.name, task.mode))
+			remember(slot, task, pod, person, reminders)
 	remind(reminders)
 
 def payDay():
