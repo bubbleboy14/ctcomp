@@ -582,6 +582,8 @@ comp.pods = {
 				});
 			} else {
 				opts.variety = variety;
+				if (variety == "support")
+					return _.pod(opts);
 				comp.core.choice({
 					prompt: "how would you like to admit new members? the default mode, 'full', requires every member to approve new admissions. with the alternative, 'limited', you may designate a subset of the pod's membership to make these decisions.",
 					data: ["full", "limited"],
