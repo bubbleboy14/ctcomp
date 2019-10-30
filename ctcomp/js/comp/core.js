@@ -19,6 +19,14 @@ comp.core = {
 			cb: cb
 		});
 	},
+	support: function(pod) {
+		return CT.dom.div([
+            CT.dom.button("request support", function() {
+                alert("ok!");
+            }),
+            '[TODO: list support requests]'
+        ], "bordered padded margined round");
+	},
 	membership: function(memship, cb) {
 		var _ = comp.core._;
 		if (_.memships[memship])
