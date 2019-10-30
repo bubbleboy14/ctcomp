@@ -570,5 +570,5 @@ class Request(Verifiable):
 		return True
 
 class Verification(db.TimeStampedBase):
-	act = db.ForeignKey(kinds=[Act, Request, Commitment])
+	act = db.ForeignKey(kinds=[Act, Request, Commitment, Payment, Expense, Appointment])
 	person = db.ForeignKey(kind=Person)
