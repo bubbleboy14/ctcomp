@@ -1,6 +1,6 @@
 from cantools.web import respond, succeed, fail, cgi_get, local, send_mail, redirect
-from model import db, enroll, manage, Person, Content, Payment, Act, Commitment, Request, Expense, Invitation
-from compTemplates import APPLICATION, SERVICE, COMMITMENT, PAYMENT, EXPENSE, CONFCODE
+from model import db, enroll, manage, reg_act, Person, Content, Payment, Commitment, Request, Expense, Invitation
+from compTemplates import APPLICATION, COMMITMENT, PAYMENT, EXPENSE, CONFCODE
 from ctcomp.view import views
 
 def response():
@@ -44,22 +44,8 @@ def response():
 			person.firstName, pod.name, pment.notes, pkey, signer.urlsafe()))
 		succeed(pkey)
 	elif action == "service":
-		act = Act()
-		act.membership = cgi_get("membership")
-		act.service = cgi_get("service")
-		act.workers = cgi_get("workers")
-		act.beneficiaries = cgi_get("beneficiaries")
-		act.notes = cgi_get("notes")
-		act.put()
-		akey = act.key.urlsafe()
-		service = act.service.get()
-		memship = act.membership.get()
-		person = memship.person.get()
-		pod = memship.pod.get()
-		workers = "\n".join([w.email for w in db.get_multi(act.workers)])
-		act.notify("verify service", lambda signer : SERVICE%(person.email,
-			pod.name, service.name, act.notes, workers, akey, signer.urlsafe()))
-		succeed(akey)
+		succeed(reg_act(cgi_get("membership"), cgi_get("service"),
+			cgi_get("workers"), cgi_get("beneficiaries"), cgi_get("notes")))
 	elif action == "commitment":
 		comm = Commitment()
 		comm.membership = cgi_get("membership")

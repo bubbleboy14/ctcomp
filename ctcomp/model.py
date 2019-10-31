@@ -5,7 +5,7 @@ from cantools.web import email_admins, fetch, send_mail
 from ctcoop.model import *
 from ctdecide.model import Proposal
 from ctstore.model import Product
-from compTemplates import MEET, PAID, APPOINTMENT, INVITATION, REMINDER, APPLY, EXCLUDE, BLURB, CONVO
+from compTemplates import MEET, PAID, SERVICE, APPOINTMENT, INVITATION, REMINDER, APPLY, EXCLUDE, BLURB, CONVO
 from ctcomp.mint import mint, balance
 
 ratios = config.ctcomp.ratios
@@ -518,8 +518,26 @@ class Act(Verifiable):
 		self.put()
 		return True
 
+def reg_act(membership, service, workers, beneficiaries, notes):
+	act = Act()
+	act.membership = membership
+	act.service = service
+	act.workers = workers
+	act.beneficiaries = beneficiaries
+	act.notes = notes
+	act.put()
+	akey = act.key.urlsafe()
+	service = act.service.get()
+	memship = act.membership.get()
+	person = memship.person.get()
+	pod = memship.pod.get()
+	workers = "\n".join([w.email for w in db.get_multi(act.workers)])
+	act.notify("verify service", lambda signer : SERVICE%(person.email,
+		pod.name, service.name, act.notes, workers, akey, signer.urlsafe()))
+	return akey
+
 class Request(Verifiable):
-	change = db.String(choices=["include", "exclude", "conversation"])
+	change = db.String(choices=["include", "exclude", "conversation", "support"])
 	person = db.ForeignKey(kind=Person) # person in question!
 
 	def remind(self):
@@ -537,13 +555,15 @@ class Request(Verifiable):
 		elif self.change == "blurb":
 			self.notify("pod blurb update proposal",
 				lambda signer: BLURB%(mpmail, pod.name, self.notes, rkey, signer.urlsafe()))
-		else: # conversation
-			self.notify("pod conversation request",
+		else: # conversation / support
+			self.notify("%s request"%(self.change,),
 				lambda signer : CONVO%(mpmail, pod.name, self.notes, rkey, signer.urlsafe()))
 
 	def signers(self):
 		pod = self.pod()
-		if self.change == "conversation":
+		if self.change == "support":
+			return [self.person, self.membership.get().person]
+		elif self.change == "conversation":
 			pz = [p for p in pod.members()]
 			self.person and pz.append(self.person)
 			return pz
@@ -562,9 +582,13 @@ class Request(Verifiable):
 		elif self.change == "blurb":
 			pod.blurb = self.notes
 			pod.put()
-		else: # conversation
+		else: # conversation / support
 			body = MEET%(self.pod().name, self.notes, self.key.urlsafe())
 			self.notify("meeting scheduled", lambda signer : body)
+			# def reg_act(membership, service, workers, beneficiaries, notes):
+			# figure out service!!!
+			# wb = self.signers()
+			# reg_act(self.membership, service, wb, wb, self.notes)
 		self.passed = True
 		self.put()
 		return True
