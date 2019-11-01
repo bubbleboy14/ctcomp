@@ -525,29 +525,6 @@ comp.pods = {
 				}
 			});
 		},
-		video: function(podname, ukey) {
-			var vbutt = CT.dom.button("Video Chat"),
-				cname = ukey ? CT.chat.privateChatName(ukey, user.core.get("key")) : podname.replace(/ /g, "");
-			vbutt.onclick = function() {
-		        vbutt._modal = vbutt._modal || new CT.modal.Modal({
-		            center: false,
-		            innerClass: "w1 h1 noflow",
-		            className: "vslide mosthigh fixed noflow",
-		            transition: "slide",
-		            slide: {
-		                origin: "bottomleft"
-		            },
-		            content: CT.dom.iframe("https://fzn.party/stream/widget.html#" + cname + "_zoom",
-		            	"w1 h1", null, { allow: "microphone; camera" })
-		        });
-		        vbutt._modal.showHide();
-			};
-			return [
-				CT.dom.span(podname),
-				CT.dom.pad(),
-				vbutt
-			];
-		},
 		blurb: function(pod) {
 			if (pod.blurb)
 				return CT.dom.div(pod.blurb);
@@ -681,19 +658,8 @@ comp.pods = {
 		_.current.pods = pods;
 		if (h) location.hash = "";
 		(h && CT.dom.id("tl" + h) || n.firstChild).firstChild.onclick();
-		comp.pods.chat(pods.map(function(pod) { return pod.name; }));
-	},
-	chat: function(channels) {
-		var _ = comp.pods._, u = user.core.get(), doit = function() {
-			CT.dom.addContent(_.nodes.main.parentNode, CT.chat.widget(u.key, channels, "Pods", _.video));
-		};
-		if (u.chat)
-			return doit();
-		var enabler = CT.dom.link("enable chat", function() {
-			CT.dom.remove(enabler);
-			doit();
-		}, null, "abs r0 b0 big bold above");
-		CT.dom.addContent(_.nodes.main.parentNode, enabler);
+		comp.live.chat(pods.map(function(pod) { return pod.name; }),
+			_.nodes.main.parentNode);
 	},
 	memberships: function(memberships) {
 		var _ = comp.pods._;
