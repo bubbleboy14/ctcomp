@@ -17,6 +17,7 @@ CT.require("user.core");
 CT.require("coop.cal");
 CT.require("coop.Updates");
 CT.require("comp.core");
+CT.require("comp.live");
 CT.require("comp.pods");
 CT.require("decide");
 
