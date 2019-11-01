@@ -3,18 +3,18 @@ comp.live = {
 		var vbutt = CT.dom.button("Video Chat"),
 			cname = ukey ? CT.chat.privateChatName(ukey, user.core.get("key")) : podname.replace(/ /g, "");
 		vbutt.onclick = function() {
-	        vbutt._modal = vbutt._modal || new CT.modal.Modal({
-	            center: false,
-	            innerClass: "w1 h1 noflow",
-	            className: "vslide mosthigh fixed noflow",
-	            transition: "slide",
-	            slide: {
-	                origin: "bottomleft"
-	            },
-	            content: CT.dom.iframe("https://fzn.party/stream/widget.html#" + cname + "_zoom",
-	            	"w1 h1", null, { allow: "microphone; camera" })
-	        });
-	        vbutt._modal.showHide();
+			vbutt._modal = vbutt._modal || new CT.modal.Modal({
+				center: false,
+				innerClass: "w1 h1 noflow",
+				className: "vslide mosthigh fixed noflow",
+				transition: "slide",
+				slide: {
+					origin: "bottomleft"
+				},
+				content: CT.dom.iframe("https://fzn.party/stream/widget.html#" + cname + "_zoom",
+					"w1 h1", null, { allow: "microphone; camera" })
+			});
+			vbutt._modal.showHide();
 		};
 		return [
 			CT.dom.span(podname),
