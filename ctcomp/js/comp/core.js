@@ -219,6 +219,17 @@ comp.core = {
 			}
 		});
 	},
+	mypods: function(cb) {
+		comp.core.person(user.core.get("key"), function(person) {
+			CT.db.multi(person.memberships.map(function(m) {
+				return m.pod;
+			}), function(pods) {
+				cb(pods.map(function(pod) {
+					return pod.name;
+				}));
+			});
+		});
+	},
 	init: function() {
 		var _ = comp.core._;
 		CT.db.get("service", function(services) {
