@@ -37,15 +37,17 @@ comp.core = {
 	support: function(pkey) {
 		return CT.dom.div([
             CT.dom.button("request support", function() {
-                comp.core.mates(pkey,
-                	"please select a pod mate", function(mate) {
-                		comp.core.submit({
-                			person: mate.key,
-                			change: "support"
-                		}, CT.data.get(pkey));
-	                }, "single-choice", true);
-            }),
-            '[TODO: list support requests]'
+                comp.core.pod(pkey, function() {
+	                comp.core.mates(pkey, "please select a pod mate",
+	                	function(mate) {
+	                		comp.core.submit({
+	                			person: mate.key,
+	                			change: "support"
+	                		}, CT.data.get(pkey));
+		                }, "single-choice", true);
+            	});
+            })
+            // TODO: list public support requests!!
         ], "bordered padded margined round");
 	},
 	membership: function(memship, cb) {
