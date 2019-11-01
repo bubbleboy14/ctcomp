@@ -19,10 +19,31 @@ comp.core = {
 			cb: cb
 		});
 	},
-	support: function(pod) {
+	submit: function(opts, pod, cb, stype, noteprompt) {
+		opts.membership = comp.core.pod2memship(pod).key;
+		comp.core.prompt({
+			prompt: noteprompt || "any notes?",
+			isTA: true,
+			cb: function(notes) {
+				opts.notes = notes;
+				comp.core.c(CT.merge(opts, {
+					action: stype || "request"
+				}), cb || function() {
+        			alert("ok, check your email!");
+        		});
+			}
+		});
+	},
+	support: function(pkey) {
 		return CT.dom.div([
             CT.dom.button("request support", function() {
-                alert("ok!");
+                comp.core.mates(pkey,
+                	"please select a pod mate", function(mate) {
+                		comp.core.submit({
+                			person: mate.key,
+                			change: "support"
+                		}, CT.data.get(pkey));
+	                }, "single-choice", true);
             }),
             '[TODO: list support requests]'
         ], "bordered padded margined round");
@@ -102,7 +123,7 @@ comp.core = {
 		});
 	},
 	mates: function(pod, prompt, cb, style, nome, exclude) {
-		var data = comp.core[noname ? "others" : "members"](pod);
+		var data = comp.core[nome ? "others" : "members"](pod);
 		if (exclude) {
 			data = data.filter(function(d) {
 				return !exclude.includes(d.key);
