@@ -590,16 +590,15 @@ class Request(Verifiable):
 	def fulfill(self):
 		if self.passed or not self.verified():
 			return False
-		pod = self.pod(True)
+		pod = self.pod()
 		if self.change == "exclude":
-			Membership.query(Membership.pod == pod, Membership.person == self.person).rm()
+			Membership.query(Membership.pod == pod.key, Membership.person == self.person).rm()
 		elif self.change == "include":
-			Membership(pod=pod, person=self.person).put()
+			Membership(pod=pod.key, person=self.person).put()
 		elif self.change == "blurb":
 			pod.blurb = self.notes
 			pod.put()
 		else: # conversation / support
-			pod = self.pod()
 			body = MEET%(pod.name, self.notes, self.key.urlsafe())
 			self.notify("meeting scheduled", lambda signer : body)
 			if pod.variety == "support":
