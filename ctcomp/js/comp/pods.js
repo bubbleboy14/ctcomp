@@ -2,7 +2,6 @@ comp.pods = {
 	_: {
 		current: {},
 		agents: {},
-		memberships: {},
 		responsibilities: {},
 		nodes: {
 			list: CT.dom.div(),
@@ -17,7 +16,7 @@ comp.pods = {
 			"Products", "Codebases", "Dependencies", "Expenses"],
 		proposal: function(key) {
 			var _ = comp.pods._,
-				memship = _.memberships[_.current.pod.key];
+				memship = comp.core.pod2memship(_.current.pod);
 			memship.proposals.push(key);
 			comp.core.edit({
 				key: memship.key,
@@ -116,7 +115,7 @@ comp.pods = {
 		},
 		commitment: function(c) {
 			var _ = comp.pods._, n = CT.dom.div(),
-				memship = _.memberships[_.current.pod.key],
+				memship = comp.core.pod2memship(_.current.pod),
 				ismem = c.membership == memship.key;
 			n.adjust = function() {
 				_.estimate(function(estimate) {
@@ -165,8 +164,8 @@ comp.pods = {
 			});
 		},
 		submit: function(opts, stype, noteprompt, cb) {
-			var _ = comp.pods._, pkey = _.current.pod.key;
-			opts.membership = _.memberships[pkey].key;
+			var _ = comp.pods._, cp = _.current.pod, pkey = cp.key;
+			opts.membership = comp.core.pod2memship(cp).key;
 			comp.core.prompt({
 				prompt: noteprompt || "any notes?",
 				isTA: true,
@@ -184,7 +183,8 @@ comp.pods = {
 		},
 		submitter: function(stype) {
 			var _ = comp.pods._, lims = core.config.ctcomp.limits,
-				cur = _.current, pod = cur.pod, counts = cur.counts, diff, u;
+				cur = _.current, pod = cur.pod, counts = cur.counts,
+				memship = comp.core.pod2memship(pod), diff, u;
 			return function() {
 				if (stype == "dependency") {
 					comp.core.frameworks(function(allfms) {
@@ -235,7 +235,7 @@ comp.pods = {
 							comp.core.edit({
 								modelName: "content",
 								identifier: identifier,
-								membership: _.memberships[pod.key].key
+								membership: memship.key
 							}, function(content) {
 								CT.data.add(content);
 								CT.dom.addContent(_.nodes.content_list, _.content(content));
@@ -275,7 +275,6 @@ comp.pods = {
 																ctfile.upload("/_db", function(url) {
 																	prod.image = url;
 																	CT.data.add(prod);
-																	var memship = _.memberships[pod.key];
 																	memship.products.push(prod.key);
 																	comp.core.edit({
 																		key: memship.key,
@@ -575,7 +574,7 @@ comp.pods = {
 	},
 	pod: function(pod) {
 		var _ = comp.pods._, cfg = core.config.ctcomp,
-			memship = _.memberships[pod.key],
+			memship = comp.core.pod2memship(pod),
 			inclz = CT.dom.div(), content;
 		_.current.pod = pod;
 		_.setDependencies(pod);
@@ -664,7 +663,6 @@ comp.pods = {
 	memberships: function(memberships) {
 		var _ = comp.pods._;
 		CT.db.multi(memberships.map(function(m) {
-			_.memberships[m.pod] = m;
 			return m.pod;
 		}), comp.pods.pods);
 	},

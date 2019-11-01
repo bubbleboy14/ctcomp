@@ -1,5 +1,5 @@
 comp.core = {
-	_: { pods: {}, memships: {} },
+	_: { pods: {}, memships: {}, p2m: {} },
 	c: function(opts, cb, eb) {
 		CT.net.post({
 			path: "/_comp",
@@ -41,6 +41,9 @@ comp.core = {
 			cb(data);
 		});
 	},
+	pod2memship: function(pod) {
+		return comp.core._.p2m[pod.key];
+	},
 	person: function(pkey, cb) {
 		var _ = comp.core._;
 		if (_.person)
@@ -50,6 +53,9 @@ comp.core = {
 			person: pkey
 		}, function(data) {
 			CT.data.addSet(data.memberships);
+			data.memberships.forEach(function(m) {
+				_.p2m[m.pod] = m;
+			});
 			_.person = data;
 			cb(data);
 		});
