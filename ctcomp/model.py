@@ -225,10 +225,11 @@ class Codebase(db.TimeStampedBase):
 			memship and memship.deposit(platcut * contrib.count / total, True)
 		depcut = amount * ratios.code.dependency
 		dnum = len(self.dependencies)
-		depshare = depcut / dnum
-		log('dividing dependency cut (%s) among %s codebases'%(depcut, dnum))
-		for dep in db.get_multi(self.dependencies):
-			dep.deposit(depshare)
+		if dnum:
+			depshare = depcut / dnum
+			log('dividing dependency cut (%s) among %s codebases'%(depcut, dnum))
+			for dep in db.get_multi(self.dependencies):
+				dep.deposit(depshare)
 
 	def contributions(self, asmap=False):
 		clist = Contribution.query(Contribution.codebase == self.key).fetch()
@@ -473,15 +474,18 @@ def payCal():
 		task = stew.task()
 		pod = task2pod(task)
 		person = db.get(stew.steward)
-		if stew.happening(today):
+		slot = stew.happening(today)
+		if slot:
 			log("confirm: %s (%s)"%(task.name, task.mode))
 			if task.mode == "automatic":
 				pod.deposit(person, slot.duration)
 			elif task.mode == "email confirmation":
 				appointment(slot, task, pod, person)
-		if person.remind and stew.happening(tomorrow):
-			log("remind: %s (%s)"%(task.name, task.mode))
-			remember(slot, task, pod, person, reminders)
+		if person.remind:
+			slot = stew.happening(tomorrow)
+			if slot:
+				log("remind: %s (%s)"%(task.name, task.mode))
+				remember(slot, task, pod, person, reminders)
 	remind(reminders)
 
 def payDay():
