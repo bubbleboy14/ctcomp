@@ -164,22 +164,12 @@ comp.pods = {
 			});
 		},
 		submit: function(opts, stype, noteprompt, cb) {
-			var _ = comp.pods._, cp = _.current.pod, pkey = cp.key;
-			opts.membership = comp.core.pod2memship(cp).key;
-			comp.core.prompt({
-				prompt: noteprompt || "any notes?",
-				isTA: true,
-				cb: function(notes) {
-					opts.notes = notes;
-					comp.core.c(CT.merge(opts, {
-						action: stype
-					}), cb || function(ckey) {
-						opts.key = ckey;
-						comp.core.podup(pkey, stype + "s", opts);
-						CT.dom.addContent(_.nodes[stype + "_list"], _[stype](opts));
-					});
-				}
-			});
+			var _ = comp.pods._, cp = _.current.pod;
+			comp.core.submit(opts, cp, cb || function(ckey) {
+				opts.key = ckey;
+				comp.core.podup(cp.key, stype + "s", opts);
+				CT.dom.addContent(_.nodes[stype + "_list"], _[stype](opts));
+			}, stype, noteprompt);
 		},
 		submitter: function(stype) {
 			var _ = comp.pods._, lims = core.config.ctcomp.limits,
