@@ -157,6 +157,18 @@ class Pod(db.TimeStampedBase):
 	def service(self, member, service, recipient_count):
 		self.deposit(member, service.compensation * recipient_count)
 
+	def support_service(self):
+		if self.variety != "support":
+			return
+		service = Service.query(Service.name == self.name,
+			Service.variety == self.variety).get()
+		if not service:
+			service = Service()
+			service.name = self.name
+			service.variety = self.variety
+			service.put()
+		return service.key
+
 def global_pod():
 	p = Pod.query().get() # pod #1
 	if not p:
@@ -587,12 +599,12 @@ class Request(Verifiable):
 			pod.blurb = self.notes
 			pod.put()
 		else: # conversation / support
-			body = MEET%(self.pod().name, self.notes, self.key.urlsafe())
+			pod = self.pod()
+			body = MEET%(pod.name, self.notes, self.key.urlsafe())
 			self.notify("meeting scheduled", lambda signer : body)
-			# def reg_act(membership, service, workers, beneficiaries, notes):
-			# figure out service!!!
-			# wb = self.signers()
-			# reg_act(self.membership, service, wb, wb, self.notes)
+			if pod.variety == "support":
+				wb = self.signers()
+				reg_act(self.membership, pod.support_service(), wb, wb, self.notes)
 		self.passed = True
 		self.put()
 		return True
