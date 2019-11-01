@@ -1,5 +1,5 @@
 comp.core = {
-	_: { pods: {}, memships: {} },
+	_: { pods: {}, memships: {}, p2m: {} },
 	c: function(opts, cb, eb) {
 		CT.net.post({
 			path: "/_comp",
@@ -19,12 +19,35 @@ comp.core = {
 			cb: cb
 		});
 	},
-	support: function(pod) {
+	submit: function(opts, pod, cb, stype, noteprompt) {
+		opts.membership = comp.core.pod2memship(pod).key;
+		comp.core.prompt({
+			prompt: noteprompt || "any notes?",
+			isTA: true,
+			cb: function(notes) {
+				opts.notes = notes;
+				comp.core.c(CT.merge(opts, {
+					action: stype || "request"
+				}), cb || function() {
+        			alert("ok, check your email!");
+        		});
+			}
+		});
+	},
+	support: function(pkey) {
 		return CT.dom.div([
             CT.dom.button("request support", function() {
-                alert("ok!");
-            }),
-            '[TODO: list support requests]'
+                comp.core.pod(pkey, function() {
+	                comp.core.mates(pkey, "please select a pod mate",
+	                	function(mate) {
+	                		comp.core.submit({
+	                			person: mate.key,
+	                			change: "support"
+	                		}, CT.data.get(pkey));
+		                }, "single-choice", true);
+            	});
+            })
+            // TODO: list public support requests!!
         ], "bordered padded margined round");
 	},
 	membership: function(memship, cb) {
@@ -41,6 +64,9 @@ comp.core = {
 			cb(data);
 		});
 	},
+	pod2memship: function(pod) {
+		return comp.core._.p2m[pod.key];
+	},
 	person: function(pkey, cb) {
 		var _ = comp.core._;
 		if (_.person)
@@ -50,6 +76,9 @@ comp.core = {
 			person: pkey
 		}, function(data) {
 			CT.data.addSet(data.memberships);
+			data.memberships.forEach(function(m) {
+				_.p2m[m.pod] = m;
+			});
 			_.person = data;
 			cb(data);
 		});
@@ -96,7 +125,7 @@ comp.core = {
 		});
 	},
 	mates: function(pod, prompt, cb, style, nome, exclude) {
-		var data = comp.core[noname ? "others" : "members"](pod);
+		var data = comp.core[nome ? "others" : "members"](pod);
 		if (exclude) {
 			data = data.filter(function(d) {
 				return !exclude.includes(d.key);
@@ -217,6 +246,17 @@ comp.core = {
 				} else
 					cb(variety);
 			}
+		});
+	},
+	mypods: function(cb) {
+		comp.core.person(user.core.get("key"), function(person) {
+			CT.db.multi(person.memberships.map(function(m) {
+				return m.pod;
+			}), function(pods) {
+				cb(pods.map(function(pod) {
+					return pod.name;
+				}));
+			});
 		});
 	},
 	init: function() {

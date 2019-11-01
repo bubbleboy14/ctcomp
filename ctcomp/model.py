@@ -5,7 +5,7 @@ from cantools.web import email_admins, fetch, send_mail
 from ctcoop.model import *
 from ctdecide.model import Proposal
 from ctstore.model import Product
-from compTemplates import MEET, PAID, APPOINTMENT, INVITATION, REMINDER, APPLY, EXCLUDE, BLURB, CONVO
+from compTemplates import MEET, PAID, SERVICE, APPOINTMENT, INVITATION, REMINDER, APPLY, EXCLUDE, BLURB, CONVO
 from ctcomp.mint import mint, balance
 
 ratios = config.ctcomp.ratios
@@ -157,6 +157,18 @@ class Pod(db.TimeStampedBase):
 	def service(self, member, service, recipient_count):
 		self.deposit(member, service.compensation * recipient_count)
 
+	def support_service(self):
+		if self.variety != "support":
+			return
+		service = Service.query(Service.name == self.name,
+			Service.variety == self.variety).get()
+		if not service:
+			service = Service()
+			service.name = self.name
+			service.variety = self.variety
+			service.put()
+		return service.key
+
 def global_pod():
 	p = Pod.query().get() # pod #1
 	if not p:
@@ -225,10 +237,11 @@ class Codebase(db.TimeStampedBase):
 			memship and memship.deposit(platcut * contrib.count / total, True)
 		depcut = amount * ratios.code.dependency
 		dnum = len(self.dependencies)
-		depshare = depcut / dnum
-		log('dividing dependency cut (%s) among %s codebases'%(depcut, dnum))
-		for dep in db.get_multi(self.dependencies):
-			dep.deposit(depshare)
+		if dnum:
+			depshare = depcut / dnum
+			log('dividing dependency cut (%s) among %s codebases'%(depcut, dnum))
+			for dep in db.get_multi(self.dependencies):
+				dep.deposit(depshare)
 
 	def contributions(self, asmap=False):
 		clist = Contribution.query(Contribution.codebase == self.key).fetch()
@@ -473,15 +486,18 @@ def payCal():
 		task = stew.task()
 		pod = task2pod(task)
 		person = db.get(stew.steward)
-		if stew.happening(today):
+		slot = stew.happening(today)
+		if slot:
 			log("confirm: %s (%s)"%(task.name, task.mode))
 			if task.mode == "automatic":
 				pod.deposit(person, slot.duration)
 			elif task.mode == "email confirmation":
 				appointment(slot, task, pod, person)
-		if person.remind and stew.happening(tomorrow):
-			log("remind: %s (%s)"%(task.name, task.mode))
-			remember(slot, task, pod, person, reminders)
+		if person.remind:
+			slot = stew.happening(tomorrow)
+			if slot:
+				log("remind: %s (%s)"%(task.name, task.mode))
+				remember(slot, task, pod, person, reminders)
 	remind(reminders)
 
 def payDay():
@@ -518,8 +534,26 @@ class Act(Verifiable):
 		self.put()
 		return True
 
+def reg_act(membership, service, workers, beneficiaries, notes):
+	act = Act()
+	act.membership = membership
+	act.service = service
+	act.workers = workers
+	act.beneficiaries = beneficiaries
+	act.notes = notes
+	act.put()
+	akey = act.key.urlsafe()
+	service = act.service.get()
+	memship = act.membership.get()
+	person = memship.person.get()
+	pod = memship.pod.get()
+	workers = "\n".join([w.email for w in db.get_multi(act.workers)])
+	act.notify("verify service", lambda signer : SERVICE%(person.email,
+		pod.name, service.name, act.notes, workers, akey, signer.urlsafe()))
+	return akey
+
 class Request(Verifiable):
-	change = db.String(choices=["include", "exclude", "conversation"])
+	change = db.String(choices=["include", "exclude", "conversation", "support"])
 	person = db.ForeignKey(kind=Person) # person in question!
 
 	def remind(self):
@@ -537,13 +571,15 @@ class Request(Verifiable):
 		elif self.change == "blurb":
 			self.notify("pod blurb update proposal",
 				lambda signer: BLURB%(mpmail, pod.name, self.notes, rkey, signer.urlsafe()))
-		else: # conversation
-			self.notify("pod conversation request",
+		else: # conversation / support
+			self.notify("%s request"%(self.change,),
 				lambda signer : CONVO%(mpmail, pod.name, self.notes, rkey, signer.urlsafe()))
 
 	def signers(self):
 		pod = self.pod()
-		if self.change == "conversation":
+		if self.change == "support":
+			return [self.person, self.membership.get().person]
+		elif self.change == "conversation":
 			pz = [p for p in pod.members()]
 			self.person and pz.append(self.person)
 			return pz
@@ -554,17 +590,20 @@ class Request(Verifiable):
 	def fulfill(self):
 		if self.passed or not self.verified():
 			return False
-		pod = self.pod(True)
+		pod = self.pod()
 		if self.change == "exclude":
-			Membership.query(Membership.pod == pod, Membership.person == self.person).rm()
+			Membership.query(Membership.pod == pod.key, Membership.person == self.person).rm()
 		elif self.change == "include":
-			Membership(pod=pod, person=self.person).put()
+			Membership(pod=pod.key, person=self.person).put()
 		elif self.change == "blurb":
 			pod.blurb = self.notes
 			pod.put()
-		else: # conversation
-			body = MEET%(self.pod().name, self.notes, self.key.urlsafe())
+		else: # conversation / support
+			body = MEET%(pod.name, self.notes, self.key.urlsafe())
 			self.notify("meeting scheduled", lambda signer : body)
+			if pod.variety == "support":
+				wb = self.signers()
+				reg_act(self.membership, pod.support_service(), wb, wb, self.notes)
 		self.passed = True
 		self.put()
 		return True

@@ -2,7 +2,6 @@ comp.pods = {
 	_: {
 		current: {},
 		agents: {},
-		memberships: {},
 		responsibilities: {},
 		nodes: {
 			list: CT.dom.div(),
@@ -17,7 +16,7 @@ comp.pods = {
 			"Products", "Codebases", "Dependencies", "Expenses"],
 		proposal: function(key) {
 			var _ = comp.pods._,
-				memship = _.memberships[_.current.pod.key];
+				memship = comp.core.pod2memship(_.current.pod);
 			memship.proposals.push(key);
 			comp.core.edit({
 				key: memship.key,
@@ -116,7 +115,7 @@ comp.pods = {
 		},
 		commitment: function(c) {
 			var _ = comp.pods._, n = CT.dom.div(),
-				memship = _.memberships[_.current.pod.key],
+				memship = comp.core.pod2memship(_.current.pod),
 				ismem = c.membership == memship.key;
 			n.adjust = function() {
 				_.estimate(function(estimate) {
@@ -165,26 +164,17 @@ comp.pods = {
 			});
 		},
 		submit: function(opts, stype, noteprompt, cb) {
-			var _ = comp.pods._, pkey = _.current.pod.key;
-			opts.membership = _.memberships[pkey].key;
-			comp.core.prompt({
-				prompt: noteprompt || "any notes?",
-				isTA: true,
-				cb: function(notes) {
-					opts.notes = notes;
-					comp.core.c(CT.merge(opts, {
-						action: stype
-					}), cb || function(ckey) {
-						opts.key = ckey;
-						comp.core.podup(pkey, stype + "s", opts);
-						CT.dom.addContent(_.nodes[stype + "_list"], _[stype](opts));
-					});
-				}
-			});
+			var _ = comp.pods._, cp = _.current.pod;
+			comp.core.submit(opts, cp, cb || function(ckey) {
+				opts.key = ckey;
+				comp.core.podup(cp.key, stype + "s", opts);
+				CT.dom.addContent(_.nodes[stype + "_list"], _[stype](opts));
+			}, stype, noteprompt);
 		},
 		submitter: function(stype) {
 			var _ = comp.pods._, lims = core.config.ctcomp.limits,
-				cur = _.current, pod = cur.pod, counts = cur.counts, diff, u;
+				cur = _.current, pod = cur.pod, counts = cur.counts,
+				memship = comp.core.pod2memship(pod), diff, u;
 			return function() {
 				if (stype == "dependency") {
 					comp.core.frameworks(function(allfms) {
@@ -235,7 +225,7 @@ comp.pods = {
 							comp.core.edit({
 								modelName: "content",
 								identifier: identifier,
-								membership: _.memberships[pod.key].key
+								membership: memship.key
 							}, function(content) {
 								CT.data.add(content);
 								CT.dom.addContent(_.nodes.content_list, _.content(content));
@@ -275,7 +265,6 @@ comp.pods = {
 																ctfile.upload("/_db", function(url) {
 																	prod.image = url;
 																	CT.data.add(prod);
-																	var memship = _.memberships[pod.key];
 																	memship.products.push(prod.key);
 																	comp.core.edit({
 																		key: memship.key,
@@ -525,29 +514,6 @@ comp.pods = {
 				}
 			});
 		},
-		video: function(podname, ukey) {
-			var vbutt = CT.dom.button("Video Chat"),
-				cname = ukey ? CT.chat.privateChatName(ukey, user.core.get("key")) : podname.replace(/ /g, "");
-			vbutt.onclick = function() {
-		        vbutt._modal = vbutt._modal || new CT.modal.Modal({
-		            center: false,
-		            innerClass: "w1 h1 noflow",
-		            className: "vslide mosthigh fixed noflow",
-		            transition: "slide",
-		            slide: {
-		                origin: "bottomleft"
-		            },
-		            content: CT.dom.iframe("https://fzn.party/stream/widget.html#" + cname + "_zoom",
-		            	"w1 h1", null, { allow: "microphone; camera" })
-		        });
-		        vbutt._modal.showHide();
-			};
-			return [
-				CT.dom.span(podname),
-				CT.dom.pad(),
-				vbutt
-			];
-		},
 		blurb: function(pod) {
 			if (pod.blurb)
 				return CT.dom.div(pod.blurb);
@@ -598,7 +564,7 @@ comp.pods = {
 	},
 	pod: function(pod) {
 		var _ = comp.pods._, cfg = core.config.ctcomp,
-			memship = _.memberships[pod.key],
+			memship = comp.core.pod2memship(pod),
 			inclz = CT.dom.div(), content;
 		_.current.pod = pod;
 		_.setDependencies(pod);
@@ -681,24 +647,12 @@ comp.pods = {
 		_.current.pods = pods;
 		if (h) location.hash = "";
 		(h && CT.dom.id("tl" + h) || n.firstChild).firstChild.onclick();
-		comp.pods.chat(pods.map(function(pod) { return pod.name; }));
-	},
-	chat: function(channels) {
-		var _ = comp.pods._, u = user.core.get(), doit = function() {
-			CT.dom.addContent(_.nodes.main.parentNode, CT.chat.widget(u.key, channels, "Pods", _.video));
-		};
-		if (u.chat)
-			return doit();
-		var enabler = CT.dom.link("enable chat", function() {
-			CT.dom.remove(enabler);
-			doit();
-		}, null, "abs r0 b0 big bold above");
-		CT.dom.addContent(_.nodes.main.parentNode, enabler);
+		comp.live.chat(pods.map(function(pod) { return pod.name; }),
+			_.nodes.main.parentNode);
 	},
 	memberships: function(memberships) {
 		var _ = comp.pods._;
 		CT.db.multi(memberships.map(function(m) {
-			_.memberships[m.pod] = m;
 			return m.pod;
 		}), comp.pods.pods);
 	},
