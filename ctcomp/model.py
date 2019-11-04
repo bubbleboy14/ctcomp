@@ -11,13 +11,6 @@ from ctcomp.mint import mint, balance
 
 ratios = config.ctcomp.ratios
 
-class Resource(Place):
-	name = db.String()
-	description = db.Text()
-	tags = db.String(repeated=True)
-	icon = db.String() # refers to ctmap graphic resource
-	label = "name"
-
 class Wallet(db.TimeStampedBase):
 	identifier = db.String() # public key
 	outstanding = db.Float(default=0)
@@ -102,6 +95,14 @@ class Person(Member):
 	def commitments(self):
 		return sum([Commitment.query(Commitment.membership == m.key).fetch() for m in self.memberships()], [])
 
+class Resource(Place):
+	editors = db.ForeignKey(kind=Person, repeated=True)
+	name = db.String()
+	description = db.Text()
+	tags = db.String(repeated=True)
+	icon = db.String() # refers to ctmap graphic resource
+	label = "name"
+
 class Pod(db.TimeStampedBase):
 	name = db.String()
 	variety = db.String()
@@ -111,6 +112,7 @@ class Pod(db.TimeStampedBase):
 	tasks = db.ForeignKey(kind=Task, repeated=True)
 	updates = db.ForeignKey(kind=Update, repeated=True)
 	includers = db.ForeignKey(kind=Person, repeated=True)
+	resources = db.ForeignKey(kind=Resource, repeated=True)
 	dependencies = db.ForeignKey(kind="Codebase", repeated=True) # software pod only
 
 	def oncreate(self):
