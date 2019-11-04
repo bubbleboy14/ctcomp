@@ -5,10 +5,18 @@ from cantools.web import email_admins, fetch, send_mail
 from ctcoop.model import *
 from ctdecide.model import Proposal
 from ctstore.model import Product
+from ctmap.model import Place
 from compTemplates import MEET, PAID, SERVICE, APPOINTMENT, INVITATION, REMINDER, APPLY, EXCLUDE, BLURB, CONVO
 from ctcomp.mint import mint, balance
 
 ratios = config.ctcomp.ratios
+
+class Resource(Place):
+	name = db.String()
+	description = db.Text()
+	tags = db.String(repeated=True)
+	icon = db.String() # refers to ctmap graphic resource
+	label = "name"
 
 class Wallet(db.TimeStampedBase):
 	identifier = db.String() # public key
