@@ -32,4 +32,4 @@ cfg = {
 		"address": None
 	}
 }
-requires = ["ctcoop", "ctstore"]
+requires = ["ctcoop", "ctstore", "ctmap"]
