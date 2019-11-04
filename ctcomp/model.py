@@ -1,11 +1,13 @@
 from datetime import datetime, timedelta
+from six import string_types
 from cantools import db, config
 from cantools.util import error, log
 from cantools.web import email_admins, fetch, send_mail
+from cantools.geo import address2latlng
 from ctcoop.model import *
 from ctdecide.model import Proposal
 from ctstore.model import Product
-from ctmap.model import Place
+from ctmap.model import getzip, Place
 from compTemplates import MEET, PAID, SERVICE, APPOINTMENT, INVITATION, REMINDER, APPLY, EXCLUDE, BLURB, CONVO
 from ctcomp.mint import mint, balance
 
@@ -102,6 +104,16 @@ class Resource(Place):
 	tags = db.String(repeated=True)
 	icon = db.String() # refers to ctmap graphic resource
 	label = "name"
+
+	def _trans_zipcode(self, val):
+		if isinstance(val, string_types) and len(val) < 10:
+			val = getzip(val).key
+		return val
+
+	def oncreate(self):
+		zcode = self.zipcode.get()
+		addr = "%s, %s, %s"%(self.address, zcode.city, zcode.state)
+		self.latitude, self.longitude = address2latlng(addr)
 
 class Pod(db.TimeStampedBase):
 	name = db.String()
