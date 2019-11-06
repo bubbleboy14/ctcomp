@@ -7,6 +7,7 @@
 		"menu": "margined padded bordered round"
 	},
 	"blurbs": {
+		"Resources": "Build resource maps.",
 		"Responsibilities": "Task management, including scheduling of and volunteering for pod-related activities.",
 		"Commitments": "Register a weekly commitment.",
 		"Services": "Record a one-off service.",
