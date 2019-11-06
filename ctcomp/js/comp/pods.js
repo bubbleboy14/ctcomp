@@ -213,8 +213,8 @@ comp.pods = {
 								modelName: "resource",
 								editors: [user.core.get("key")]
 							}), function(res) {
-								pod.resources.append(res.key);
-								compo.core.edit({
+								pod.resources.push(res.key);
+								comp.core.edit({
 									key: pod.key,
 									resources: pod.resources
 								}, function() {
