@@ -184,7 +184,48 @@ comp.pods = {
 				cur = _.current, pod = cur.pod, counts = cur.counts,
 				memship = comp.core.pod2memship(pod), diff, u;
 			return function() {
-				if (stype == "dependency") {
+				if (stype == "resource") {
+					// TODO: tags[], icon
+					comp.core.prompt({
+						style: "form",
+						prompt: "map resource editor",
+						className: "basicpopup mosthigh w400p",
+						data: [{
+							name: "name",
+							classname: "w1",
+							blurs: ["what is this place called?", "what do you call this place?"]
+						}, {
+							isTA: true,
+							name: "description",
+							blurs: ["how would you describe this place?", "please tell me about this place"]
+						}, {
+							name: "address",
+							blurs: ["street address", "what's the address?"]
+						}, {
+							name: "zipcode",
+							blurs: ["zipcode", "what's the zipcode?"]
+						}],
+						cb: function(vals) {
+							vals.zipcode = CT.parse.stripToZip(vals.zipcode);
+							if (!vals.zipcode)
+								return alert("that doesn't look like a zipcode!");
+							comp.core.edit(CT.merge(vals, {
+								modelName: "resource",
+								editors: [user.core.get("key")]
+							}), function(res) {
+								pod.resources.append(res.key);
+								compo.core.edit({
+									key: pod.key,
+									resources: pod.resources
+								}, function() {
+									CT.data.add(res);
+									CT.dom.addContent(_.nodes.resource_list,
+										_.resource(res));
+								});
+							});
+						}
+					});
+				} else if (stype == "dependency") {
 					comp.core.frameworks(function(allfms) {
 						comp.core.choice({
 							style: "multiple-choice",
