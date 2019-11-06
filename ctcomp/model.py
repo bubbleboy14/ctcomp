@@ -105,7 +105,7 @@ class Resource(Place):
 	icon = db.String() # refers to ctmap graphic resource
 	label = "name"
 
-	def _trans_zipcode(self, val):
+	def _pre_trans_zipcode(self, val):
 		if isinstance(val, string_types) and len(val) < 10:
 			val = getzip(val).key
 		return val
