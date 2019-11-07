@@ -20,6 +20,7 @@ CT.require("comp.core");
 CT.require("comp.live");
 CT.require("comp.pods");
 CT.require("decide");
+CT.net.setSpinner(true);
 
 CT.onload(function() {
 	CT.initCore();
