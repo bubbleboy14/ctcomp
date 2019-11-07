@@ -76,8 +76,9 @@ comp.pods = {
 			return CT.dom.div([
 				CT.dom.img(r.icon, "right"),
 				CT.dom.div(r.name, "big"),
+				r.address,
 				r.description,
-				r.tags.join(", ")
+				r.tags.map(function(t) { return CT.data.get(t).name; }).join(", ")
 			], "bordered padded margined");
 		},
 		content: function(c) {
@@ -185,7 +186,6 @@ comp.pods = {
 				memship = comp.core.pod2memship(pod), diff, u;
 			return function() {
 				if (stype == "resource") {
-					// TODO: tags[]
 					comp.core.prompt({
 						style: "form",
 						prompt: "map resource editor",
@@ -217,18 +217,23 @@ comp.pods = {
 								}),
 								cb: function(val) {
 									vals.icon = val;
-									comp.core.edit(CT.merge(vals, {
-										modelName: "resource",
-										editors: [user.core.get("key")]
-									}), function(res) {
-										pod.resources.push(res.key);
-										comp.core.edit({
-											key: pod.key,
-											resources: pod.resources
-										}, function() {
-											CT.data.add(res);
-											CT.dom.addContent(_.nodes.resource_list,
-												_.resource(res));
+									comp.core.tags(function(tagz) {
+										vals.tags = tagz.map(function(t) {
+											return t.key;
+										});
+										comp.core.edit(CT.merge(vals, {
+											modelName: "resource",
+											editors: [user.core.get("key")]
+										}), function(res) {
+											pod.resources.push(res.key);
+											comp.core.edit({
+												key: pod.key,
+												resources: pod.resources
+											}, function() {
+												CT.data.add(res);
+												CT.dom.addContent(_.nodes.resource_list,
+													_.resource(res));
+											});
 										});
 									});
 								}
