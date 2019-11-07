@@ -74,10 +74,10 @@ comp.pods = {
 		},
 		resource: function(r) {
 			return CT.dom.div([
+				CT.dom.img(r.icon, "right"),
 				CT.dom.div(r.name, "big"),
 				r.description,
-				r.tags.join(", "),
-				"icon: " + r.icon
+				r.tags.join(", ")
 			], "bordered padded margined");
 		},
 		content: function(c) {
@@ -185,7 +185,7 @@ comp.pods = {
 				memship = comp.core.pod2memship(pod), diff, u;
 			return function() {
 				if (stype == "resource") {
-					// TODO: tags[], icon
+					// TODO: tags[]
 					comp.core.prompt({
 						style: "form",
 						prompt: "map resource editor",
@@ -209,19 +209,29 @@ comp.pods = {
 							vals.zipcode = CT.parse.stripToZip(vals.zipcode);
 							if (!vals.zipcode)
 								return alert("that doesn't look like a zipcode!");
-							comp.core.edit(CT.merge(vals, {
-								modelName: "resource",
-								editors: [user.core.get("key")]
-							}), function(res) {
-								pod.resources.push(res.key);
-								comp.core.edit({
-									key: pod.key,
-									resources: pod.resources
-								}, function() {
-									CT.data.add(res);
-									CT.dom.addContent(_.nodes.resource_list,
-										_.resource(res));
-								});
+							comp.core.prompt({
+								style: "icon",
+								prompt: "please select an icon",
+								data: core.config.ctmap.icons.map(function(t) {
+									return "/img/map/" + t + ".png";
+								}),
+								cb: function(val) {
+									vals.icon = val;
+									comp.core.edit(CT.merge(vals, {
+										modelName: "resource",
+										editors: [user.core.get("key")]
+									}), function(res) {
+										pod.resources.push(res.key);
+										comp.core.edit({
+											key: pod.key,
+											resources: pod.resources
+										}, function() {
+											CT.data.add(res);
+											CT.dom.addContent(_.nodes.resource_list,
+												_.resource(res));
+										});
+									});
+								}
 							});
 						}
 					});
