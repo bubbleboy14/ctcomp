@@ -97,11 +97,15 @@ class Person(Member):
 	def commitments(self):
 		return sum([Commitment.query(Commitment.membership == m.key).fetch() for m in self.memberships()], [])
 
+class Tag(db.TimeStampedBase):
+	name = db.String()
+	# helpful especially for providing tagging options
+
 class Resource(Place):
 	editors = db.ForeignKey(kind=Person, repeated=True)
 	name = db.String()
 	description = db.Text()
-	tags = db.String(repeated=True)
+	tags = db.ForeignKey(kind=Tag, repeated=True)
 	icon = db.String() # refers to ctmap graphic resource
 	label = "name"
 
