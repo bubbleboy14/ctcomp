@@ -42,7 +42,7 @@ comp.pods = {
 			return CT.dom.div([
 				CT.dom.div("submitted by: " + comp.pods._.name(CT.data.get(data.membership).person), "right"),
 				CT.dom.div(header, "big"),
-				data.notes,
+				data.notes.replace(/\n/g, "<br>"),
 				extras,
 				data.passed ? "passed" : "pending"
 			], "bordered padded margined");
@@ -122,7 +122,10 @@ comp.pods = {
 			return comp.pods._.item(CT.data.get(a.service).name, a);
 		},
 		request: function(r) {
-			return comp.pods._.item(r.change + " " + comp.pods._.name(r.person), r);
+			var _ = comp.pods._, title = r.change;
+			if (r.person)
+				title += " " + _.name(r.person);
+			return _.item(title, r);
 		},
 		commitment: function(c) {
 			var _ = comp.pods._, n = CT.dom.div(),
@@ -414,7 +417,7 @@ comp.pods = {
 			};
 		},
 		change: function(change) {
-			var _ = comp.pods._;
+			var _ = comp.pods._, pod = _.current.pod;
 			if (change == "include") {
 				comp.core.prompt({
 					prompt: "what's this person's email address?",
@@ -441,7 +444,7 @@ comp.pods = {
 					}
 				});
 			} else if (change == "exclude") { // exclude
-				comp.core.mates(_.current.pod.key, "kick out whom?", function(person) {
+				comp.core.mates(pod.key, "kick out whom?", function(person) {
 					_.submit({
 						person: person.key,
 						change: change
