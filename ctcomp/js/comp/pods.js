@@ -473,8 +473,9 @@ comp.pods = {
 				unrestricted = !pod.agent && (size > 1),
 				action = unrestricted ? "show" : "hide",
 				reaction = pod.agent ? "hide" : "show",
-				resaction = (pod.variety == "resource mapping") ? "show" : "hide",
-				showSoft = (pod.variety == "software") ? "show" : "hide";
+				showSoft = (pod.variety == "software") ? "show" : "hide",
+				resaction = ["resource mapping", "care work"].includes(pod.variety)
+					? "show" : "hide";
 			["Updates", "Commitments", "Services"].forEach(function(section) {
 				CT.dom[action]("tl" + section);
 			});
