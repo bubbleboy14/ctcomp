@@ -12,9 +12,10 @@ comp.pods = {
 			main: CT.dom.div(null, "h1 mr160 relative"),
 			right: CT.dom.div(null, "h1 w160p up5 scrolly right")
 		},
-		sections: ["Info", "Updates", "Drivers", "Resources", "Proposals",
-			"Responsibilities", "Commitments", "Services", "Requests",
-			"Content", "Products", "Codebases", "Dependencies", "Expenses"],
+		sections: ["Info", "Updates", "Drivers", "Deliveries",
+			"Resources", "Proposals", "Responsibilities", "Commitments",
+			"Services", "Requests", "Content", "Products", "Codebases",
+			"Dependencies", "Expenses"],
 		proposal: function(key) {
 			var _ = comp.pods._,
 				memship = comp.core.pod2memship(_.current.pod);
@@ -487,6 +488,7 @@ comp.pods = {
 				CT.dom[showSoft]("tl" + section);
 			});
 			CT.dom[driaction]("tlDrivers");
+			CT.dom[driaction]("tlDeliveries");
 			CT.dom[resaction]("tlResources");
 			unrestricted || CT.dom.id("tlInfo").firstChild.onclick();
 		},
