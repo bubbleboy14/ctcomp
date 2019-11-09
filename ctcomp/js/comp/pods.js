@@ -2,6 +2,7 @@ comp.pods = {
 	_: {
 		current: {},
 		agents: {},
+		codebases: {},
 		responsibilities: {},
 		nodes: {
 			list: CT.dom.div(),
@@ -47,6 +48,7 @@ comp.pods = {
 			], "bordered padded margined");
 		},
 		codebase: function(c) {
+			comp.pods._.codebases[c.repo] = c;
 			var deps = CT.dom.div(null, "centered");
 			deps.update = function() {
 				CT.db.multi(c.dependencies, function(dz) {
@@ -265,7 +267,11 @@ comp.pods = {
 							data: ["platform", "framework", "research and development"],
 							cb: function(variety) {
 								comp.core.choice({
-									data: CT.net.get("https://api.github.com/users/" + ucont.handle + "/repos", null, true),
+									data: CT.net.get("https://api.github.com/users/"
+										+ ucont.handle + "/repos", null,
+										true).filter(function(repo) {
+											return !(repo.name in _.codebases);
+										}),
 									cb: function(project) {
 										comp.core.edit({
 											modelName: "codebase",
