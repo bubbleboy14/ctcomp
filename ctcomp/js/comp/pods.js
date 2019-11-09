@@ -11,9 +11,9 @@ comp.pods = {
 			main: CT.dom.div(null, "h1 mr160 relative"),
 			right: CT.dom.div(null, "h1 w160p up5 scrolly right")
 		},
-		sections: ["Info", "Updates", "Proposals", "Responsibilities",
-			"Commitments", "Services", "Requests", "Content",
-			"Products", "Codebases", "Dependencies", "Expenses"],
+		sections: ["Info", "Updates", "Resources", "Proposals",
+			"Responsibilities", "Commitments", "Services", "Requests",
+			"Content", "Products", "Codebases", "Dependencies", "Expenses"],
 		proposal: function(key) {
 			var _ = comp.pods._,
 				memship = comp.core.pod2memship(_.current.pod);
@@ -71,6 +71,15 @@ comp.pods = {
 		},
 		dependency: function(d) {
 			return CT.dom.div(d.repo, "bordered padded margined round inline-block");
+		},
+		resource: function(r) {
+			return CT.dom.div([
+				CT.dom.img(r.icon, "right"),
+				CT.dom.div(r.name, "big"),
+				r.address,
+				r.description,
+				r.tags.map(function(t) { return CT.data.get(t).name; }).join(", ")
+			], "bordered padded margined");
 		},
 		content: function(c) {
 			return CT.dom.div([
@@ -176,7 +185,62 @@ comp.pods = {
 				cur = _.current, pod = cur.pod, counts = cur.counts,
 				memship = comp.core.pod2memship(pod), diff, u;
 			return function() {
-				if (stype == "dependency") {
+				if (stype == "resource") {
+					comp.core.prompt({
+						style: "form",
+						prompt: "map resource editor",
+						className: "basicpopup mosthigh w400p",
+						data: [{
+							name: "name",
+							classname: "w1",
+							blurs: ["what is this place called?", "what do you call this place?"]
+						}, {
+							isTA: true,
+							name: "description",
+							blurs: ["how would you describe this place?", "please tell me about this place"]
+						}, {
+							name: "address",
+							blurs: ["street address", "what's the address?"]
+						}, {
+							name: "zipcode",
+							blurs: ["zipcode", "what's the zipcode?"]
+						}],
+						cb: function(vals) {
+							vals.zipcode = CT.parse.stripToZip(vals.zipcode);
+							if (!vals.zipcode)
+								return alert("that doesn't look like a zipcode!");
+							comp.core.prompt({
+								style: "icon",
+								prompt: "please select an icon",
+								data: core.config.ctmap.icons.map(function(t) {
+									return "/img/map/" + t + ".png";
+								}),
+								cb: function(val) {
+									vals.icon = val;
+									comp.core.tags(function(tagz) {
+										vals.tags = tagz.map(function(t) {
+											return t.key;
+										});
+										comp.core.edit(CT.merge(vals, {
+											modelName: "resource",
+											editors: [user.core.get("key")]
+										}), function(res) {
+											pod.resources.push(res.key);
+											comp.core.edit({
+												key: pod.key,
+												resources: pod.resources
+											}, function() {
+												CT.data.add(res);
+												CT.dom.addContent(_.nodes.resource_list,
+													_.resource(res));
+											});
+										});
+									});
+								}
+							});
+						}
+					});
+				} else if (stype == "dependency") {
 					comp.core.frameworks(function(allfms) {
 						comp.core.choice({
 							style: "multiple-choice",
@@ -403,6 +467,7 @@ comp.pods = {
 				unrestricted = !pod.agent && (size > 1),
 				action = unrestricted ? "show" : "hide",
 				reaction = pod.agent ? "hide" : "show",
+				resaction = (pod.variety == "resource mapping") ? "show" : "hide",
 				showSoft = (pod.variety == "software") ? "show" : "hide";
 			["Updates", "Commitments", "Services"].forEach(function(section) {
 				CT.dom[action]("tl" + section);
@@ -413,15 +478,18 @@ comp.pods = {
 			["Codebases", "Dependencies"].forEach(function(section) {
 				CT.dom[showSoft]("tl" + section);
 			});
+			CT.dom[resaction]("tlResources");
 			unrestricted || CT.dom.id("tlInfo").firstChild.onclick();
 		},
 		frame: function(data, item, plur) {
-			var _ = comp.pods._, cfg = core.config.ctcomp, n, content;
+			var _ = comp.pods._, cfg = core.config.ctcomp,
+				n, content, pcap;
 			plur = plur || item;
+			pcap = CT.parse.capitalize(plur);
 			n = _.nodes[item + "_list"] = CT.dom.div(data && data[plur].map(_[item]));
 			content = [
-				CT.dom.div(CT.parse.capitalize(plur), "biggest"),
-				cfg.blurbs[CT.parse.capitalize(plur)],
+				CT.dom.div(pcap, "biggest"),
+				cfg.blurbs[pcap],
 				n
 			];
 			data && content.unshift(CT.dom.button("new",
@@ -469,9 +537,18 @@ comp.pods = {
 				});
 			});
 		},
+		setResources: function(pod) {
+			CT.db.multi(pod.resources, function(resz) {
+				comp.pods._.frame({
+					resources: resz
+				}, "resource", "resources");
+			});
+		},
 		setDependencies: function(pod) {
 			CT.db.multi(pod.dependencies, function(deps) {
-				comp.pods._.frame({ dependencies: deps }, "dependency", "dependencies");
+				comp.pods._.frame({
+					dependencies: deps
+				}, "dependency", "dependencies");
 			});
 		},
 		setResponsibilities: function(pod) {
@@ -548,7 +625,7 @@ comp.pods = {
 				});
 			} else {
 				opts.variety = variety;
-				if (variety == "support")
+				if (variety == "support" || variety == "resource mapping")
 					return _.pod(opts);
 				comp.core.choice({
 					prompt: "how would you like to admit new members? the default mode, 'full', requires every member to approve new admissions. with the alternative, 'limited', you may designate a subset of the pod's membership to make these decisions.",
@@ -629,6 +706,7 @@ comp.pods = {
 				_.frame(data, item, item + "s");
 			});
 			_.setUpdates(pod);
+			_.setResources(pod);
 			decide.core.util.proposals(_.nodes.proposals, data.proposals);
 			_.restrictions();
 		});

@@ -222,6 +222,36 @@ comp.core = {
 			}
 		});
 	},
+	tag: function(name, cb) {
+		comp.core.edit({
+			modelName: "tag",
+			name: name
+		}, function(data) {
+			comp.core._.tags.push(data);
+			CT.data.add(data);
+			cb(data);
+		});
+	},
+	tags: function(cb) {
+		comp.core.choice({
+			prompt: "select resource tags",
+			style: "multiple-choice",
+			data: ["New Resource Tag"].concat(comp.core._.tags),
+			cb: function(tags) {
+				if (tags[0] == "New Resource Tag") {
+					comp.core.prompt({
+						prompt: "what's the tag?",
+						cb: function(name) {
+							comp.core.tag(name, function(tag) {
+								comp.core.tags(cb);
+							});
+						}
+					});
+				} else
+					cb(tags);
+			}
+		});
+	},
 	varieties: function(cb, ACP) {
 		var _ = comp.core._;
 		comp.core.choice({
@@ -262,13 +292,15 @@ comp.core = {
 	init: function() {
 		var _ = comp.core._;
 		CT.db.get("service", function(services) {
-			CT.data.addSet(services);
 			_.services = {};
 			services.forEach(function(service) {
 				_.services[service.variety] = _.services[service.variety] || [];
 				_.services[service.variety].push(service);
 			});
 			_.varieties = Object.keys(_.services);
+		});
+		CT.db.get("tag", function(tags) {
+			_.tags = tags;
 		});
 	}
 };

@@ -1,10 +1,13 @@
 from datetime import datetime, timedelta
+from six import string_types
 from cantools import db, config
 from cantools.util import error, log
 from cantools.web import email_admins, fetch, send_mail
+from cantools.geo import address2latlng
 from ctcoop.model import *
 from ctdecide.model import Proposal
 from ctstore.model import Product
+from ctmap.model import getzip, Place
 from compTemplates import MEET, PAID, SERVICE, APPOINTMENT, INVITATION, REMINDER, APPLY, EXCLUDE, BLURB, CONVO
 from ctcomp.mint import mint, balance
 
@@ -94,6 +97,28 @@ class Person(Member):
 	def commitments(self):
 		return sum([Commitment.query(Commitment.membership == m.key).fetch() for m in self.memberships()], [])
 
+class Tag(db.TimeStampedBase):
+	name = db.String()
+	# helpful especially for providing tagging options
+
+class Resource(Place):
+	editors = db.ForeignKey(kind=Person, repeated=True)
+	name = db.String()
+	description = db.Text()
+	tags = db.ForeignKey(kind=Tag, repeated=True)
+	icon = db.String() # refers to ctmap graphic resource
+	label = "name"
+
+	def _pre_trans_zipcode(self, val):
+		if isinstance(val, string_types) and len(val) < 10:
+			val = getzip(val).key
+		return val
+
+	def oncreate(self):
+		zcode = self.zipcode.get()
+		addr = "%s, %s, %s"%(self.address, zcode.city, zcode.state)
+		self.latitude, self.longitude = address2latlng(addr)
+
 class Pod(db.TimeStampedBase):
 	name = db.String()
 	variety = db.String()
@@ -103,6 +128,7 @@ class Pod(db.TimeStampedBase):
 	tasks = db.ForeignKey(kind=Task, repeated=True)
 	updates = db.ForeignKey(kind=Update, repeated=True)
 	includers = db.ForeignKey(kind=Person, repeated=True)
+	resources = db.ForeignKey(kind=Resource, repeated=True)
 	dependencies = db.ForeignKey(kind="Codebase", repeated=True) # software pod only
 
 	def oncreate(self):
@@ -500,6 +526,16 @@ def payCal():
 				remember(slot, task, pod, person, reminders)
 	remind(reminders)
 
+def payRes():
+	log("payres!", important=True)
+	yesterday = datetime.now() - timedelta(1)
+	for res in Resource.query(Resource.created > yesterday).all():
+		pod = Pod.query(Pod.resources.contains(res.key.urlsafe())).get()
+		person = res.editors[0].get()
+		log("paying %s of '%s' pod for posting '%s' resource"%(person.firstName,
+			pod.name, resource.name))
+		pod.deposit(person, ratios.resource)
+
 def payDay():
 	log("payday!", important=True)
 	commz = Commitment.query(Commitment.passed == True).fetch()
@@ -512,6 +548,7 @@ def payDay():
 	for cb in cbz:
 		cb.refresh()
 	log("refreshed %s codebases"%(len(cbz),), important=True)
+	payRes()
 	payCal()
 
 class Act(Verifiable):

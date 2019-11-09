@@ -1,4 +1,4 @@
-from model import db, global_pod, Person, Pod, Service
+from model import db, global_pod, Person, Pod, Tag, Service
 from cantools import config
 
 def person(email, pw, pod=None):
@@ -19,6 +19,9 @@ def services(serz):
 			sz.append(Service(name=example, variety=variety))
 	db.put_multi(sz)
 
+def tags(tagz):
+	db.put_multi([Tag(name=t) for t in tagz])
+
 def agent():
 	gpod = global_pod()
 	apod = Pod(name="carecoin")
@@ -29,8 +32,9 @@ def agent():
 	gpod.put()
 	return apod
 
-def seed(serz, pw):
+def seed(serz, tagz, pw):
 	cc = agent()
 	services(serz)
+	tags(tagz)
 	for admin in config.admin.contacts:
 		person(admin, pw, cc)
