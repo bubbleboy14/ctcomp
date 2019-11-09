@@ -19,13 +19,15 @@ comp.core = {
 			cb: cb
 		});
 	},
-	submit: function(opts, pod, cb, stype, noteprompt) {
+	submit: function(opts, pod, cb, stype, noteprompt, ps) {
 		opts.membership = comp.core.pod2memship(pod).key;
 		comp.core.prompt({
 			prompt: noteprompt || "any notes?",
 			isTA: true,
 			cb: function(notes) {
 				opts.notes = notes;
+				if (ps)
+					opts.notes += "\n\n" + ps;
 				comp.core.c(CT.merge(opts, {
 					action: stype || "request"
 				}), cb || function() {
@@ -250,6 +252,15 @@ comp.core = {
 				} else
 					cb(tags);
 			}
+		});
+	},
+	resource: function(pod, cb, desc) {
+		CT.db.multi(pod.resources, function(rez) {
+			comp.core.choice({
+				prompt: "please select the " + desc + " location",
+				data: rez,
+				cb: cb
+			});
 		});
 	},
 	varieties: function(cb, ACP) {
