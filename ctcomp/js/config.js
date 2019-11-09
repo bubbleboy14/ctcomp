@@ -7,8 +7,7 @@
 		"menu": "margined padded bordered round"
 	},
 	"blurbs": {
-		"Drivers": "Can you help transport people and things?",
-		"Deliveries": "Does someone or something need to get somewhere somehow?",
+		"Drivers": "Can you help transport people and things? Click the 'join drivers' button to volunteer. Does someone or something need to get somewhere somehow? Click 'Requests' on the right to request a driver.",
 		"Resources": "Build resource maps.",
 		"Responsibilities": "Task management, including scheduling of and volunteering for pod-related activities.",
 		"Commitments": "Register a weekly commitment.",
