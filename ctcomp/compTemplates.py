@@ -42,6 +42,26 @@ Please click <a href='""" + config.web.protocol + """://""" + config.web.domain 
 
 That's it!"""
 
+DELIVERY = """Hello!
+
+%s of the "%s" pod has requested a delivery. Here are the details:
+
+%s
+
+Please click <a href='""" + config.web.protocol + """://""" + config.web.domain + """/_comp?action=verify&verifiable=%s&person=%s'>here</a> if you would like to help in this way.
+
+That's it!"""
+
+DELIVERED = """Hello!
+
+%s and %s have agreed to the discussed drop off. Here are the details:
+
+%s
+
+Please click <a href='""" + config.web.protocol + """://""" + config.web.domain + """/_comp?action=verify&verifiable=%s&person=%s'>here</a> to confirm the drop off took place.
+
+That's it!"""
+
 APPOINTMENT = """Hello!
 
 %s of the "%s" pod committed to the following appointment: %s. Details:
