@@ -528,7 +528,7 @@ def payCal():
 
 def payRes():
 	log("payres!", important=True)
-	yesterday = datetimed.now() - timedelta(1)
+	yesterday = datetime.now() - timedelta(1)
 	for res in Resource.query(Resource.created > yesterday).all():
 		pod = Pod.query(Pod.resources.contains(res.key.urlsafe())).get()
 		person = res.editors[0].get()
