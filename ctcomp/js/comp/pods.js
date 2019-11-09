@@ -12,7 +12,7 @@ comp.pods = {
 			main: CT.dom.div(null, "h1 mr160 relative"),
 			right: CT.dom.div(null, "h1 w160p up5 scrolly right")
 		},
-		sections: ["Info", "Updates", "Resources", "Proposals",
+		sections: ["Info", "Updates", "Drivers", "Resources", "Proposals",
 			"Responsibilities", "Commitments", "Services", "Requests",
 			"Content", "Products", "Codebases", "Dependencies", "Expenses"],
 		proposal: function(key) {
@@ -474,6 +474,7 @@ comp.pods = {
 				action = unrestricted ? "show" : "hide",
 				reaction = pod.agent ? "hide" : "show",
 				showSoft = (pod.variety == "software") ? "show" : "hide",
+				driaction = (pod.variety == "care work") ? "show" : "hide",
 				resaction = ["resource mapping", "care work"].includes(pod.variety)
 					? "show" : "hide";
 			["Updates", "Commitments", "Services"].forEach(function(section) {
@@ -485,6 +486,7 @@ comp.pods = {
 			["Codebases", "Dependencies"].forEach(function(section) {
 				CT.dom[showSoft]("tl" + section);
 			});
+			CT.dom[driaction]("tlDrivers");
 			CT.dom[resaction]("tlResources");
 			unrestricted || CT.dom.id("tlInfo").firstChild.onclick();
 		},
@@ -524,6 +526,30 @@ comp.pods = {
 						});
 					});
 				}
+			});
+		},
+		setDrivers: function(pod) {
+			var _ = comp.pods._, ukey = user.core.get("key"),
+				driving = pod.drivers.includes(ukey),
+				btxt = driving ? "stop being a driver" : "join drivers";
+			CT.db.multi(pod.drivers, function(drz) {
+				CT.dom.setContent(_.nodes.drivers, [
+					CT.dom.button(btxt, function() {
+						if (driving)
+							CT.data.remove(pod.drivers, ukey);
+						else
+							pod.drivers.push(ukey);
+						comp.core.edit({
+							key: pod.key,
+							drivers: pod.drivers
+						});
+						_.setDrivers(pod);
+					}, "right"),
+					drz.map(function(d) {
+						return CT.dom.div(d.firstName,
+							"padded margined bordered round inline-block");
+					})
+				]);
 			});
 		},
 		setUpdates: function(pod) {
@@ -712,6 +738,7 @@ comp.pods = {
 			["service", "commitment", "request", "codebase", "expense"].forEach(function(item) {
 				_.frame(data, item, item + "s");
 			});
+			_.setDrivers(pod);
 			_.setUpdates(pod);
 			_.setResources(pod);
 			decide.core.util.proposals(_.nodes.proposals, data.proposals);
