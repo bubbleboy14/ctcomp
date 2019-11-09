@@ -127,6 +127,7 @@ class Pod(db.TimeStampedBase):
 	agent = db.ForeignKey(kind="Pod")
 	tasks = db.ForeignKey(kind=Task, repeated=True)
 	updates = db.ForeignKey(kind=Update, repeated=True)
+	drivers = db.ForeignKey(kind=Person, repeated=True)
 	includers = db.ForeignKey(kind=Person, repeated=True)
 	resources = db.ForeignKey(kind=Resource, repeated=True)
 	dependencies = db.ForeignKey(kind="Codebase", repeated=True) # software pod only
@@ -389,6 +390,22 @@ class Verifiable(db.TimeStampedBase):
 		for person in self.signers():
 			if not Verification.query(Verification.act == self.key, Verification.person == person).get():
 				return False
+		return True
+
+class Delivery(Verifiable):
+	driver = db.ForeignKey(kind=Person)
+	miles = db.Float()
+
+	def signers(self):
+		return [self.membership.get().person]
+
+	def fulfill(self):
+		if not self.verified():
+			return False
+		self.pod().deposit(self.driver.get(),
+			ratios.delivery + ratios.mileage * self.miles)
+		self.passed = True
+		self.put()
 		return True
 
 class Appointment(Verifiable):
