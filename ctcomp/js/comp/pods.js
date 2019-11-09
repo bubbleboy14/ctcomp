@@ -12,7 +12,7 @@ comp.pods = {
 			main: CT.dom.div(null, "h1 mr160 relative"),
 			right: CT.dom.div(null, "h1 w160p up5 scrolly right")
 		},
-		sections: ["Info", "Updates", "Resources", "Proposals",
+		sections: ["Info", "Updates", "Drivers", "Resources", "Proposals",
 			"Responsibilities", "Commitments", "Services", "Requests",
 			"Content", "Products", "Codebases", "Dependencies", "Expenses"],
 		proposal: function(key) {
@@ -42,7 +42,7 @@ comp.pods = {
 			return CT.dom.div([
 				CT.dom.div("submitted by: " + comp.pods._.name(CT.data.get(data.membership).person), "right"),
 				CT.dom.div(header, "big"),
-				data.notes,
+				data.notes.replace(/\n/g, "<br>"),
 				extras,
 				data.passed ? "passed" : "pending"
 			], "bordered padded margined");
@@ -122,7 +122,10 @@ comp.pods = {
 			return comp.pods._.item(CT.data.get(a.service).name, a);
 		},
 		request: function(r) {
-			return comp.pods._.item(r.change + " " + comp.pods._.name(r.person), r);
+			var _ = comp.pods._, title = r.change;
+			if (r.person)
+				title += " " + _.name(r.person);
+			return _.item(title, r);
 		},
 		commitment: function(c) {
 			var _ = comp.pods._, n = CT.dom.div(),
@@ -174,13 +177,13 @@ comp.pods = {
 				}
 			});
 		},
-		submit: function(opts, stype, noteprompt, cb) {
+		submit: function(opts, stype, noteprompt, cb, ps) {
 			var _ = comp.pods._, cp = _.current.pod;
 			comp.core.submit(opts, cp, cb || function(ckey) {
 				opts.key = ckey;
 				comp.core.podup(cp.key, stype + "s", opts);
 				CT.dom.addContent(_.nodes[stype + "_list"], _[stype](opts));
-			}, stype, noteprompt);
+			}, stype, noteprompt, ps);
 		},
 		submitter: function(stype) {
 			var _ = comp.pods._, lims = core.config.ctcomp.limits,
@@ -401,8 +404,11 @@ comp.pods = {
 					}, pod.variety);
 				} else if (stype == "request") {
 					if (comp.core.size(pod.key) > 2) {
+						var reqmodes = ["include", "exclude", "blurb", "conversation"];
+						if (pod.variety == "care work")
+							reqmodes.push("delivery");
 						comp.core.choice({
-							data: ["include", "exclude", "blurb", "conversation"],
+							data: reqmodes,
 							cb: _.change
 						});
 					} else
@@ -411,7 +417,7 @@ comp.pods = {
 			};
 		},
 		change: function(change) {
-			var _ = comp.pods._;
+			var _ = comp.pods._, pod = _.current.pod;
 			if (change == "include") {
 				comp.core.prompt({
 					prompt: "what's this person's email address?",
@@ -438,7 +444,7 @@ comp.pods = {
 					}
 				});
 			} else if (change == "exclude") { // exclude
-				comp.core.mates(_.current.pod.key, "kick out whom?", function(person) {
+				comp.core.mates(pod.key, "kick out whom?", function(person) {
 					_.submit({
 						person: person.key,
 						change: change
@@ -446,7 +452,28 @@ comp.pods = {
 				}, "single-choice");
 			} else if (change == "blurb")
 				_.submit({ change: change }, "request", "ok, what's the new blurb?");
-			else { // conversation
+			else if (change == "delivery") {
+				if (pod.resources.length < 2)
+					return alert("please register at least two Resource locations in the Resource view");
+				if (!pod.drivers.length)
+					return alert("oops! no one in the pod is registered as a driver yet :(");
+				CT.require("map.init", true);
+				comp.core.resource(pod, function(pickup) {
+					comp.core.resource(pod, function(dropoff) {
+						CT.map.util.distance(pickup.address, dropoff.address, function(dist) {
+							_.submit({
+								change: change,
+							}, "request", null, null, [
+								"Pickup: " + pickup.name,
+								pickup.address,
+								"Dropoff: " + dropoff.name,
+								dropoff.address,
+								"Miles: " + dist
+							].join("\n\n"));
+						});
+					}, "drop off");
+				}, "pickup");
+			} else { // conversation
 				comp.core.choice({
 					prompt: "request facilitator from conflict resolution pod?",
 					data: ["no", "yes"],
@@ -473,8 +500,10 @@ comp.pods = {
 				unrestricted = !pod.agent && (size > 1),
 				action = unrestricted ? "show" : "hide",
 				reaction = pod.agent ? "hide" : "show",
-				resaction = (pod.variety == "resource mapping") ? "show" : "hide",
-				showSoft = (pod.variety == "software") ? "show" : "hide";
+				showSoft = (pod.variety == "software") ? "show" : "hide",
+				driaction = (pod.variety == "care work") ? "show" : "hide",
+				resaction = ["resource mapping", "care work"].includes(pod.variety)
+					? "show" : "hide";
 			["Updates", "Commitments", "Services"].forEach(function(section) {
 				CT.dom[action]("tl" + section);
 			});
@@ -484,6 +513,7 @@ comp.pods = {
 			["Codebases", "Dependencies"].forEach(function(section) {
 				CT.dom[showSoft]("tl" + section);
 			});
+			CT.dom[driaction]("tlDrivers");
 			CT.dom[resaction]("tlResources");
 			unrestricted || CT.dom.id("tlInfo").firstChild.onclick();
 		},
@@ -523,6 +553,32 @@ comp.pods = {
 						});
 					});
 				}
+			});
+		},
+		setDrivers: function(pod) {
+			var _ = comp.pods._, ukey = user.core.get("key"),
+				driving = pod.drivers.includes(ukey),
+				btxt = driving ? "stop being a driver" : "join drivers";
+			CT.db.multi(pod.drivers, function(drz) {
+				CT.dom.setContent(_.nodes.drivers, [
+					CT.dom.button(btxt, function() {
+						if (driving)
+							CT.data.remove(pod.drivers, ukey);
+						else
+							pod.drivers.push(ukey);
+						comp.core.edit({
+							key: pod.key,
+							drivers: pod.drivers
+						});
+						_.setDrivers(pod);
+					}, "right"),
+					CT.dom.div("Drivers", "biggest"),
+					core.config.ctcomp.blurbs.Drivers,
+					drz.map(function(d) {
+						return CT.dom.div(d.firstName,
+							"padded margined bordered round inline-block");
+					})
+				]);
 			});
 		},
 		setUpdates: function(pod) {
@@ -711,6 +767,7 @@ comp.pods = {
 			["service", "commitment", "request", "codebase", "expense"].forEach(function(item) {
 				_.frame(data, item, item + "s");
 			});
+			_.setDrivers(pod);
 			_.setUpdates(pod);
 			_.setResources(pod);
 			decide.core.util.proposals(_.nodes.proposals, data.proposals);

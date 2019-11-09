@@ -18,6 +18,8 @@ cfg = {
 		"view": 0.1,
 		"agent": 1,
 		"resource": 1,
+		"mileage": 1,
+		"delivery": 10,
 		"code": {
 			"line": 0.1,
 			"platform": 1,
