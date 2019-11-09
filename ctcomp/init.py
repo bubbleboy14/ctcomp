@@ -17,6 +17,7 @@ cfg = {
 	"ratios": { # payout ratios
 		"view": 0.1,
 		"agent": 1,
+		"resource": 1,
 		"code": {
 			"line": 0.1,
 			"platform": 1,
