@@ -66,7 +66,7 @@ def response():
 		req = Request()
 		req.membership = cgi_get("membership")
 		req.change = cgi_get("change")
-		req.person = cgi_get("person")
+		req.person = cgi_get("person", required=False)
 		req.notes = cgi_get("notes")
 		req.put()
 		req.remind()
