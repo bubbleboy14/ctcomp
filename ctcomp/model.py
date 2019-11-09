@@ -526,6 +526,16 @@ def payCal():
 				remember(slot, task, pod, person, reminders)
 	remind(reminders)
 
+def payRes():
+	log("payres!", important=True)
+	yesterday = datetimed.now() - timedelta(1)
+	for res in Resource.query(Resource.created > yesterday).all():
+		pod = Pod.query(Pod.resources.contains(res.key.urlsafe())).get()
+		person = res.editors[0].get()
+		log("paying %s of '%s' pod for posting '%s' resource"%(person.firstName,
+			pod.name, resource.name))
+		pod.deposit(person, ratios.resource)
+
 def payDay():
 	log("payday!", important=True)
 	commz = Commitment.query(Commitment.passed == True).fetch()
@@ -538,6 +548,7 @@ def payDay():
 	for cb in cbz:
 		cb.refresh()
 	log("refreshed %s codebases"%(len(cbz),), important=True)
+	payRes()
 	payCal()
 
 class Act(Verifiable):
