@@ -8,7 +8,7 @@ from ctcoop.model import *
 from ctdecide.model import Proposal
 from ctstore.model import Product
 from ctmap.model import getzip, Place
-from compTemplates import MEET, PAID, SERVICE, APPOINTMENT, INVITATION, REMINDER, APPLY, EXCLUDE, BLURB, CONVO
+from compTemplates import MEET, PAID, SERVICE, APPOINTMENT, INVITATION, REMINDER, APPLY, EXCLUDE, BLURB, CONVO, DELIVERY, DELIVERED
 from ctcomp.mint import mint, balance
 
 ratios = config.ctcomp.ratios
@@ -364,8 +364,8 @@ class Verifiable(db.TimeStampedBase):
 		self.put()
 		return True
 
-	def notify(self, subject, body):
-		for signer in self.signers():
+	def notify(self, subject, body, signers=None):
+		for signer in (signers or self.signers()):
 			send_mail(to=signer.get().email, subject=subject, body=body(signer))
 
 	def unverify(self):
@@ -386,26 +386,13 @@ class Verifiable(db.TimeStampedBase):
 			return self.fulfill()
 		log("verification attempt (%s %s) failed -- unauthorized"%(self.key, person))
 
+	def veriquery(self):
+		return Verification.query(Verification.act == self.key)
+
 	def verified(self):
 		for person in self.signers():
-			if not Verification.query(Verification.act == self.key, Verification.person == person).get():
+			if not self.veriquery().filter(Verification.person == person).get():
 				return False
-		return True
-
-class Delivery(Verifiable):
-	driver = db.ForeignKey(kind=Person)
-	miles = db.Float()
-
-	def signers(self):
-		return [self.membership.get().person, self.driver]
-
-	def fulfill(self):
-		if not self.verified():
-			return False
-		self.pod().deposit(self.driver.get(),
-			ratios.delivery + ratios.mileage * self.miles)
-		self.passed = True
-		self.put()
 		return True
 
 class Appointment(Verifiable):
@@ -442,6 +429,36 @@ def appointment(slot, task, pod, person):
 		lambda signer : APPOINTMENT%(person.email,
 			pod.name, task.name, app.notes,
 			app.key.urlsafe(), signer.urlsafe()))
+
+class Delivery(Verifiable):
+	driver = db.ForeignKey(kind=Person)
+	miles = db.Integer()
+
+	def signers(self):
+		return [self.membership.get().person, self.driver]
+
+	def fulfill(self):
+		if self.passed or not self.verified():
+			return False
+		self.pod().deposit(self.driver.get(),
+			ratios.delivery + ratios.mileage * self.miles)
+		self.passed = True
+		self.put()
+		return True
+
+def delivery(memship, driver, notes):
+	deliv = Delivery()
+	deliv.membership = memship
+	deliv.driver = driver
+	deliv.notes = notes
+	deliv.miles = int(notes.split(" ")[-1])
+	deliv.put()
+	driper = deliv.driver.get()
+	memper = deliv.membership.get().person.get()
+	deliv.notify("confirm delivery",
+		lambda signer : DELIVERED%(driper.email,
+			memper.email, deliv.notes,
+			deliv.key.urlsafe(), signer.urlsafe()))
 
 class Payment(Verifiable):
 	payer = db.ForeignKey(kind=Person)
@@ -607,11 +624,12 @@ def reg_act(membership, service, workers, beneficiaries, notes):
 	return akey
 
 class Request(Verifiable):
-	change = db.String(choices=["include", "exclude", "conversation", "support"])
+	change = db.String(choices=["include", "exclude",
+		"conversation", "support", "delivery"])
 	person = db.ForeignKey(kind=Person) # person in question!
 
 	def remind(self):
-		rpmail = self.person.get().email
+		rpmail = self.person and self.person.get().email
 		memship = self.membership.get()
 		mpmail = memship.person.get().email
 		pod = memship.pod.get()
@@ -625,6 +643,10 @@ class Request(Verifiable):
 		elif self.change == "blurb":
 			self.notify("pod blurb update proposal",
 				lambda signer: BLURB%(mpmail, pod.name, self.notes, rkey, signer.urlsafe()))
+		elif self.change == "delivery":
+			self.notify("delivery request",
+				lambda signer: DELIVERY%(mpmail, pod.name, self.notes, rkey, signer.urlsafe()),
+				pod.drivers)
 		else: # conversation / support
 			self.notify("%s request"%(self.change,),
 				lambda signer : CONVO%(mpmail, pod.name, self.notes, rkey, signer.urlsafe()))
@@ -641,6 +663,11 @@ class Request(Verifiable):
 			return pod.includers
 		return [p for p in pod.members() if p != self.person]
 
+	def verified(self):
+		if self.change == "delivery":
+			return bool(self.veriquery().get())
+		return Verifiable.verified(self)
+
 	def fulfill(self):
 		if self.passed or not self.verified():
 			return False
@@ -652,6 +679,8 @@ class Request(Verifiable):
 		elif self.change == "blurb":
 			pod.blurb = self.notes
 			pod.put()
+		elif self.change == "delivery":
+			delivery(self.membership, self.veriquery().get().person, self.notes)
 		else: # conversation / support
 			body = MEET%(pod.name, self.notes, self.key.urlsafe())
 			self.notify("meeting scheduled", lambda signer : body)
