@@ -23,6 +23,7 @@ This package includes the necessary blockchain/widget/api components for direct 
     	"ratios": { # payout ratios
     		"view": 0.1,
     		"agent": 1,
+    		"resource": 1,
     		"code": {
     			"line": 0.1,
     			"platform": 1,
@@ -38,7 +39,7 @@ This package includes the necessary blockchain/widget/api components for direct 
     		"address": None
     	}
     }
-    requires = ["ctcoop", "ctstore"]
+    requires = ["ctcoop", "ctstore", "ctmap"]
 
 # Front (JS Config)
 
@@ -53,6 +54,7 @@ This package includes the necessary blockchain/widget/api components for direct 
     		"menu": "margined padded bordered round"
     	},
     	"blurbs": {
+    		"Resources": "Build resource maps.",
     		"Responsibilities": "Task management, including scheduling of and volunteering for pod-related activities.",
     		"Commitments": "Register a weekly commitment.",
     		"Services": "Record a one-off service.",
