@@ -397,7 +397,7 @@ class Delivery(Verifiable):
 	miles = db.Float()
 
 	def signers(self):
-		return [self.membership.get().person]
+		return [self.membership.get().person, self.driver]
 
 	def fulfill(self):
 		if not self.verified():
