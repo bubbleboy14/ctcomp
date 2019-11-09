@@ -7,6 +7,7 @@
 		"menu": "margined padded bordered round"
 	},
 	"blurbs": {
+		"Drivers": "Can you help transport people and things?",
 		"Resources": "Build resource maps.",
 		"Responsibilities": "Task management, including scheduling of and volunteering for pod-related activities.",
 		"Commitments": "Register a weekly commitment.",
