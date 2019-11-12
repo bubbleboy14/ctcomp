@@ -1,5 +1,18 @@
 comp.core = {
-	_: { pods: {}, memships: {}, p2m: {} },
+	_: {
+		pods: {},
+		memships: {},
+		p2m: {},
+		chat: function(person) {
+			CT.db.multi(person.memberships.map(function(m) {
+				return m.pod;
+			}), function(pods) {
+				comp.live.chat(pods.map(function(p) {
+					return p.name;
+				}));
+			});
+		}
+	},
 	c: function(opts, cb, eb) {
 		CT.net.post({
 			path: "/_comp",
@@ -18,6 +31,13 @@ comp.core = {
 			},
 			cb: cb
 		});
+	},
+	chat: function(person) {
+		CT.require("comp.live", true);
+		if (person)
+			comp.core._.chat(person);
+		else
+			comp.core.person(user.core.get("key"), comp.core._.chat);
 	},
 	submit: function(opts, pod, cb, stype, noteprompt, ps) {
 		opts.membership = comp.core.pod2memship(pod).key;
