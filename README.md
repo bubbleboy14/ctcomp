@@ -59,6 +59,7 @@ This package includes the necessary blockchain/widget/api components for direct 
     		"Drivers": "Can you help transport people and things? Click the 'join drivers' button to volunteer. Does someone or something need to get somewhere somehow? Click 'Requests' on the right to request a driver.",
     		"Resources": "Build resource maps.",
     		"Responsibilities": "Task management, including scheduling of and volunteering for pod-related activities.",
+    		"Adjustments": "Democratically adjust compensation multipliers. Please consider difficulty and unpleasantness, as well as positive impact.",
     		"Commitments": "Register a weekly commitment.",
     		"Services": "Record a one-off service.",
     		"Requests": "Include and exclude pod members. Schedule conversations. Update your pod's blurb.",
