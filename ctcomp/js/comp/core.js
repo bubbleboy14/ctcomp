@@ -227,19 +227,22 @@ comp.core = {
 			cb(data);
 		});
 	},
+	whatservice: function(cb, variety) {
+		comp.core.prompt({
+			prompt: "what's the service called?",
+			cb: function(name) {
+				comp.core.service(name, variety, cb);
+			}
+		});
+	},
 	services: function(cb, variety) {
 		comp.core.choice({
 			prompt: "select a service",
 			data: ["New Service"].concat(comp.core._.services[variety]),
 			cb: function(service) {
-				if (service == "New Service") {
-					comp.core.prompt({
-						prompt: "what's the service called?",
-						cb: function(name) {
-							comp.core.service(name, variety, cb);
-						}
-					});
-				} else
+				if (service == "New Service")
+					comp.core.whatservice(cb, variety);
+				else
 					cb(service);
 			}
 		});
@@ -247,14 +250,19 @@ comp.core = {
 	adjustment: function(cb, variety) {
 		comp.core.choice({
 			prompt: "would you like to adjust any of these compensation multipliers?",
-			data: comp.core._.services[variety].map(function(s) {
+			data: ["New Service"].concat(comp.core._.services[variety].map(function(s) {
 				return {
 					name: s.name + " (" + s.compensation + ")",
 					service: s.name,
 					compensation: s.compensation
 				};
-			}),
+			})),
 			cb: function(service) {
+				if (service == "New Service") {
+					return comp.core.whatservice(function(service) {
+						comp.core.adjustment(cb, variety);
+					}, variety);
+				}
 				comp.core.prompt({
 					prompt: "current compensation: " + service.compensation + ". what do you think it should be?",
 					style: "number",
