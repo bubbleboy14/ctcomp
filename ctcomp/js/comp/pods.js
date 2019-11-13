@@ -12,9 +12,10 @@ comp.pods = {
 			main: CT.dom.div(null, "h1 mr160 relative"),
 			right: CT.dom.div(null, "h1 w160p up5 scrolly right")
 		},
-		sections: ["Info", "Updates", "Drivers", "Resources", "Proposals",
-			"Responsibilities", "Commitments", "Services", "Requests",
-			"Content", "Products", "Codebases", "Dependencies", "Expenses"],
+		sections: ["Info", "Updates", "Drivers", "Resources",
+			"Proposals", "Responsibilities", "Adjustments",
+			"Commitments", "Services", "Requests", "Content",
+			"Products", "Codebases", "Dependencies", "Expenses"],
 		proposal: function(key) {
 			var _ = comp.pods._,
 				memship = comp.core.pod2memship(_.current.pod);
@@ -190,7 +191,12 @@ comp.pods = {
 				cur = _.current, pod = cur.pod, counts = cur.counts,
 				memship = comp.core.pod2memship(pod), diff, u;
 			return function() {
-				if (stype == "resource") {
+				if (stype == "adjustment") {
+					comp.core.adjustment(function(adjustment) {
+						CT.dom.addContent(_.nodes.adjustment_list,
+							_.adjustment(adjustment));
+					}, pod.variety);
+				} else if (stype == "resource") {
 					comp.core.prompt({
 						style: "form",
 						prompt: "map resource editor",
@@ -314,6 +320,7 @@ comp.pods = {
 								prompt: "what's it called?",
 								cb: function(name) {
 									comp.core.prompt({
+										isTA: true,
 										prompt: "please describe",
 										cb: function(description) {
 											comp.core.prompt({
@@ -507,7 +514,7 @@ comp.pods = {
 			["Updates", "Commitments", "Services"].forEach(function(section) {
 				CT.dom[action]("tl" + section);
 			});
-			["Requests", "Responsibilities"].forEach(function(section) {
+			["Requests", "Responsibilities", "Adjustments"].forEach(function(section) {
 				CT.dom[reaction]("tl" + section);
 			});
 			["Codebases", "Dependencies"].forEach(function(section) {
@@ -517,7 +524,7 @@ comp.pods = {
 			CT.dom[resaction]("tlResources");
 			unrestricted || CT.dom.id("tlInfo").firstChild.onclick();
 		},
-		frame: function(data, item, plur) {
+		frame: function(data, item, plur, buttname) {
 			var _ = comp.pods._, cfg = core.config.ctcomp,
 				n, content, pcap;
 			plur = plur || item;
@@ -528,7 +535,7 @@ comp.pods = {
 				cfg.blurbs[pcap],
 				n
 			];
-			data && content.unshift(CT.dom.button("new",
+			data && content.unshift(CT.dom.button(buttname || "new",
 				_.submitter(item), "right"));
 			CT.dom.setContent(_.nodes[plur], content);
 			return n;
@@ -579,6 +586,26 @@ comp.pods = {
 							"padded margined bordered round inline-block");
 					})
 				]);
+			});
+		},
+		adjustment: function(a) {
+			return CT.dom.div([
+				CT.dom.div(a.name + " => " + a.compensation, "big"),
+				a.description,
+				CT.dom.link("view details", function() {
+					var deets = CT.dom.div();
+					decide.core.util.proposal(a, deets);
+					CT.modal.modal(deets);
+				})
+			], "bordered padded margined");
+		},
+		setAdjustments: function(pod) {
+			CT.db.get("adjustment", function(adjustments) {
+				comp.pods._.frame({ adjustments: adjustments },
+					"adjustment", "adjustments",
+					"review and adjust compensation multipliers");
+			}, null, null, null, {
+				variety: pod.variety
 			});
 		},
 		setUpdates: function(pod) {
@@ -706,6 +733,7 @@ comp.pods = {
 			memship = comp.core.pod2memship(pod),
 			inclz = CT.dom.div(), content;
 		_.current.pod = pod;
+		_.setAdjustments(pod);
 		_.setDependencies(pod);
 		_.setResponsibilities(pod);
 		comp.core.membership(memship.key, function(data) {
