@@ -349,6 +349,11 @@ class Adjustment(Proposal):
 	variety = db.String() # already has name!
 	compensation = db.Float(default=1.0)
 
+	def oncreate(self):
+		convo = Conversation(topic=self.name)
+		convo.put()
+		self.conversation = convo.key
+
 	def service(self):
 		return Service.query(Service.name == self.name,
 			Service.variety == self.variety).get()
