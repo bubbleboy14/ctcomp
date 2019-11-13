@@ -62,6 +62,40 @@ Please click <a href='""" + config.web.protocol + """://""" + config.web.domain 
 
 That's it!"""
 
+ADJUSTMENT = """Hello!
+
+Someone has proposed changing the compensation multiplier for the following service:
+
+name: %s
+variety: %s
+current: %s
+proposed: %s
+
+And here's the rationale:
+
+%s
+
+Please visit the <a href='""" + config.web.protocol + """://""" + config.web.domain + """/comp/pods.html'>pods page</a> to review, propose, and vote on compensation adjustments.
+
+That's it!"""
+
+ADJUSTED = """Hello!
+
+The following compensation multiplier adjustment has been approved:
+
+name: %s
+variety: %s
+previous: %s
+new: %s
+
+And here's the rationale:
+
+%s
+
+Please visit the <a href='""" + config.web.protocol + """://""" + config.web.domain + """/comp/pods.html'>pods page</a> to review, propose, and vote on compensation adjustments.
+
+That's it!"""
+
 APPOINTMENT = """Hello!
 
 %s of the "%s" pod committed to the following appointment: %s. Details:
