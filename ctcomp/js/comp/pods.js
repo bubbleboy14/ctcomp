@@ -589,8 +589,11 @@ comp.pods = {
 			});
 		},
 		adjustment: function(a) {
+			var tline = a.name + " => " + a.compensation + " (";
+			if (!a.passed) tline += "not ";
+			tline += "passed)";
 			return CT.dom.div([
-				CT.dom.div(a.name + " => " + a.compensation, "big"),
+				CT.dom.div(tline, "big"),
 				a.description,
 				CT.dom.link("view details", function() {
 					var deets = CT.dom.div();
