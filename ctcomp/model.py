@@ -345,6 +345,30 @@ class Service(db.TimeStampedBase):
 	variety = db.String()
 	compensation = db.Float(default=1.0)
 
+class Adjustment(Proposal):
+	variety = db.String() # already has name!
+	compensation = db.Float(default=1.0)
+
+	def oncreate(self):
+		convo = Conversation(topic=self.name)
+		convo.put()
+		self.conversation = convo.key
+
+	def service(self):
+		return Service.query(Service.name == self.name,
+			Service.variety == self.variety).get()
+
+	def votership(self):
+		peeps = set()
+		for pod in Pod.query(Pod.variety == self.variety).all():
+			peeps.update(pod.members())
+		return len(peeps)
+
+	def onpass(self):
+		serv = self.service()
+		serv.compensation = self.compensation
+		serv.put()
+
 class Verifiable(db.TimeStampedBase):
 	membership = db.ForeignKey(kind=Membership)
 	passed = db.Boolean(default=False)

@@ -244,6 +244,44 @@ comp.core = {
 			}
 		});
 	},
+	adjustment: function(cb, variety) {
+		comp.core.choice({
+			prompt: "would you like to adjust any of these compensation multipliers?",
+			data: comp.core._.services[variety].map(function(s) {
+				return {
+					name: s.name + " (" + s.compensation + ")",
+					service: s.name,
+					compensation: s.compensation
+				};
+			}),
+			cb: function(service) {
+				comp.core.prompt({
+					prompt: "current compensation: " + service.compensation + ". what do you think it should be?",
+					style: "number",
+					max: 2,
+					min: 0.5,
+					step: 0.1,
+					initial: service.compensation,
+					cb: function(compensation) {
+						comp.core.prompt({
+							prompt: "please explain your rationale",
+							isTA: true,
+							cb: function(description) {
+								comp.core.edit({
+									modelName: "adjustment",
+									user: user.core.get("key"),
+									compensation: compensation,
+									description: description,
+									name: service.service,
+									variety: variety,
+								}, cb);
+							}
+						})
+					}
+				});
+			}
+		});
+	},
 	tag: function(name, cb) {
 		comp.core.edit({
 			modelName: "tag",
