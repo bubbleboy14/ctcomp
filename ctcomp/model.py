@@ -8,7 +8,7 @@ from ctcoop.model import *
 from ctdecide.model import Proposal
 from ctstore.model import Product
 from ctmap.model import getzip, Place
-from compTemplates import MEET, PAID, SERVICE, APPOINTMENT, INVITATION, REMINDER, APPLY, EXCLUDE, BLURB, CONVO, DELIVERY, DELIVERED
+from compTemplates import MEET, PAID, SERVICE, ADJUSTMENT, ADJUSTED, APPOINTMENT, INVITATION, REMINDER, APPLY, EXCLUDE, BLURB, CONVO, DELIVERY, DELIVERED
 from ctcomp.mint import mint, balance
 
 ratios = config.ctcomp.ratios
@@ -353,21 +353,37 @@ class Adjustment(Proposal):
 		convo = Conversation(topic=self.name)
 		convo.put()
 		self.conversation = convo.key
+		service = self.service()
+		self.notify("compensation adjustment proposed",
+			lambda signer : ADJUSTMENT%(self.name,
+				self.variety, service.compensation,
+				self.compensation, self.description))
+
+	def onpass(self):
+		serv = self.service()
+		self.notify("compensation adjustment approved",
+			lambda signer : ADJUSTED%(self.name,
+				self.variety, serv.compensation,
+				self.compensation, self.description))
+		serv.compensation = self.compensation
+		serv.put()
+
+	def notify(self, subject, body):
+		for signer in self.voters():
+			send_mail(to=signer.get().email, subject=subject, body=body(signer))
 
 	def service(self):
 		return Service.query(Service.name == self.name,
 			Service.variety == self.variety).get()
 
-	def votership(self):
+	def voters(self):
 		peeps = set()
 		for pod in Pod.query(Pod.variety == self.variety).all():
-			peeps.update(pod.members())
-		return len(peeps)
+			peeps.update([k.urlsafe() for k in pod.members()])
+		return [db.KeyWrapper(p) for p in list(peeps)]
 
-	def onpass(self):
-		serv = self.service()
-		serv.compensation = self.compensation
-		serv.put()
+	def votership(self):
+		return len(self.voters())
 
 class Verifiable(db.TimeStampedBase):
 	membership = db.ForeignKey(kind=Membership)
