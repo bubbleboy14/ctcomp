@@ -410,10 +410,10 @@ comp.pods = {
 						});
 					}, pod.variety);
 				} else if (stype == "request") {
-					if (comp.core.size(pod.key) > 2) {
-						var reqmodes = ["include", "exclude", "blurb", "conversation"];
+					if (comp.core.size(pod.key) > 1) {
+						var reqmodes = ["conversation", "blurb", "include", "exclude"];
 						if (pod.variety == "care work")
-							reqmodes.push("delivery");
+							reqmodes.unshift("delivery");
 						comp.core.choice({
 							data: reqmodes,
 							cb: _.change
