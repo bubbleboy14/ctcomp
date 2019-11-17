@@ -3,6 +3,7 @@ comp.core = {
 		pods: {},
 		memships: {},
 		p2m: {},
+		deps: {},
 		chat: function(person) {
 			CT.db.multi(person.memberships.map(function(m) {
 				return m.pod;
@@ -190,15 +191,16 @@ comp.core = {
 			cb: cb
 		});
 	},
-	frameworks: function(cb) {
-		var _ = comp.core._;
-		if (_.frameworks)
-			return cb(_.frameworks);
+	frameworks: function(cb, variety) {
+		var dz = comp.core._.deps;
+		variety = variety || "framework";
+		if (dz[variety])
+			return cb(dz[variety]);
 		CT.db.get("codebase", function(frameworks) {
-			_.frameworks = frameworks;
+			dz[variety] = frameworks;
 			cb(frameworks);
 		}, null, null, null, {
-			variety: "framework"
+			variety: variety
 		});
 	},
 	dependencies: function(codebase, cb) {
