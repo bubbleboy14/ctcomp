@@ -29,7 +29,7 @@
 		"Requests": "Include and exclude pod members. Schedule conversations. Update your pod's blurb.",
 		"Content": "Submit web content associated with this pod (most managed pods don't require manual registration).",
 		"Codebases": "Register the codebases associated with this software pod, including platform and r&d repositories.",
-		"Dependencies": "Please select the frameworks used by this project.",
+		"Dependencies": "Please select the frameworks and services used by this project.",
 		"Expenses": "Propose an expense (currently supported: one-off dividend).",
 		"Info": "Here's some basic info about this pod.",
 		"Products": "Sell goods and services. Ten percent goes to your pod.",
