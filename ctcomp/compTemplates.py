@@ -60,6 +60,8 @@ DELIVERED = """Hello!
 
 Please click <a href='""" + config.web.protocol + """://""" + config.web.domain + """/_comp?action=verify&verifiable=%s&person=%s'>here</a> to confirm the drop off took place.
 
+Click <a href='""" + config.web.protocol + """://""" + config.web.domain + """/comp/feedback.html#%s'>here</a> to offer feedback.
+
 That's it!"""
 
 ADJUSTMENT = """Hello!
@@ -104,6 +106,8 @@ APPOINTMENT = """Hello!
 
 Please click <a href='""" + config.web.protocol + """://""" + config.web.domain + """/_comp?action=verify&verifiable=%s&person=%s'>here</a> to confirm that this appointment took place.
 
+Click <a href='""" + config.web.protocol + """://""" + config.web.domain + """/comp/feedback.html#%s'>here</a> to offer feedback.
+
 That's it!"""
 
 REMINDER = """Hello!
@@ -127,6 +131,8 @@ The following pod mates participated:
 %s
 
 Please click <a href='""" + config.web.protocol + """://""" + config.web.domain + """/_comp?action=verify&verifiable=%s&person=%s'>here</a> to verify this service.
+
+Click <a href='""" + config.web.protocol + """://""" + config.web.domain + """/comp/feedback.html#%s'>here</a> to offer feedback.
 
 That's it!"""
 
