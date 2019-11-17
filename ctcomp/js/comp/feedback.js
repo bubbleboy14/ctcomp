@@ -41,7 +41,7 @@ comp.feedback.Feedback = CT.Class({
 				prompt, rating, response
 			], oz.classes.qbox), _ = this._;
 			n.value = function() {
-				return data = {
+				return {
 					modelName: "answer",
 					prompt: prompt,
 					rating: rating.value(),
