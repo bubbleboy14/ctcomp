@@ -62,10 +62,12 @@ comp.feedback.Feedback = CT.Class({
 		});
 	},
 	build: function() {
-		var oz = this.opts, _ = this._, _.notes = CT.dom.smartField({
+		var oz = this.opts, _ = this._;
+		_.notes = CT.dom.smartField({
 			isTA: true,
 			blurs: oz.blurs.notes
-		}), _.followup = CT.dom.checkboxAndLabel("request a follow up conversation?");
+		});
+		_.followup = CT.dom.checkboxAndLabel("request a follow up conversation?");
 		CT.dom.setContent(oz.node, [
 			_.topic(),
 			oz.prompts.map(_.qbox),
