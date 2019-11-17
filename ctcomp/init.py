@@ -24,6 +24,7 @@ cfg = {
 			"line": 0.1,
 			"platform": 1,
 			"framework": 1,
+			"service": 0.5,
 			"dependency": 0.5,
 			"rnd": 0.2
 		},
