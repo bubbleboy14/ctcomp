@@ -63,7 +63,7 @@ comp.feedback.Feedback = CT.Class({
 	},
 	submit: function() {
 		var _ = this._;
-		this._.subqz(function(akeys) {
+		_.subqz(function(akeys) {
 			comp.core.edit({
 				modelName: "feedback",
 				answers: akeys,
