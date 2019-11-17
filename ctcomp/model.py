@@ -250,6 +250,13 @@ class Answer(db.TimeStampedBase):
 	response = db.Text()
 	rating = db.Integer() # 1-5
 
+	def full(self):
+		return "\n".join([
+			self.prompt,
+			self.response,
+			str(self.rating)
+		])
+
 class Feedback(db.TimeStampedBase):
 	person = db.ForeignKey(kind=Person)
 	conversation = db.ForeignKey(kind=Conversation)
@@ -265,10 +272,22 @@ class Feedback(db.TimeStampedBase):
 	def pod(self):
 		return self.interaction.get().pod()
 
+	def full(self):
+		answers = "\n\n".join([a.full() for a in db.get_multi(self.answers)])
+		return "\n\n".join([
+			self.topic,
+			answers,
+			self.notes,
+			"request follow up: %s"%(self.followup,)
+		])
+		# TODO: return link to feedback item (for convo)
+		# and self.put() for key pre-notify() (oncreate)
+
 	def oncreate(self):
 		convo = Conversation(topic=self.topic)
 		convo.put()
 		self.conversation = convo.key
+		self.interaction.get().notify("feedback", self.full())
 		if self.followup:
 			req = Request()
 			req.membership = self.membership().key
