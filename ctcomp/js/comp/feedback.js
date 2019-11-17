@@ -4,7 +4,12 @@ comp.feedback.Feedback = CT.Class({
 		questions: [],
 		answers: [], // Answer keys
 		topic: function() {
-
+			var oz = this.opts, _ = this._,
+				intact = _.interaction,
+				top = intact.modelName;
+			if (top == "request")
+				top = "conversation";
+			return top + ": " + CT.parse.shortened(intact.notes, 100, 10, true);
 		},
 		qbox: function(prompt) {
 			var oz = this.opts, rating = CT.dom.numberSelector({
