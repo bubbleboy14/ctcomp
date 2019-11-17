@@ -73,7 +73,8 @@ comp.pods = {
 			], "bordered padded margined");
 		},
 		dependency: function(d) {
-			return CT.dom.div(d.repo, "bordered padded margined round inline-block");
+			return CT.dom.div(d.repo + " (" + d.variety + ")",
+				"bordered padded margined round inline-block");
 		},
 		resource: function(r) {
 			return CT.dom.div([
@@ -252,20 +253,26 @@ comp.pods = {
 						}
 					});
 				} else if (stype == "dependency") {
-					comp.core.frameworks(function(allfms) {
-						comp.core.choice({
-							style: "multiple-choice",
-							data: allfms.filter(function(f) { return pod.dependencies.indexOf(f.key) == -1 }),
-							cb: function(frameworks) {
-								pod.dependencies = pod.dependencies.concat(frameworks.map(function(fw) { return fw.key; }));
-								comp.core.edit({
-									key: pod.key,
-									dependencies: pod.dependencies
-								}, function() {
-									_.setDependencies(pod);
+					comp.core.choice({
+						prompt: "what kind of dependency?",
+						data: ["framework", "service"],
+						cb: function(variety) {
+							comp.core.frameworks(function(allfms) {
+								comp.core.choice({
+									style: "multiple-choice",
+									data: allfms.filter(function(f) { return pod.dependencies.indexOf(f.key) == -1 }),
+									cb: function(frameworks) {
+										pod.dependencies = pod.dependencies.concat(frameworks.map(function(fw) { return fw.key; }));
+										comp.core.edit({
+											key: pod.key,
+											dependencies: pod.dependencies
+										}, function() {
+											_.setDependencies(pod);
+										});
+									}
 								});
-							}
-						});
+							}, variety);
+						}
 					});
 				} else if (stype == "codebase") {
 					u = user.core.get();
@@ -273,7 +280,7 @@ comp.pods = {
 						return alert("first, go to the settings page to register your github account!");
 					CT.db.one(u.contributor, function(ucont) {
 						comp.core.choice({
-							data: ["platform", "framework", "research and development"],
+							data: ["platform", "framework", "service", "research and development"],
 							cb: function(variety) {
 								comp.core.choice({
 									data: CT.net.get("https://api.github.com/users/"
