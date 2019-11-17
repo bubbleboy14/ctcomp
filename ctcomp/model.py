@@ -312,7 +312,7 @@ class Codebase(db.TimeStampedBase):
 	pod = db.ForeignKey(kind=Pod)
 	owner = db.String() # bubbleboy14
 	repo = db.String()  # ctcomp
-	variety = db.String(choices=["platform", "framework", "research and development"])
+	variety = db.String(choices=["platform", "framework", "service", "research and development"])
 	dependencies = db.ForeignKey(kind="Codebase", repeated=True)
 	label = "repo"
 
