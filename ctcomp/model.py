@@ -453,7 +453,7 @@ class Verifiable(db.TimeStampedBase):
 		if person in self.signers():
 			if Verification.query(Verification.act == self.key, Verification.person == person).get():
 				return log("already verified (%s %s)!"%(self.key, person), important=True)
-			log("verification (%s %s) success"%(self.key, person))
+			log("verification (%s %s) success"%(self.key.urlsafe(), person.urlsafe()))
 			Verification(act=self.key, person=person).put()
 			return self.fulfill()
 		log("verification attempt (%s %s) failed -- unauthorized"%(self.key, person))
