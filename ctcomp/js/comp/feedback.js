@@ -22,7 +22,7 @@ comp.feedback.Feedback = CT.Class({
 		},
 		aboxes: function(akeys) {
 			var _ = this._, n = CT.dom.div();
-			CT.dom.multi(akeys, function(answers) {
+			CT.db.multi(akeys, function(answers) {
 				CT.dom.setContent(n, answers.map(_.abox));
 			});
 			return n;
