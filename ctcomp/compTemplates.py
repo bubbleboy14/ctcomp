@@ -202,6 +202,16 @@ Please click <a href='""" + config.web.protocol + """://""" + config.web.domain 
 
 That's it!"""
 
+FEEDBACK = """Hello!
+
+%s of the "%s" pod has offered some feedback. Details:
+
+%s
+
+Click <a href='""" + config.web.protocol + """://""" + config.web.domain + """/comp/feedback.html#%s'>here</a> to review and discuss.
+
+That's it!"""
+
 MEET = """Hello!
 
 The "%s" pod has just scheduled a meeting. Details:
