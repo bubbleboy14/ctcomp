@@ -8,7 +8,7 @@ from ctcoop.model import *
 from ctdecide.model import Proposal
 from ctstore.model import Product
 from ctmap.model import getzip, Place
-from compTemplates import MEET, PAID, SERVICE, ADJUSTMENT, ADJUSTED, APPOINTMENT, INVITATION, REMINDER, APPLY, EXCLUDE, BLURB, CONVO, DELIVERY, DELIVERED
+from compTemplates import MEET, PAID, SERVICE, ADJUSTMENT, ADJUSTED, APPOINTMENT, INVITATION, REMINDER, APPLY, EXCLUDE, BLURB, CONVO, DELIVERY, DELIVERED, FEEDBACK
 from ctcomp.mint import mint, balance
 
 ratios = config.ctcomp.ratios
@@ -245,6 +245,69 @@ class Invitation(db.TimeStampedBase):
 		req.put()
 		req.remind()
 
+class Answer(db.TimeStampedBase):
+	prompt = db.String()
+	response = db.Text()
+	rating = db.Integer() # 1-5
+
+	def full(self):
+		return "\n".join([
+			self.prompt,
+			self.response,
+			str(self.rating)
+		])
+
+class Feedback(db.TimeStampedBase):
+	person = db.ForeignKey(kind=Person)
+	conversation = db.ForeignKey(kind=Conversation)
+	interaction = db.ForeignKey(kinds=["appointment", "delivery", "request"])
+	answers = db.ForeignKey(kind=Answer, repeated=True)
+	topic = db.String()
+	notes = db.Text()
+	followup = db.Boolean(default=False)
+
+	def membership(self):
+		return membership(self.person.get(), self.pod())
+
+	def pod(self):
+		return self.interaction.get().pod()
+
+	def full(self):
+		answers = "\n\n".join([a.full() for a in db.get_multi(self.answers)])
+		return "\n\n".join([
+			self.topic,
+			answers,
+			self.notes,
+			"request follow up: %s"%(self.followup,)
+		])
+
+	def notify(self):
+		bod = FEEDBACK%(self.person.get().firstName, self.pod().name,
+			self.full(), self.key.urlsafe())
+		self.interaction.get().notify("feedback",
+			lambda signer : bod, self.participants())
+
+	def participants(self):
+		pars = self.interaction.get().signers()
+		if self.person not in pars:
+			return pars + [self.person]
+		return pars
+
+	def oncreate(self):
+		convo = Conversation(topic=self.topic)
+		convo.participants = self.participants()
+		convo.put()
+		self.conversation = convo.key
+		self.put() # for notify() key
+		self.notify()
+		if self.followup:
+			req = Request()
+			req.membership = self.membership().key
+			req.change = "conversation"
+			req.notes = self.notes
+			req.put()
+			req.remind()
+
 class Codebase(db.TimeStampedBase):
 	pod = db.ForeignKey(kind=Pod)
 	owner = db.String() # bubbleboy14
@@ -421,7 +484,7 @@ class Verifiable(db.TimeStampedBase):
 		if person in self.signers():
 			if Verification.query(Verification.act == self.key, Verification.person == person).get():
 				return log("already verified (%s %s)!"%(self.key, person), important=True)
-			log("verification (%s %s) success"%(self.key, person))
+			log("verification (%s %s) success"%(self.key.urlsafe(), person.urlsafe()))
 			Verification(act=self.key, person=person).put()
 			return self.fulfill()
 		log("verification attempt (%s %s) failed -- unauthorized"%(self.key, person))
@@ -465,10 +528,11 @@ def appointment(slot, task, pod, person):
 	])
 	app.timeslot = slot.key
 	app.put()
+	akey = app.key.urlsafe()
 	app.notify("confirm appointment",
 		lambda signer : APPOINTMENT%(person.email,
 			pod.name, task.name, app.notes,
-			app.key.urlsafe(), signer.urlsafe()))
+			akey, signer.urlsafe(), akey))
 
 class Delivery(Verifiable):
 	driver = db.ForeignKey(kind=Person)
@@ -493,12 +557,13 @@ def delivery(memship, driver, notes):
 	deliv.notes = notes
 	deliv.miles = int(notes.split(" ")[-1])
 	deliv.put()
+	dkey = deliv.key.urlsafe()
 	driper = deliv.driver.get()
 	memper = deliv.membership.get().person.get()
 	deliv.notify("confirm delivery",
 		lambda signer : DELIVERED%(driper.email,
 			memper.email, deliv.notes,
-			deliv.key.urlsafe(), signer.urlsafe()))
+			dkey, signer.urlsafe(), dkey))
 
 class Payment(Verifiable):
 	payer = db.ForeignKey(kind=Person)
@@ -660,7 +725,8 @@ def reg_act(membership, service, workers, beneficiaries, notes):
 	pod = memship.pod.get()
 	workers = "\n".join([w.email for w in db.get_multi(act.workers)])
 	act.notify("verify service", lambda signer : SERVICE%(person.email,
-		pod.name, service.name, act.notes, workers, akey, signer.urlsafe()))
+		pod.name, service.name, act.notes, workers, akey,
+		signer.urlsafe(), akey))
 	return akey
 
 class Request(Verifiable):
