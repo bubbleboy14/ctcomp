@@ -2,7 +2,7 @@ comp.feedback.Feedback = CT.Class({
 	CLASSNAME: "comp.feedback.Feedback",
 	_: {
 		questions: [],
-		answers: [], // Question keys
+		answers: [], // Answer keys
 		topic: function() {
 
 		},
@@ -33,8 +33,8 @@ comp.feedback.Feedback = CT.Class({
 			var _ = this._, qz = _.questions, az = _.answers;
 			if (qz.length == az.length)
 				return cb(az);
-			comp.core.edit(qz[az.length].value(), function(qdata) {
-				az.push(qdata.key);
+			comp.core.edit(qz[az.length].value(), function(adata) {
+				az.push(adata.key);
 				_.subqz(cb);
 			});
 		}
