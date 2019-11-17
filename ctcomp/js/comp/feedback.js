@@ -52,6 +52,7 @@ comp.feedback.Feedback = CT.Class({
 				answers: akeys,
 				topic: _.topic(),
 				notes: _.notes.fieldValue(),
+				person: user.core.get("key"),
 				interaction: _.interaction.key,
 				followup: _.followup.isChecked()
 			}, function() {
