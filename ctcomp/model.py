@@ -8,7 +8,7 @@ from ctcoop.model import *
 from ctdecide.model import Proposal
 from ctstore.model import Product
 from ctmap.model import getzip, Place
-from compTemplates import MEET, PAID, SERVICE, ADJUSTMENT, ADJUSTED, APPOINTMENT, INVITATION, REMINDER, APPLY, EXCLUDE, BLURB, CONVO, DELIVERY, DELIVERED
+from compTemplates import MEET, PAID, SERVICE, ADJUSTMENT, ADJUSTED, APPOINTMENT, INVITATION, REMINDER, APPLY, EXCLUDE, BLURB, CONVO, DELIVERY, DELIVERED, FEEDBACK
 from ctcomp.mint import mint, balance
 
 ratios = config.ctcomp.ratios
@@ -280,14 +280,26 @@ class Feedback(db.TimeStampedBase):
 			self.notes,
 			"request follow up: %s"%(self.followup,)
 		])
-		# TODO: return link to feedback item (for convo)
-		# and self.put() for key pre-notify() (oncreate)
+
+	def notify(self):
+		bod = FEEDBACK%(self.person.get().firstName, self.pod().name,
+			self.full(), self.key.urlsafe())
+		self.interaction.get().notify("feedback",
+			lambda signer : bod, self.participants())
+
+	def participants(self):
+		pars = self.interaction.get().signers()
+		if self.person not in pars:
+			return pars + [self.person]
+		return pars
 
 	def oncreate(self):
 		convo = Conversation(topic=self.topic)
+		convo.participants = self.participants()
 		convo.put()
 		self.conversation = convo.key
-		self.interaction.get().notify("feedback", self.full())
+		self.put() # for notify() key
+		self.notify()
 		if self.followup:
 			req = Request()
 			req.membership = self.membership().key
