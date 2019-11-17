@@ -19,6 +19,7 @@ comp.feedback.Feedback = CT.Class({
 				step: 1
 			}), response = CT.dom.smartField({
 				isTA: true,
+				classname: "w1",
 				blurs: oz.blurs.question
 			}), n = CT.dom.div([
 				prompt, rating, response
@@ -65,16 +66,20 @@ comp.feedback.Feedback = CT.Class({
 		var oz = this.opts, _ = this._;
 		_.notes = CT.dom.smartField({
 			isTA: true,
+			classname: "w1",
 			blurs: oz.blurs.notes
 		});
 		_.followup = CT.dom.checkboxAndLabel("request a follow up conversation?");
-		CT.dom.setContent(oz.node, [
-			_.topic(),
+		CT.dom.setContent(oz.node, CT.dom.div([
+			CT.dom.div(_.topic(), "biggest"),
+			CT.dom.div("feedback form", "big"),
 			oz.prompts.map(_.qbox),
-			_.notes,
-			_.followup,
-			CT.dom.button("submit", this.submit)
-		]);
+			[
+				CT.dom.div(_.notes, oz.classes.qbox),
+				_.followup,
+				CT.dom.button("submit", this.submit)
+			]
+		], "centered"));
 	},
 	load: function(interaction) {
 		this._.interaction = interaction;
@@ -87,7 +92,7 @@ comp.feedback.Feedback = CT.Class({
 			prompts: ["why aren't there any prompts?"]
 		});
 		this.ikey = location.hash.slice(1);
-		if (!this.key)
+		if (!this.ikey)
 			location = "/";
 		else
 			CT.db.one(this.ikey, this.load);
