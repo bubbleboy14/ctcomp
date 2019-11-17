@@ -39,7 +39,7 @@ comp.feedback.Feedback = CT.Class({
 				blurs: oz.blurs.question
 			}), n = CT.dom.div([
 				prompt, rating, response
-			], oz.classes.qbox), _ = this._;
+			], oz.classes.qbox);
 			n.value = function() {
 				return {
 					modelName: "answer",
@@ -48,7 +48,7 @@ comp.feedback.Feedback = CT.Class({
 					response: response.fieldValue()
 				};
 			};
-			_.questions.push(n);
+			this._.questions.push(n);
 			return n;
 		},
 		subqz: function(cb) {
