@@ -7,9 +7,25 @@ comp.feedback.Feedback = CT.Class({
 			var oz = this.opts, _ = this._,
 				intact = _.interaction,
 				top = intact.modelName;
+			if (top == "feedback")
+				return intact.topic;
 			if (top == "request")
 				top = "conversation";
 			return top + ": " + CT.parse.shortened(intact.notes, 100, 10, true);
+		},
+		abox: function(answer) {
+			return CT.dom.div([
+				CT.dom.div(answer.prompt, "italic"),
+				answer.response,
+				"rating: " + answer.rating
+			], this.opts.classes.qbox);
+		},
+		aboxes: function(akeys) {
+			var _ = this._, n = CT.dom.div();
+			CT.dom.multi(akeys, function(answers) {
+				CT.dom.setContent(n, answers.map(_.abox));
+			});
+			return n;
 		},
 		qbox: function(prompt) {
 			var oz = this.opts, rating = CT.dom.numberSelector({
@@ -62,7 +78,7 @@ comp.feedback.Feedback = CT.Class({
 			});
 		});
 	},
-	build: function() {
+	edit: function() {
 		var oz = this.opts, _ = this._;
 		_.notes = CT.dom.smartField({
 			isTA: true,
@@ -70,20 +86,32 @@ comp.feedback.Feedback = CT.Class({
 			blurs: oz.blurs.notes
 		});
 		_.followup = CT.dom.checkboxAndLabel("request a follow up conversation?");
-		CT.dom.setContent(oz.node, CT.dom.div([
-			CT.dom.div(_.topic(), "biggest"),
-			CT.dom.div("feedback form", "big"),
+		return [
 			oz.prompts.map(_.qbox),
 			[
 				CT.dom.div(_.notes, oz.classes.qbox),
 				_.followup,
 				CT.dom.button("submit", this.submit)
 			]
-		], "centered"));
+		];
 	},
-	load: function(interaction) {
-		this._.interaction = interaction;
-		this.build();
+	review: function() {
+		var _ = this._, fback = _.interaction;
+		return [
+			_.aboxes(fback.answers),
+			fback.notes,
+			user.core.convo(fback.conversation)
+		];
+	},
+	load: function(intact) {
+		var oz = this.opts, _ = this._,
+			builder = (intact.modelName == "feedback") ? "review" : "edit";
+		_.interaction = intact;
+		CT.dom.setContent(oz.node, [
+			CT.dom.div(_.topic(), "biggest"),
+			CT.dom.div("feedback form (" + builder + ")", "big"),
+			this[builder]()
+		], "centered");
 	},
 	init: function(opts) {
 		this.opts = opts = CT.merge(opts, {
