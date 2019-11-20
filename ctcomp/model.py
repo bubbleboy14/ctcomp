@@ -519,11 +519,12 @@ class Appointment(Verifiable):
 		return True
 
 def appointment(slot, task, pod, person):
+	w = slot.when
 	app = Appointment()
 	app.membership = membership(person, pod).key
 	app.notes = "\n\n".join([
 		task.name, task.description,
-		"time: " + slot.when.isoformat()[:5],
+		"time: %s:%s"%(w.hour, w.minute),
 		"duration: %s hours"%(slot.duration,)
 	])
 	app.timeslot = slot.key
