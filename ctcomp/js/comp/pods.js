@@ -170,7 +170,7 @@ comp.pods = {
 			comp.core.prompt({
 				prompt: "how many hours per week?",
 				style: "number",
-				max: Math.min(5, diff),
+				max: Math.min(24, diff),
 				initial: curval || Math.min(1, diff),
 				cb: function(estimate) {
 					counts.commitments += estimate - curval;
