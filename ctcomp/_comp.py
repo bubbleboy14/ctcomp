@@ -121,9 +121,9 @@ def response():
 		pod = memship.pod.get()
 		em = req.person.get().email
 		rkey = req.key.urlsafe()
-		for mem in pod.members():
-			send_mail(to=mem.get().email, subject="pod membership application",
-				body=APPLICATION%(em, pod.name, rkey, mem.urlsafe()))
+		req.notify("pod membership application",
+			lambda signer: APPLICATION%(em,
+				pod.name, rkey, signer.urlsafe()))
 		redirect("/comp/pods.html", "you did it!")
 	elif action == "join": # support only
 		pod = db.get(cgi_get("pod"))
