@@ -345,26 +345,14 @@ comp.pods = {
 														description: description,
 														price: price
 													}, function(prod) {
-														comp.core.prompt({
-															prompt: "please select an image",
-															style: "file",
-															cb: function(ctfile) {
-																ctfile.upload("/_db", function(url) {
-																	prod.image = url;
-																	CT.data.add(prod);
-																	memship.products.push(prod.key);
-																	comp.core.edit({
-																		key: memship.key,
-																		products: memship.products
-																	}, function() {
-																		CT.dom.addContent(_.nodes.product_list, _.product(prod));
-																	});
-																}, {
-																	action: "blob",
-																	key: prod.key,
-																	property: "image"
-																});
-															}
+														comp.library.media(prod, "image", function() {
+															memship.products.push(prod.key);
+															comp.core.edit({
+																key: memship.key,
+																products: memship.products
+															}, function() {
+																CT.dom.addContent(_.nodes.product_list, _.product(prod));
+															});
 														});
 													});
 												}
