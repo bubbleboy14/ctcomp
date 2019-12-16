@@ -85,6 +85,13 @@ comp.pods = {
 				r.tags.map(function(t) { return CT.data.get(t).name; }).join(", ")
 			], "bordered padded margined");
 		},
+		library: function(r) {
+			return CT.dom.div([
+				CT.dom.div(r.name, "big"),
+				r.description,
+				r.tags.map(function(t) { return CT.data.get(t).name; }).join(", ")
+			], "bordered padded margined");
+		},
 		content: function(c) {
 			return CT.dom.div([
 				CT.dom.div(c.identifier, "big"),
@@ -748,6 +755,7 @@ comp.pods = {
 		_.setAdjustments(pod);
 		_.setDependencies(pod);
 		_.setResponsibilities(pod);
+		_.frame(pod, "library");
 		comp.core.membership(memship.key, function(data) {
 			_.frame(data, "content");
 			_.frame(data, "product", "products");
