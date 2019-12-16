@@ -23,12 +23,12 @@ comp.library = {
 		}
 		return CT.dom.div(data, "bordered padded margined");
 	},
-	tag: function(item, cb) {
+	add: function(item, cb) {
 		comp.core.tags(function(tagz) {
 			item.tags = tagz.map(function(t) {
 				return t.key;
 			});
-			cb(item);
+			comp.core.edit(item, cb);
 		});
 	},
 	item: function(cb) {
@@ -59,13 +59,25 @@ comp.library = {
 												blurs: ["http://example.com", "https://website.com/path"],
 												cb: function(url) {
 													item.url = url;
-													comp.library.tag(item, cb);
+													comp.library.add(item, cb);
 												}
 											});
 										}
 									});
 								} else if (variety == "media") {
-									
+									comp.core.choice({
+										prompt: "what kind of media resource?",
+										data: ["img", "video", "audio", "pdf"],
+										cb: function(kind) {
+											item.kind = kind;
+											comp.library.add(item, function(res) {
+
+												// TODO: add media data!
+
+												cb(res);
+											});
+										}
+									});
 								} else {
 									comp.core.prompt({
 										style: "form",
@@ -73,7 +85,7 @@ comp.library = {
 										className: "basicpopup mosthigh w400p",
 										data: comp.forms[variety],
 										cb: function(vals) {
-											comp.library.tag(CT.merge(vals, item), cb);
+											comp.library.add(CT.merge(vals, item), cb);
 										}
 									});
 								}
