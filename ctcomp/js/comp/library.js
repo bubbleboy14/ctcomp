@@ -42,10 +42,9 @@ comp.library = {
 		}
 	},
 	slider: function(items) {
-		var liste = CT.dom.div(null, "right"),
-			slide = CT.dom.div(null,
-				"abs all0 r100 scroller subpaddedb"),
-			n = CT.dom.div([liste, slide], "full relative"), cats = {}, mn,
+		var liste = CT.dom.div(null, "right"), cats = {}, mn,
+			slide = CT.dom.div(null, "abs all0 r100 scroller"),
+			n = CT.dom.div([liste, slide], "full relative"),
 			slider = CT.panel.slider([], liste, slide, null,
 				null, null, true, core.config.ctcomp.blurbs);
 		items.forEach(function(item) {
@@ -56,8 +55,11 @@ comp.library = {
 		setTimeout(function() {
 			Object.keys(cats).forEach(function(section, i) {
 				CT.dom.setContent(slider.add(section, !i), [
-					CT.dom.div(section, "bigger"),
-					cats[section].map(comp.library.view)
+					CT.dom.div(section, "bigger right"),
+					cats[section].map(function(item) {
+						return CT.dom.div(comp.library.view(item).slice(1),
+							"bordered padded margined round vtop inline-block");
+					})
 				]);
 			});
 		});
@@ -71,17 +73,27 @@ comp.library = {
 			r.tags.map(function(t) { return CT.data.get(t).name; }).join(", ")
 		];
 		if (r.modelName == "organization") {
-			r.url && data.push(CT.dom.link("website", null, r.url, "block"));
+			r.url && data.push(CT.dom.link("website",
+				null, r.url, "block", null, null, true));
 			r.phone && data.push(CT.dom.div("phone #: " + r.phone)); // phone link instead?
 		} else if (r.modelName == "book") {
 			data.push(r.author);
-			r.read && data.push(CT.dom.link("read", null, r.read, "block"));
-			r.buy && data.push(CT.dom.link("buy", null, r.buy, "block"));
+			r.read && data.push(CT.dom.link("read",
+				null, r.read, "block", null, null, true));
+			r.buy && data.push(CT.dom.link("buy",
+				null, r.buy, "block", null, null, true));
 		} else if (r.modelName == "web")
-			data.push(CT.dom.link(r.kind, null, r.url, "block"));
+			data.push(CT.dom.link(r.kind, null,
+				r.url, "block", null, null, true));
 		else if (r.modelName == "media") {
 			if (r.kind == "pdf")
-				data.push(CT.dom.link("pdf", null, r.item, "block"));
+				data.push(CT.dom.link("pdf", null,
+					r.item, "block", null, null, true));
+			else if (r.kind == "video")
+				data.push(CT.dom.video({
+					src: r.item,
+					controls: true
+				}));
 			else
 				data.push(CT.dom[r.kind](r.item));
 		}
