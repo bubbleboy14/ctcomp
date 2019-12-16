@@ -86,11 +86,28 @@ comp.pods = {
 			], "bordered padded margined");
 		},
 		library: function(r) {
-			return CT.dom.div([
+			var data = [
+				CT.dom.div(r.modelName, "right"),
 				CT.dom.div(r.name, "big"),
 				r.description,
 				r.tags.map(function(t) { return CT.data.get(t).name; }).join(", ")
-			], "bordered padded margined");
+			];
+			if (r.modelName == "organization") {
+				r.url && data.push(CT.dom.link("website", null, r.url, "block"));
+				r.phone && data.push(CT.dom.div("phone #: " + r.phone)); // phone link instead?
+			} else if (r.modelName == "book") {
+				data.push(r.author);
+				r.read && data.push(CT.dom.link("read", null, r.read, "block"));
+				r.buy && data.push(CT.dom.link("buy", null, r.buy, "block"));
+			} else if (r.modelName == "web")
+				data.push(CT.dom.link(r.kind, null, r.url, "block"));
+			else if (r.modelName == "media") {
+				if (r.kind == "pdf")
+					data.push(CT.dom.link("pdf", null, r.data, "block"));
+				else
+					data.push(CT.dom[r.kind](r.data));
+			}
+			return CT.dom.div(data, "bordered padded margined");
 		},
 		content: function(c) {
 			return CT.dom.div([
