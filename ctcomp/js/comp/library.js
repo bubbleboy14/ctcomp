@@ -1,4 +1,46 @@
 comp.library = {
+	_: {
+		web: function(item, cb) {
+			comp.core.choice({
+				prompt: "what kind of web resource?",
+				data: ["site", "article", "video", "podcast", "pdf"],
+				cb: function(kind) {
+					item.kind = kind;
+					comp.core.prompt({
+						prompt: "please provide web address",
+						blurs: ["http://example.com", "https://website.com/path"],
+						cb: function(url) {
+							item.url = url;
+							comp.library.add(item, cb);
+						}
+					});
+				}
+			});
+		},
+		media: function(item, cb) {
+			comp.core.choice({
+				prompt: "what kind of media resource?",
+				data: ["img", "video", "audio", "pdf"],
+				cb: function(kind) {
+					item.kind = kind;
+					comp.library.add(item, function(res) {
+						comp.library.media(res, kind, cb, "data");
+					});
+				}
+			});
+		},
+		basic: function(item, cb) {
+			comp.core.prompt({
+				style: "form",
+				prompt: item.modelName + " editor",
+				className: "basicpopup mosthigh w400p",
+				data: comp.forms[item.modelName],
+				cb: function(vals) {
+					comp.library.add(CT.merge(vals, item), cb);
+				}
+			});
+		}
+	},
 	view: function(r) {
 		var data = [
 			CT.dom.div(r.modelName, "right"),
@@ -49,6 +91,7 @@ comp.library = {
 		});
 	},
 	item: function(cb) {
+		var _ = comp.library._;
 		comp.core.choice({
 			prompt: "what kind of resource?",
 			data: ["organization", "book", "web", "media"],
@@ -59,50 +102,12 @@ comp.library = {
 						comp.core.prompt({
 							prompt: "please describe this resource",
 							cb: function(description) {
-								var item = {
+								(_[variety] || _.basic)({
 									modelName: variety,
 									name: name,
 									description: description,
 									editors: [user.core.get("key")]
-								};
-								if (variety == "web") {
-									comp.core.choice({
-										prompt: "what kind of web resource?",
-										data: ["site", "article", "video", "podcast", "pdf"],
-										cb: function(kind) {
-											item.kind = kind;
-											comp.core.prompt({
-												prompt: "please provide web address",
-												blurs: ["http://example.com", "https://website.com/path"],
-												cb: function(url) {
-													item.url = url;
-													comp.library.add(item, cb);
-												}
-											});
-										}
-									});
-								} else if (variety == "media") {
-									comp.core.choice({
-										prompt: "what kind of media resource?",
-										data: ["img", "video", "audio", "pdf"],
-										cb: function(kind) {
-											item.kind = kind;
-											comp.library.add(item, function(res) {
-												comp.library.media(res, kind, cb, "data");
-											});
-										}
-									});
-								} else {
-									comp.core.prompt({
-										style: "form",
-										prompt: variety + " editor",
-										className: "basicpopup mosthigh w400p",
-										data: comp.forms[variety],
-										cb: function(vals) {
-											comp.library.add(CT.merge(vals, item), cb);
-										}
-									});
-								}
+								}, cb);
 							}
 						});
 					}
