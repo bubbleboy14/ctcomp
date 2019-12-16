@@ -23,6 +23,23 @@ comp.library = {
 		}
 		return CT.dom.div(data, "bordered padded margined");
 	},
+	media: function(item, kind, cb, property) {
+		property = property || kind;
+		comp.core.prompt({
+			prompt: "select " + kind,
+			style: "file",
+			cb: function(ctfile) {
+				ctfile.upload("/_db", function(url) {
+					item[property] = url;
+					cb(item);
+				}, {
+					action: "blob",
+					key: item.key,
+					property: property
+				});
+			}
+		});
+	},
 	add: function(item, cb) {
 		comp.core.tags(function(tagz) {
 			item.tags = tagz.map(function(t) {
@@ -71,10 +88,7 @@ comp.library = {
 										cb: function(kind) {
 											item.kind = kind;
 											comp.library.add(item, function(res) {
-
-												// TODO: add media data!
-
-												cb(res);
+												comp.library.media(res, kind, cb, "data");
 											});
 										}
 									});
