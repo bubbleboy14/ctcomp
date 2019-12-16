@@ -119,6 +119,30 @@ class Resource(Place):
 		addr = "%s, %s, %s"%(self.address, zcode.city, zcode.state)
 		self.latitude, self.longitude = address2latlng(addr)
 
+class LibItem(db.TimeStampedBase):
+	editors = db.ForeignKey(kind=Person, repeated=True)
+	name = db.String()
+	description = db.Text()
+	tags = db.ForeignKey(kind=Tag, repeated=True)
+	label = "name"
+
+class Organization(LibItem):
+	url = db.String()
+	phone = db.String()
+
+class Book(LibItem):
+	author = db.String()
+	read = db.String()
+	buy = db.String()
+
+class Web(LibItem):
+	url = db.String()
+	kind = db.String(choices=["site", "article", "pdf"])
+
+class Media(LibItem):
+	data = db.Binary()
+	kind = db.String(choices=["img", "video", "audio", "pdf"])
+
 class Pod(db.TimeStampedBase):
 	name = db.String()
 	variety = db.String()
