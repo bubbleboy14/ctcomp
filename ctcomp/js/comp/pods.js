@@ -12,7 +12,7 @@ comp.pods = {
 			main: CT.dom.div(null, "h1 mr160 relative"),
 			right: CT.dom.div(null, "h1 w160p up5 scrolly right")
 		},
-		sections: ["Info", "Updates", "Drivers", "Resources",
+		sections: ["Info", "Updates", "Library", "Drivers", "Resources",
 			"Proposals", "Responsibilities", "Adjustments",
 			"Commitments", "Services", "Requests", "Content",
 			"Products", "Codebases", "Dependencies", "Expenses"],
@@ -515,6 +515,7 @@ comp.pods = {
 				action = unrestricted ? "show" : "hide",
 				reaction = pod.agent ? "hide" : "show",
 				showSoft = (pod.variety == "software") ? "show" : "hide",
+				libaction = (pod.variety == "support") ? "show" : "hide",
 				driaction = (pod.variety == "care work") ? "show" : "hide",
 				resaction = ["resource mapping", "care work",
 					"support"].includes(pod.variety) ? "show" : "hide";
@@ -527,6 +528,7 @@ comp.pods = {
 			["Codebases", "Dependencies"].forEach(function(section) {
 				CT.dom[showSoft]("tl" + section);
 			});
+			CT.dom[libaction]("tlLibrary");
 			CT.dom[driaction]("tlDrivers");
 			CT.dom[resaction]("tlResources");
 			unrestricted || CT.dom.id("tlInfo").firstChild.onclick();
