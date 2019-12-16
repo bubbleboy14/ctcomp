@@ -59,9 +59,9 @@ comp.library = {
 			data.push(CT.dom.link(r.kind, null, r.url, "block"));
 		else if (r.modelName == "media") {
 			if (r.kind == "pdf")
-				data.push(CT.dom.link("pdf", null, r.data, "block"));
+				data.push(CT.dom.link("pdf", null, r.item, "block"));
 			else
-				data.push(CT.dom[r.kind](r.data));
+				data.push(CT.dom[r.kind](r.item));
 		}
 		return data;
 	},
