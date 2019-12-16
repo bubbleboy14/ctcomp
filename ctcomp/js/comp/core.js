@@ -65,10 +65,11 @@ comp.core = {
 					tz = tz.concat(item.tags);
 				});
 				CT.db.multi(tz, function() {
-					CT.dom.setContent(n, items.map(comp.library.view));
+					CT.dom.setContent(n, comp.library.slider(items));
 				});
 			});
 		});
+		n.style.flex = "1";
 		return n;
 	},
 	support: function(pkey) {

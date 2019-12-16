@@ -41,6 +41,28 @@ comp.library = {
 			});
 		}
 	},
+	slider: function(items) {
+		var liste = CT.dom.div(null, "right"),
+			slide = CT.dom.div(null,
+				"abs all0 r100 scroller subpaddedb"),
+			n = CT.dom.div([liste, slide], "full relative"), cats = {}, mn,
+			slider = CT.panel.slider([], liste, slide, null,
+				null, null, true, core.config.ctcomp.blurbs);
+		items.forEach(function(item) {
+			mn = item.modelName;
+			cats[mn] = cats[mn] || [];
+			cats[mn].push(item);
+		});
+		setTimeout(function() {
+			Object.keys(cats).forEach(function(section, i) {
+				CT.dom.setContent(slider.add(section, !i), [
+					CT.dom.div(section, "bigger"),
+					cats[section].map(comp.library.view)
+				]);
+			});
+		});
+		return n;
+	},
 	view: function(r) {
 		var data = [
 			CT.dom.div(r.modelName, "right"),
