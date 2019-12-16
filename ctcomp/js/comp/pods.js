@@ -516,8 +516,8 @@ comp.pods = {
 				reaction = pod.agent ? "hide" : "show",
 				showSoft = (pod.variety == "software") ? "show" : "hide",
 				driaction = (pod.variety == "care work") ? "show" : "hide",
-				resaction = ["resource mapping", "care work"].includes(pod.variety)
-					? "show" : "hide";
+				resaction = ["resource mapping", "care work",
+					"support"].includes(pod.variety) ? "show" : "hide";
 			["Updates", "Commitments", "Services"].forEach(function(section) {
 				CT.dom[action]("tl" + section);
 			});
