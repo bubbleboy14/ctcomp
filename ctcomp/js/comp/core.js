@@ -52,8 +52,8 @@ comp.core = {
 				comp.core.c(CT.merge(opts, {
 					action: stype || "request"
 				}), cb || function() {
-        			alert("ok, check your email!");
-        		});
+					alert("ok, check your email!");
+				});
 			}
 		});
 	},
@@ -74,16 +74,16 @@ comp.core = {
 	},
 	support: function(pkey) {
 		return CT.dom.button("request support", function() {
-            comp.core.pod(pkey, function() {
-                comp.core.mates(pkey, "please select a pod mate",
-                	function(mate) {
-                		comp.core.submit({
-                			person: mate.key,
-                			change: "support"
-                		}, CT.data.get(pkey));
-	                }, "single-choice", true);
-        	});
-        }); // TODO: list public support requests!!
+			comp.core.pod(pkey, function() {
+				comp.core.mates(pkey, "please select a pod mate",
+					function(mate) {
+						comp.core.submit({
+							person: mate.key,
+							change: "support"
+						}, CT.data.get(pkey));
+					}, "single-choice", true);
+			});
+		}); // TODO: list public support requests!!
 	},
 	membership: function(memship, cb) {
 		var _ = comp.core._;
