@@ -63,7 +63,7 @@ comp.library = {
 			else
 				data.push(CT.dom[r.kind](r.data));
 		}
-		return CT.dom.div(data, "bordered padded margined");
+		return data;
 	},
 	media: function(item, kind, cb, property) {
 		property = property || kind;
@@ -101,6 +101,7 @@ comp.library = {
 					cb: function(name) {
 						comp.core.prompt({
 							prompt: "please describe this resource",
+							isTA: true,
 							cb: function(description) {
 								(_[variety] || _.basic)({
 									modelName: variety,

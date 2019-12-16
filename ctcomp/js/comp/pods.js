@@ -86,7 +86,11 @@ comp.pods = {
 			], "bordered padded margined");
 		},
 		library: function(r) {
-			return comp.library.view(r);
+			var n = CT.dom.div(null, "bordered padded margined");
+			CT.db.one(r, function(rdata) {
+				CT.dom.setContent(n, comp.library.view(rdata));
+			});
+			return n;
 		},
 		content: function(c) {
 			return CT.dom.div([
@@ -249,7 +253,7 @@ comp.pods = {
 							library: pod.library
 						}, function() {
 							CT.data.add(res);
-							CT.dom.addContent(_.nodes.library_list, _.library(res));
+							CT.dom.addContent(_.nodes.library_list, _.library(res.key));
 						});
 					});
 				} else if (stype == "dependency") {
