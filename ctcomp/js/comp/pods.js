@@ -86,28 +86,7 @@ comp.pods = {
 			], "bordered padded margined");
 		},
 		library: function(r) {
-			var data = [
-				CT.dom.div(r.modelName, "right"),
-				CT.dom.div(r.name, "big"),
-				r.description,
-				r.tags.map(function(t) { return CT.data.get(t).name; }).join(", ")
-			];
-			if (r.modelName == "organization") {
-				r.url && data.push(CT.dom.link("website", null, r.url, "block"));
-				r.phone && data.push(CT.dom.div("phone #: " + r.phone)); // phone link instead?
-			} else if (r.modelName == "book") {
-				data.push(r.author);
-				r.read && data.push(CT.dom.link("read", null, r.read, "block"));
-				r.buy && data.push(CT.dom.link("buy", null, r.buy, "block"));
-			} else if (r.modelName == "web")
-				data.push(CT.dom.link(r.kind, null, r.url, "block"));
-			else if (r.modelName == "media") {
-				if (r.kind == "pdf")
-					data.push(CT.dom.link("pdf", null, r.data, "block"));
-				else
-					data.push(CT.dom[r.kind](r.data));
-			}
-			return CT.dom.div(data, "bordered padded margined");
+			return comp.library.view(r);
 		},
 		content: function(c) {
 			return CT.dom.div([
@@ -226,21 +205,7 @@ comp.pods = {
 						style: "form",
 						prompt: "map resource editor",
 						className: "basicpopup mosthigh w400p",
-						data: [{
-							name: "name",
-							classname: "w1",
-							blurs: ["what is this place called?", "what do you call this place?"]
-						}, {
-							isTA: true,
-							name: "description",
-							blurs: ["how would you describe this place?", "please tell me about this place"]
-						}, {
-							name: "address",
-							blurs: ["street address", "what's the address?"]
-						}, {
-							name: "zipcode",
-							blurs: ["zipcode", "what's the zipcode?"]
-						}],
+						data: comp.forms.resource,
 						cb: function(vals) {
 							vals.zipcode = CT.parse.stripToZip(vals.zipcode);
 							if (!vals.zipcode)
@@ -275,6 +240,20 @@ comp.pods = {
 								}
 							});
 						}
+					});
+				} else if (stype == "library") {
+					comp.library.item(function(item) {
+						comp.core.edit(item, function(res) {
+							pod.library.push(res.key);
+							comp.core.edit({
+								key: pod.key,
+								library: pod.library
+							}, function() {
+								CT.data.add(res);
+								CT.dom.addContent(_.nodes.library_list,
+									_.library(res));
+							})
+						});
 					});
 				} else if (stype == "dependency") {
 					comp.core.choice({
