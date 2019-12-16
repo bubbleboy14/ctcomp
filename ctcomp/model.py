@@ -137,7 +137,7 @@ class Book(LibItem):
 
 class Web(LibItem):
 	url = db.String()
-	kind = db.String(choices=["site", "article", "pdf"])
+	kind = db.String(choices=["site", "article", "video", "podcast", "pdf"])
 
 class Media(LibItem):
 	data = db.Binary()
