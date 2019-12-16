@@ -24,7 +24,7 @@ comp.library = {
 				cb: function(kind) {
 					item.kind = kind;
 					comp.library.add(item, function(res) {
-						comp.library.media(res, kind, cb, "data");
+						comp.library.media(res, kind, cb, "item");
 					});
 				}
 			});

@@ -140,7 +140,7 @@ class Web(LibItem):
 	kind = db.String(choices=["site", "article", "video", "podcast", "pdf"])
 
 class Media(LibItem):
-	data = db.Binary()
+	item = db.Binary()
 	kind = db.String(choices=["img", "video", "audio", "pdf"])
 
 class Pod(db.TimeStampedBase):
