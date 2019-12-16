@@ -242,17 +242,14 @@ comp.pods = {
 						}
 					});
 				} else if (stype == "library") {
-					comp.library.item(function(item) {
-						comp.core.edit(item, function(res) {
-							pod.library.push(res.key);
-							comp.core.edit({
-								key: pod.key,
-								library: pod.library
-							}, function() {
-								CT.data.add(res);
-								CT.dom.addContent(_.nodes.library_list,
-									_.library(res));
-							})
+					comp.library.item(function(res) {
+						pod.library.push(res.key);
+						comp.core.edit({
+							key: pod.key,
+							library: pod.library
+						}, function() {
+							CT.data.add(res);
+							CT.dom.addContent(_.nodes.library_list, _.library(res));
 						});
 					});
 				} else if (stype == "dependency") {
