@@ -49,9 +49,23 @@ comp.library = {
 									editors: [user.core.get("key")]
 								};
 								if (variety == "web") {
-
+									comp.core.choice({
+										prompt: "what kind of web resource?",
+										data: ["site", "article", "video", "podcast", "pdf"],
+										cb: function(kind) {
+											item.kind = kind;
+											comp.core.prompt({
+												prompt: "please provide web address",
+												blurs: ["http://example.com", "https://website.com/path"],
+												cb: function(url) {
+													item.url = url;
+													comp.library.tag(item, cb);
+												}
+											});
+										}
+									});
 								} else if (variety == "media") {
-
+									
 								} else {
 									comp.core.prompt({
 										style: "form",
