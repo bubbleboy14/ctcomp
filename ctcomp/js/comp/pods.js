@@ -12,7 +12,7 @@ comp.pods = {
 			main: CT.dom.div(null, "h1 mr160 relative"),
 			right: CT.dom.div(null, "h1 w160p up5 scrolly right")
 		},
-		sections: ["Info", "Updates", "Drivers", "Resources",
+		sections: ["Info", "Updates", "Library", "Drivers", "Resources",
 			"Proposals", "Responsibilities", "Adjustments",
 			"Commitments", "Services", "Requests", "Content",
 			"Products", "Codebases", "Dependencies", "Expenses"],
@@ -84,6 +84,13 @@ comp.pods = {
 				r.description,
 				r.tags.map(function(t) { return CT.data.get(t).name; }).join(", ")
 			], "bordered padded margined");
+		},
+		library: function(r) {
+			var n = CT.dom.div(null, "bordered padded margined");
+			CT.db.one(r, function(rdata) {
+				CT.dom.setContent(n, comp.library.view(rdata));
+			});
+			return n;
 		},
 		content: function(c) {
 			return CT.dom.div([
@@ -202,21 +209,7 @@ comp.pods = {
 						style: "form",
 						prompt: "map resource editor",
 						className: "basicpopup mosthigh w400p",
-						data: [{
-							name: "name",
-							classname: "w1",
-							blurs: ["what is this place called?", "what do you call this place?"]
-						}, {
-							isTA: true,
-							name: "description",
-							blurs: ["how would you describe this place?", "please tell me about this place"]
-						}, {
-							name: "address",
-							blurs: ["street address", "what's the address?"]
-						}, {
-							name: "zipcode",
-							blurs: ["zipcode", "what's the zipcode?"]
-						}],
+						data: comp.forms.resource,
 						cb: function(vals) {
 							vals.zipcode = CT.parse.stripToZip(vals.zipcode);
 							if (!vals.zipcode)
@@ -251,6 +244,17 @@ comp.pods = {
 								}
 							});
 						}
+					});
+				} else if (stype == "library") {
+					comp.library.item(function(res) {
+						pod.library.push(res.key);
+						comp.core.edit({
+							key: pod.key,
+							library: pod.library
+						}, function() {
+							CT.data.add(res);
+							CT.dom.addContent(_.nodes.library_list, _.library(res.key));
+						});
 					});
 				} else if (stype == "dependency") {
 					comp.core.choice({
@@ -345,26 +349,14 @@ comp.pods = {
 														description: description,
 														price: price
 													}, function(prod) {
-														comp.core.prompt({
-															prompt: "please select an image",
-															style: "file",
-															cb: function(ctfile) {
-																ctfile.upload("/_db", function(url) {
-																	prod.image = url;
-																	CT.data.add(prod);
-																	memship.products.push(prod.key);
-																	comp.core.edit({
-																		key: memship.key,
-																		products: memship.products
-																	}, function() {
-																		CT.dom.addContent(_.nodes.product_list, _.product(prod));
-																	});
-																}, {
-																	action: "blob",
-																	key: prod.key,
-																	property: "image"
-																});
-															}
+														comp.library.media(prod, "image", function() {
+															memship.products.push(prod.key);
+															comp.core.edit({
+																key: memship.key,
+																products: memship.products
+															}, function() {
+																CT.dom.addContent(_.nodes.product_list, _.product(prod));
+															});
 														});
 													});
 												}
@@ -515,9 +507,10 @@ comp.pods = {
 				action = unrestricted ? "show" : "hide",
 				reaction = pod.agent ? "hide" : "show",
 				showSoft = (pod.variety == "software") ? "show" : "hide",
+				libaction = (pod.variety == "support") ? "show" : "hide",
 				driaction = (pod.variety == "care work") ? "show" : "hide",
-				resaction = ["resource mapping", "care work"].includes(pod.variety)
-					? "show" : "hide";
+				resaction = ["resource mapping", "care work",
+					"support"].includes(pod.variety) ? "show" : "hide";
 			["Updates", "Commitments", "Services"].forEach(function(section) {
 				CT.dom[action]("tl" + section);
 			});
@@ -527,6 +520,7 @@ comp.pods = {
 			["Codebases", "Dependencies"].forEach(function(section) {
 				CT.dom[showSoft]("tl" + section);
 			});
+			CT.dom[libaction]("tlLibrary");
 			CT.dom[driaction]("tlDrivers");
 			CT.dom[resaction]("tlResources");
 			unrestricted || CT.dom.id("tlInfo").firstChild.onclick();
@@ -746,6 +740,7 @@ comp.pods = {
 		_.setAdjustments(pod);
 		_.setDependencies(pod);
 		_.setResponsibilities(pod);
+		_.frame(pod, "library");
 		comp.core.membership(memship.key, function(data) {
 			_.frame(data, "content");
 			_.frame(data, "product", "products");
