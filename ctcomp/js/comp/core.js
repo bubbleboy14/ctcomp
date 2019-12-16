@@ -57,21 +57,32 @@ comp.core = {
 			}
 		});
 	},
+	library: function(pkey) {
+		var n = CT.dom.div(), tz = [];
+		CT.db.one(pkey, function(pod) {
+			CT.db.multi(pod.library, function(items) {
+				items.forEach(function(item) {
+					tz = tz.concat(item.tags);
+				});
+				CT.db.multi(tz, function() {
+					CT.dom.setContent(n, items.map(comp.library.view));
+				});
+			});
+		});
+		return n;
+	},
 	support: function(pkey) {
-		return CT.dom.div([
-            CT.dom.button("request support", function() {
-                comp.core.pod(pkey, function() {
-	                comp.core.mates(pkey, "please select a pod mate",
-	                	function(mate) {
-	                		comp.core.submit({
-	                			person: mate.key,
-	                			change: "support"
-	                		}, CT.data.get(pkey));
-		                }, "single-choice", true);
-            	});
-            })
-            // TODO: list public support requests!!
-        ], "bordered padded margined round");
+		return CT.dom.button("request support", function() {
+            comp.core.pod(pkey, function() {
+                comp.core.mates(pkey, "please select a pod mate",
+                	function(mate) {
+                		comp.core.submit({
+                			person: mate.key,
+                			change: "support"
+                		}, CT.data.get(pkey));
+	                }, "single-choice", true);
+        	});
+        }); // TODO: list public support requests!!
 	},
 	membership: function(memship, cb) {
 		var _ = comp.core._;
