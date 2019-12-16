@@ -20,6 +20,7 @@
 		}
 	},
 	"blurbs": {
+		"Library": "Add organizations, books, web resources, and media to the resource libary.",
 		"Drivers": "Can you help transport people and things? Click the 'join drivers' button to volunteer. Does someone or something need to get somewhere somehow? Click 'Requests' on the right to request a driver.",
 		"Resources": "Build resource maps.",
 		"Responsibilities": "Task management, including scheduling of and volunteering for pod-related activities.",
