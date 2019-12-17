@@ -120,6 +120,7 @@ class Resource(Place):
 		self.latitude, self.longitude = address2latlng(addr)
 
 class LibItem(db.TimeStampedBase):
+	content = db.ForeignKey(kind="Content")
 	editors = db.ForeignKey(kind=Person, repeated=True)
 	name = db.String()
 	description = db.Text()
