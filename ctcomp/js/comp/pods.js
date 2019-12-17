@@ -194,6 +194,18 @@ comp.pods = {
 				CT.dom.addContent(_.nodes[stype + "_list"], _[stype](opts));
 			}, stype, noteprompt, ps);
 		},
+		consub: function(identifier, memship, cb) {
+			var _ = comp.pods._;
+			comp.core.edit({
+				modelName: "content",
+				identifier: identifier,
+				membership: memship.key
+			}, function(content) {
+				CT.data.add(content);
+				CT.dom.addContent(_.nodes.content_list, _.content(content));
+				cb && cb(content);
+			});
+		},
 		submitter: function(stype) {
 			var _ = comp.pods._, lims = core.config.ctcomp.limits,
 				cur = _.current, pod = cur.pod, counts = cur.counts,
@@ -247,13 +259,21 @@ comp.pods = {
 					});
 				} else if (stype == "library") {
 					comp.library.item(function(res) {
-						pod.library.push(res.key);
-						comp.core.edit({
-							key: pod.key,
-							library: pod.library
-						}, function() {
-							CT.data.add(res);
-							CT.dom.addContent(_.nodes.library_list, _.library(res.key));
+						_.consub(res.modelName + ": " + res.name, memship, function(cont) {
+							res.content = cont.key;
+							comp.core.edit({
+								key: res.key,
+								content: res.content
+							}, function() {
+								pod.library.push(res.key);
+								comp.core.edit({
+									key: pod.key,
+									library: pod.library
+								}, function() {
+									CT.data.add(res);
+									CT.dom.addContent(_.nodes.library_list, _.library(res.key));
+								});
+							});
 						});
 					});
 				} else if (stype == "dependency") {
@@ -312,14 +332,7 @@ comp.pods = {
 					comp.core.prompt({
 						prompt: "enter a descriptor for this content item (url, for instance)",
 						cb: function(identifier) {
-							comp.core.edit({
-								modelName: "content",
-								identifier: identifier,
-								membership: memship.key
-							}, function(content) {
-								CT.data.add(content);
-								CT.dom.addContent(_.nodes.content_list, _.content(content));
-							});
+							_.consub(identifier, memship);
 						}
 					});
 				} else if (stype == "product") {
