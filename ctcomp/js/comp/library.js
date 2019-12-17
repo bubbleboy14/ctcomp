@@ -39,10 +39,23 @@ comp.library = {
 					comp.library.add(CT.merge(vals, item), cb);
 				}
 			});
+		},
+		viewable: function(item) {
+			var n = CT.dom.div(comp.library.view(item).slice(1),
+				"bordered padded margined round vtop inline-block");
+			n.on("visible", function() {
+				CT.log("viewed: " + item.name);
+				comp.core.c({
+					action: "view",
+					content: item.content
+				});
+			});
+			return n;
 		}
 	},
 	slider: function(items) {
-		var liste = CT.dom.div(null, "right"), cats = {}, mn,
+		var cats = {}, mn, _ = comp.library._,
+			liste = CT.dom.div(null, "right"),
 			slide = CT.dom.div(null, "abs all0 r100 scroller"),
 			n = CT.dom.div([liste, slide], "full relative"),
 			slider = CT.panel.slider([], liste, slide, null,
@@ -56,10 +69,7 @@ comp.library = {
 			Object.keys(cats).forEach(function(section, i) {
 				CT.dom.setContent(slider.add(section, !i), [
 					CT.dom.div(section, "bigger right"),
-					cats[section].map(function(item) {
-						return CT.dom.div(comp.library.view(item).slice(1),
-							"bordered padded margined round vtop inline-block");
-					})
+					cats[section].map(_.viewable)
 				]);
 			});
 		});
