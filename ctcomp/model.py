@@ -144,6 +144,13 @@ class Media(LibItem):
 	item = db.Binary()
 	kind = db.String(choices=["img", "video", "audio", "pdf"])
 
+class Board(db.TimeStampedBase):
+	name = db.String()
+	description = db.Text()
+	tags = db.ForeignKey(kind=Tag, repeated=True)
+	conversation = db.ForeignKey(kind=Conversation)
+	label = "name"
+
 class Pod(db.TimeStampedBase):
 	name = db.String()
 	variety = db.String()
