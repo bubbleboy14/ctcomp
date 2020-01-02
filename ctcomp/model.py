@@ -164,6 +164,7 @@ class Pod(db.TimeStampedBase):
 	resources = db.ForeignKey(kind=Resource, repeated=True)
 	dependencies = db.ForeignKey(kind="Codebase", repeated=True) # software
 	library = db.ForeignKey(kinds=[Organization, Book, Web, Media], repeated=True) # support
+	boards = db.ForeignKey(kind=Board, repeated=True) # support
 
 	def oncreate(self):
 		email_admins("New Pod", "name: %s\nvariety: %s"%(self.name, self.variety))
