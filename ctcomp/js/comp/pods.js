@@ -328,12 +328,45 @@ comp.pods = {
 											variety: variety
 										}, function(cbase) {
 											CT.data.add(cbase);
-											CT.dom.addContent(_.nodes.codebase_list, _.codebase(cbase));
+											CT.dom.addContent(_.nodes.codebase_list,
+												_.codebase(cbase));
 										});
 									}
 								});
 							}
 						});
+					});
+				} else if (stype == "board") {
+					comp.core.prompt({
+						prompt: "what is this board's name?",
+						cb: function(name) {
+							comp.core.prompt({
+								isTA: true,
+								prompt: "please describe",
+								cb: function(description) {
+									comp.core.tags(function(tags) {
+										comp.core.edit({
+											modelName: "board",
+											name: name,
+											description: description,
+											tags: tags.map(function(t) {
+												return t.key;
+											})
+										}, function(board) {
+											CT.data.add(board);
+											pod.boards.push(board.key);
+											comp.core.edit({
+												key: pod.key,
+												boards: pod.boards
+											}, function() {
+												CT.dom.addContent(_.nodes.board_list,
+													_.board(board));
+											});
+										});
+									});
+								}
+							});
+						}
 					});
 				} else if (stype == "content") {
 					comp.core.prompt({
