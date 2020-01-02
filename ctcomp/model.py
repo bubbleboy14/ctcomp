@@ -151,6 +151,11 @@ class Board(db.TimeStampedBase):
 	conversation = db.ForeignKey(kind=Conversation)
 	label = "name"
 
+	def oncreate(self):
+		convo = Conversation(topic=self.name)
+		convo.put()
+		self.conversation = convo.key
+
 class Pod(db.TimeStampedBase):
 	name = db.String()
 	variety = db.String()
