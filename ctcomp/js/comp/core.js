@@ -369,12 +369,12 @@ comp.core = {
 			}
 		});
 	},
-	mypods: function(cb) {
+	mypods: function(cb, full) {
 		comp.core.person(user.core.get("key"), function(person) {
 			CT.db.multi(person.memberships.map(function(m) {
 				return m.pod;
 			}), function(pods) {
-				cb(pods.map(function(pod) {
+				cb(full ? pods : pods.map(function(pod) {
 					return pod.name;
 				}));
 			});
