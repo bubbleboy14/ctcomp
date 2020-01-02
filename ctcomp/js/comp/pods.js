@@ -12,10 +12,10 @@ comp.pods = {
 			main: CT.dom.div(null, "h1 mr160 relative"),
 			right: CT.dom.div(null, "h1 w160p up5 scrolly right")
 		},
-		sections: ["Info", "Updates", "Library", "Drivers", "Resources",
-			"Proposals", "Responsibilities", "Adjustments",
-			"Commitments", "Services", "Requests", "Content",
-			"Products", "Codebases", "Dependencies", "Expenses"],
+		sections: ["Info", "Boards", "Updates", "Library", "Drivers",
+			"Resources", "Proposals", "Responsibilities", "Adjustments",
+			"Commitments", "Services", "Requests", "Content", "Products",
+			"Codebases", "Dependencies", "Expenses"],
 		proposal: function(key) {
 			var _ = comp.pods._,
 				memship = comp.core.pod2memship(_.current.pod);
@@ -75,6 +75,13 @@ comp.pods = {
 		dependency: function(d) {
 			return CT.dom.div(d.repo + " (" + d.variety + ")",
 				"bordered padded margined round inline-block");
+		},
+		board: function(b) {
+			return CT.dom.div([
+				CT.dom.div(b.name, "big"),
+				b.description,
+				b.tags.map(function(t) { return CT.data.get(t).name; }).join(", ")
+			], "bordered padded margined");
 		},
 		resource: function(r) {
 			return CT.dom.div([
@@ -643,6 +650,13 @@ comp.pods = {
 				});
 			});
 		},
+		setBoards: function(pod) {
+			CT.db.multi(pod.boards, function(resz) {
+				comp.pods._.frame({
+					boards: resz
+				}, "board", "boards");
+			});
+		},
 		setResources: function(pod) {
 			CT.db.multi(pod.resources, function(resz) {
 				comp.pods._.frame({
@@ -750,6 +764,7 @@ comp.pods = {
 			memship = comp.core.pod2memship(pod),
 			inclz = CT.dom.div(), content;
 		_.current.pod = pod;
+		_.setBoards(pod);
 		_.setAdjustments(pod);
 		_.setDependencies(pod);
 		_.setResponsibilities(pod);
