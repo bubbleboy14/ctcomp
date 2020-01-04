@@ -16,14 +16,11 @@ comp.boards = {
 		]);
 	},
 	pod: function(pod) {
-		var bnode = CT.dom.div();
+		var nz = comp.boards._.nodes;
 		CT.db.multi(pod.boards, function(bz) {
-			CT.dom.setContent(bnode, bz.map(comp.boards.board));
+			CT.panel.slider(bz, nz.boards, nz.slider, null, null,
+				null, true, null, true, comp.boards.board);
 		});
-		CT.dom.setContent(comp.boards._.nodes.main, [
-			CT.dom.div(pod.name, "biggerest"),
-			bnode
-		]);
 	},
 	menu: function() {
 		var _ = comp.boards._, nodes = _.nodes,
@@ -35,7 +32,7 @@ comp.boards = {
 				nodes.boards
 			], cfg.classes.menu)
 		]);
-//		CT.dom.setContent(nodes.main, nodes.slider);
+		CT.dom.setContent(nodes.main, nodes.slider);
 		CT.dom.setContent("ctmain", CT.dom.div([
 			nodes.right,
 			nodes.main
