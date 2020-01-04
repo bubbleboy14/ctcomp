@@ -9,10 +9,17 @@ comp.boards = {
 		}
 	},
 	board: function(b) {
+		var tz = CT.dom.div();
+		CT.db.multi(b.tags, function(tags) {
+			CT.dom.setContent(tz, tags.map(function(t) {
+				return t.name;
+			}).join(", "));
+		});
 		return CT.dom.div([
-			CT.dom.div(b.name, "big"),
+			CT.dom.div(b.name, "biggerest"),
 			b.description,
-			// tags[], conversation
+			tz
+			// conversation
 		]);
 	},
 	pod: function(pod) {
