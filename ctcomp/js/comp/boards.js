@@ -19,7 +19,7 @@ comp.boards = {
 		var nz = comp.boards._.nodes;
 		CT.db.multi(pod.boards, function(bz) {
 			CT.panel.slider(bz, nz.boards, nz.slider, null, null,
-				null, true, null, true, comp.boards.board);
+				null, true, null, true, comp.boards.board, true);
 		});
 	},
 	menu: function() {
