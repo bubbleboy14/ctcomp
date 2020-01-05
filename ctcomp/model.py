@@ -144,6 +144,20 @@ class Media(LibItem):
 	item = db.Binary()
 	kind = db.String(choices=["img", "video", "audio", "pdf"])
 
+class Board(db.TimeStampedBase):
+	name = db.String()
+	description = db.Text()
+	anonymous = db.Boolean(default=False)
+	tags = db.ForeignKey(kind=Tag, repeated=True)
+	conversation = db.ForeignKey(kind=Conversation)
+	label = "name"
+
+	def oncreate(self):
+		convo = Conversation(topic=self.name)
+		convo.anonymous = self.anonymous
+		convo.put()
+		self.conversation = convo.key
+
 class Pod(db.TimeStampedBase):
 	name = db.String()
 	variety = db.String()
@@ -151,6 +165,7 @@ class Pod(db.TimeStampedBase):
 	pool = db.ForeignKey(kind=Wallet)
 	agent = db.ForeignKey(kind="Pod")
 	tasks = db.ForeignKey(kind=Task, repeated=True)
+	boards = db.ForeignKey(kind=Board, repeated=True)
 	updates = db.ForeignKey(kind=Update, repeated=True)
 	drivers = db.ForeignKey(kind=Person, repeated=True)
 	includers = db.ForeignKey(kind=Person, repeated=True)

@@ -12,10 +12,10 @@ comp.pods = {
 			main: CT.dom.div(null, "h1 mr160 relative"),
 			right: CT.dom.div(null, "h1 w160p up5 scrolly right")
 		},
-		sections: ["Info", "Updates", "Library", "Drivers", "Resources",
-			"Proposals", "Responsibilities", "Adjustments",
-			"Commitments", "Services", "Requests", "Content",
-			"Products", "Codebases", "Dependencies", "Expenses"],
+		sections: ["Info", "Boards", "Updates", "Library", "Drivers",
+			"Resources", "Proposals", "Responsibilities", "Adjustments",
+			"Commitments", "Services", "Requests", "Content", "Products",
+			"Codebases", "Dependencies", "Expenses"],
 		proposal: function(key) {
 			var _ = comp.pods._,
 				memship = comp.core.pod2memship(_.current.pod);
@@ -75,6 +75,14 @@ comp.pods = {
 		dependency: function(d) {
 			return CT.dom.div(d.repo + " (" + d.variety + ")",
 				"bordered padded margined round inline-block");
+		},
+		board: function(b) {
+			return CT.dom.div([
+				CT.dom.div(b.name, "big"),
+				b.description,
+				"anonymous: " + b.anonymous,
+				b.tags.map(function(t) { return CT.data.get(t).name; }).join(", ")
+			], "bordered padded margined");
 		},
 		resource: function(r) {
 			return CT.dom.div([
@@ -321,12 +329,52 @@ comp.pods = {
 											variety: variety
 										}, function(cbase) {
 											CT.data.add(cbase);
-											CT.dom.addContent(_.nodes.codebase_list, _.codebase(cbase));
+											CT.dom.addContent(_.nodes.codebase_list,
+												_.codebase(cbase));
 										});
 									}
 								});
 							}
 						});
+					});
+				} else if (stype == "board") {
+					comp.core.prompt({
+						prompt: "what is this board's name?",
+						cb: function(name) {
+							comp.core.prompt({
+								isTA: true,
+								prompt: "please describe",
+								cb: function(description) {
+									comp.core.choice({
+										prompt: "should this board be anonymous?",
+										data: ["yes", "no"],
+										cb: function(anonswer) {
+											comp.core.tags(function(tags) {
+												comp.core.edit({
+													modelName: "board",
+													name: name,
+													description: description,
+													anonymous: (anonswer == "yes"),
+													tags: tags.map(function(t) {
+														return t.key;
+													})
+												}, function(board) {
+													CT.data.add(board);
+													pod.boards.push(board.key);
+													comp.core.edit({
+														key: pod.key,
+														boards: pod.boards
+													}, function() {
+														CT.dom.addContent(_.nodes.board_list,
+															_.board(board));
+													});
+												});
+											});
+										}
+									});
+								}
+							});
+						}
 					});
 				} else if (stype == "content") {
 					comp.core.prompt({
@@ -643,6 +691,13 @@ comp.pods = {
 				});
 			});
 		},
+		setBoards: function(pod) {
+			CT.db.multi(pod.boards, function(resz) {
+				comp.pods._.frame({
+					boards: resz
+				}, "board", "boards");
+			});
+		},
 		setResources: function(pod) {
 			CT.db.multi(pod.resources, function(resz) {
 				comp.pods._.frame({
@@ -750,6 +805,7 @@ comp.pods = {
 			memship = comp.core.pod2memship(pod),
 			inclz = CT.dom.div(), content;
 		_.current.pod = pod;
+		_.setBoards(pod);
 		_.setAdjustments(pod);
 		_.setDependencies(pod);
 		_.setResponsibilities(pod);
