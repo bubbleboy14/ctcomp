@@ -48,7 +48,6 @@ class Person(Member):
 	contributor = db.ForeignKey(kind=Contributor) # optional
 	chat = db.Boolean(default=True)
 	remind = db.Boolean(default=True)
-	handles = db.String(repeated=True)
 
 	def onjoin(self):
 		email_admins("New Person", self.email)
@@ -155,6 +154,7 @@ class Board(db.TimeStampedBase):
 
 	def oncreate(self):
 		convo = Conversation(topic=self.name)
+		convo.anonymous = self.anonymous
 		convo.put()
 		self.conversation = convo.key
 
