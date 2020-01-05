@@ -80,6 +80,7 @@ comp.pods = {
 			return CT.dom.div([
 				CT.dom.div(b.name, "big"),
 				b.description,
+				"anonymous: " + b.anonymous,
 				b.tags.map(function(t) { return CT.data.get(t).name; }).join(", ")
 			], "bordered padded margined");
 		},
@@ -344,25 +345,32 @@ comp.pods = {
 								isTA: true,
 								prompt: "please describe",
 								cb: function(description) {
-									comp.core.tags(function(tags) {
-										comp.core.edit({
-											modelName: "board",
-											name: name,
-											description: description,
-											tags: tags.map(function(t) {
-												return t.key;
-											})
-										}, function(board) {
-											CT.data.add(board);
-											pod.boards.push(board.key);
-											comp.core.edit({
-												key: pod.key,
-												boards: pod.boards
-											}, function() {
-												CT.dom.addContent(_.nodes.board_list,
-													_.board(board));
+									comp.core.choice({
+										prompt: "should this board be anonymous?",
+										data: ["yes", "no"],
+										cb: function(anonswer) {
+											comp.core.tags(function(tags) {
+												comp.core.edit({
+													modelName: "board",
+													name: name,
+													description: description,
+													anonymous: (anonswer == "yes"),
+													tags: tags.map(function(t) {
+														return t.key;
+													})
+												}, function(board) {
+													CT.data.add(board);
+													pod.boards.push(board.key);
+													comp.core.edit({
+														key: pod.key,
+														boards: pod.boards
+													}, function() {
+														CT.dom.addContent(_.nodes.board_list,
+															_.board(board));
+													});
+												});
 											});
-										});
+										}
 									});
 								}
 							});
