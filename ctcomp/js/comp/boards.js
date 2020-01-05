@@ -18,8 +18,8 @@ comp.boards = {
 		return CT.dom.div([
 			CT.dom.div(b.name, "biggerest"),
 			b.description,
-			tz
-			// conversation
+			tz,
+			user.core.convo(b.conversation)
 		]);
 	},
 	pod: function(pod) {
