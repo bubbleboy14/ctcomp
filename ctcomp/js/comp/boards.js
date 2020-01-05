@@ -65,6 +65,9 @@ comp.boards = {
 		var tlist = CT.panel.triggerList(pods, comp.boards.pod);
 		CT.dom.setContent(comp.boards._.nodes.pods, tlist);
 		tlist.firstChild.trigger();
+		comp.live.chat(pods.map(function(pod) {
+			return pod.name;
+		}));
 	},
 	init: function() {
 		comp.boards.menu();
