@@ -9,24 +9,38 @@ comp.boards = {
 		}
 	},
 	board: function(b) {
-		var tz = CT.dom.div();
-		CT.db.multi(b.tags, function(tags) {
-			CT.dom.setContent(tz, tags.map(function(t) {
-				return t.name;
-			}).join(", "));
-		});
-		return CT.dom.div([
+		var data = [
 			CT.dom.div(b.name, "biggerest"),
-			b.description,
-			tz,
-			user.core.convo(b.conversation)
-		]);
+			b.description
+		];
+		if (b.modelName == "board") {
+			var tz = CT.dom.div(null, "right");
+			CT.db.multi(b.tags, function(tags) {
+				CT.dom.setContent(tz, tags.map(function(t) {
+					return t.name;
+				}).join(", "));
+			});
+			data = [tz].concat(data).concat([
+				user.core.convo(b.conversation)
+			]);
+		}
+		return data;
 	},
 	pod: function(pod) {
 		var nz = comp.boards._.nodes;
 		CT.db.multi(pod.boards, function(bz) {
-			CT.panel.slider(bz, nz.boards, nz.slider, null, null,
-				null, true, null, true, comp.boards.board, true);
+			CT.panel.slider([{
+				name: "Info",
+				description: CT.dom.div([
+					CT.dom.div(pod.name, "biggerer"),
+					pod.blurb,
+					CT.dom.button("create a message board!", function() {
+						location = "/comp/pods.html#" + pod.key;
+					})
+				], "centered subpadded")
+			}].concat(bz), nz.boards, nz.slider,
+				null, null, null, true, null, true,
+				comp.boards.board, true);
 		});
 	},
 	menu: function() {
