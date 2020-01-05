@@ -74,7 +74,7 @@ def response():
 	elif action == "invite":
 		inv = Invitation()
 		inv.membership = cgi_get("membership")
-		inv.email = cgi_get("email")
+		inv.email = cgi_get("email").lower()
 		inv.notes = cgi_get("notes")
 		inv.put()
 		inv.invite()

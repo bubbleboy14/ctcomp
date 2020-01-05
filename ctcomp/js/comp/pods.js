@@ -489,6 +489,7 @@ comp.pods = {
 				comp.core.prompt({
 					prompt: "what's this person's email address?",
 					cb: function(email) {
+						email = email.toLowerCase();
 						if (!CT.parse.validEmail(email))
 							return alert("that's not an email address!");
 						CT.db.get("person", function(peeps) {
