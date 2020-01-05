@@ -14,13 +14,15 @@ comp.boards = {
 			b.description
 		];
 		if (b.modelName == "board") {
-			var tz = CT.dom.div(null, "right");
+			var tz = CT.dom.div(), right = CT.dom.div([
+				tz, "anonymous: " + b.anonymous
+			], "right");
 			CT.db.multi(b.tags, function(tags) {
 				CT.dom.setContent(tz, tags.map(function(t) {
 					return t.name;
 				}).join(", "));
 			});
-			data = [tz].concat(data).concat([
+			data = [right].concat(data).concat([
 				user.core.convo(b.conversation)
 			]);
 		}
