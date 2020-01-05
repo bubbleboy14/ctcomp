@@ -48,6 +48,7 @@ class Person(Member):
 	contributor = db.ForeignKey(kind=Contributor) # optional
 	chat = db.Boolean(default=True)
 	remind = db.Boolean(default=True)
+	handles = db.String(repeated=True)
 
 	def onjoin(self):
 		email_admins("New Person", self.email)
@@ -147,6 +148,7 @@ class Media(LibItem):
 class Board(db.TimeStampedBase):
 	name = db.String()
 	description = db.Text()
+	anonymous = db.Boolean()
 	tags = db.ForeignKey(kind=Tag, repeated=True)
 	conversation = db.ForeignKey(kind=Conversation)
 	label = "name"
