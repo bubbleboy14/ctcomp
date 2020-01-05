@@ -147,7 +147,7 @@ class Media(LibItem):
 class Board(db.TimeStampedBase):
 	name = db.String()
 	description = db.Text()
-	anonymous = db.Boolean()
+	anonymous = db.Boolean(default=False)
 	tags = db.ForeignKey(kind=Tag, repeated=True)
 	conversation = db.ForeignKey(kind=Conversation)
 	label = "name"
