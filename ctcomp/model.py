@@ -45,7 +45,6 @@ def membership(person, pod):
 class Person(Member):
 	ip = db.String()                              # optional
 	wallet = db.ForeignKey(kind=Wallet)           # optional
-	contributor = db.ForeignKey(kind=Contributor) # optional
 	contributors = db.ForeignKey(kind=Contributor, repeated=True)
 	chat = db.Boolean(default=True)
 	remind = db.Boolean(default=True)
