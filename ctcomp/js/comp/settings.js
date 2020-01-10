@@ -12,7 +12,7 @@ comp.settings = {
 						key: u.key,
 						contributors: u.contributors
 					}, function() {
-						CT.dom.setContent(_.hnode, "you're all set!");
+						CT.dom.addContent(_.hnode, cont.handle);
 						user.core.update({
 							contributors: u.contributors
 						});
@@ -126,17 +126,17 @@ comp.settings = {
 		}
 	},
 	handle: function() {
-		var _ = comp.settings._, cnode = CT.dom.div();
+		var _ = comp.settings._;
+		_.hnode = CT.dom.div();
 		CT.db.multi(user.core.get("contributors"), function(contz) {
-			CT.dom.setContent(cnode, contz.map(function(cont) {
+			CT.dom.setContent(_.hnode, contz.map(function(cont) {
 				return cont.handle;
 			}));
 		});
-		_.hnode = CT.dom.div([
-			cnode,
+		return CT.dom.div([
+			_.hnode,
 			CT.dom.button("click here to associate a github account", _.gh.assoc)
 		]);
-		return _.hnode;
 	},
 	chat: function() {
 		var u = user.core.get();
