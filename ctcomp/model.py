@@ -42,9 +42,14 @@ def membership(person, pod):
 	return Membership.query(Membership.pod == pod.key,
 		Membership.person == person.key).get()
 
+class Tag(db.TimeStampedBase):
+	name = db.String()
+	# helpful especially for providing tagging options
+
 class Person(Member):
 	ip = db.String()                              # optional
 	wallet = db.ForeignKey(kind=Wallet)           # optional
+	interests = db.ForeignKey(kind=Tag, repeated=True)
 	contributors = db.ForeignKey(kind=Contributor, repeated=True)
 	chat = db.Boolean(default=True)
 	remind = db.Boolean(default=True)
@@ -96,10 +101,6 @@ class Person(Member):
 
 	def commitments(self):
 		return sum([Commitment.query(Commitment.membership == m.key).fetch() for m in self.memberships()], [])
-
-class Tag(db.TimeStampedBase):
-	name = db.String()
-	# helpful especially for providing tagging options
 
 class Resource(Place):
 	editors = db.ForeignKey(kind=Person, repeated=True)
