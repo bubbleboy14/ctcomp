@@ -314,18 +314,19 @@ comp.core = {
 			cb(data);
 		});
 	},
-	tags: function(cb) {
+	tags: function(cb, selections) {
 		comp.core.choice({
 			prompt: "select resource tags",
 			style: "multiple-choice",
+			selections: selections,
 			data: ["New Resource Tag"].concat(comp.core._.tags),
 			cb: function(tags) {
-				if (tags[0] == "New Resource Tag") {
+				if (tags.includes("New Resource Tag")) {
 					comp.core.prompt({
 						prompt: "what's the tag?",
 						cb: function(name) {
 							comp.core.tag(name, function(tag) {
-								comp.core.tags(cb);
+								comp.core.tags(cb, selections);
 							});
 						}
 					});
