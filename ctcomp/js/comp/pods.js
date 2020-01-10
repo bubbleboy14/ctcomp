@@ -308,23 +308,26 @@ comp.pods = {
 					});
 				} else if (stype == "codebase") {
 					u = user.core.get();
-					if (!u.contributor)
+					if (!u.contributors.length)
 						return alert("first, go to the settings page to register your github account!");
-					CT.db.one(u.contributor, function(ucont) {
+					CT.db.multi(u.contributors, function(uconts) {
 						comp.core.choice({
 							data: ["platform", "framework", "service", "research and development"],
 							cb: function(variety) {
+								var handlez = [];
+								uconts.forEach(function(ucont) {
+									handlez = handlez.concat(CT.net.get("https://api.github.com/users/"
+										+ ucont.handle + "/repos", null, true));
+								});
 								comp.core.choice({
-									data: CT.net.get("https://api.github.com/users/"
-										+ ucont.handle + "/repos", null,
-										true).filter(function(repo) {
-											return !(repo.name in _.codebases);
-										}),
+									data: handlez.filter(function(repo) {
+										return !(repo.name in _.codebases);
+									}),
 									cb: function(project) {
 										comp.core.edit({
 											modelName: "codebase",
 											pod: pod.key,
-											owner: ucont.handle,
+											owner: project.owner.login,
 											repo: project.name,
 											variety: variety
 										}, function(cbase) {
