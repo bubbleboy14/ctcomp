@@ -398,7 +398,7 @@ class Contribution(db.TimeStampedBase):
 	count = db.Integer(default=0)
 
 	def membership(self):
-		person = Person.query(Person.contributors.includes(self.contributor)).get()
+		person = Person.query(Person.contributors.contains(self.contributor.urlsafe())).get()
 		pod = db.get(self.codebase).pod
 		return person and pod and Membership.query(Membership.pod == pod, Membership.person == person.key).get()
 
