@@ -8,15 +8,8 @@ comp.settings = {
 					handle: _.handle
 				}, function(cont) {
 					u.contributors.push(cont.key);
-					comp.core.edit({
-						key: u.key,
-						contributors: u.contributors
-					}, function() {
-						CT.dom.addContent(_.hnode, cont.handle);
-						user.core.update({
-							contributors: u.contributors
-						});
-					});
+					_.up({ contributors: u.contributors });
+					CT.dom.addContent(_.hnode, cont.handle);
 				});
 			},
 			confirm: function() {
@@ -123,6 +116,16 @@ comp.settings = {
 					iden
 				], "bordered padded round");
 			}
+		},
+		tag: function(tag) {
+			return CT.dom.div(tag.name, "bordered padded margined round inline-block");
+		},
+		up: function(modz) {
+			comp.core.edit(CT.merge({
+				key: user.core.get("key"),
+			}, modz), function() {
+				user.core.update(modz);
+			});
 		}
 	},
 	handle: function() {
@@ -139,37 +142,22 @@ comp.settings = {
 		]);
 	},
 	chat: function() {
-		var u = user.core.get();
-		return CT.dom.checkboxAndLabel("chat", u.chat, "enable live chat", null, null, function(cbox) {
-			comp.core.edit({
-				key: u.key,
-				chat: cbox.checked
-			}, function() {
-				user.core.update({
-					chat: cbox.checked
-				});
+		return CT.dom.checkboxAndLabel("chat", user.core.get("chat"),
+			"enable live chat", null, null, function(cbox) {
+				comp.settings._.up({ chat: cbox.checked });
 			});
-		});
 	},
 	remind: function() {
-		var u = user.core.get();
-		return CT.dom.checkboxAndLabel("remind", u.remind,
-				"remind me of upcoming commitments", null, null, function(cbox) {
-				comp.core.edit({
-					key: u.key,
-					remind: cbox.checked
-				}, function() {
-					user.core.update({
-						remind: cbox.checked
-					});
-				});
+		return CT.dom.checkboxAndLabel("remind", user.core.get("remind"),
+			"remind me of upcoming commitments", null, null, function(cbox) {
+				comp.settings._.up({ remind: cbox.checked });
 			});
 	},
 	wallet: function() {
 		var n = CT.dom.div(), flipper = CT.dom.button("show/hide", function() {
 			CT.dom.showHide(main);
 		}, "right up30"), _w = comp.settings._.wall, main;
-		CT.db.one(user.core.get().wallet, function(wall) {
+		CT.db.one(user.core.get("wallet"), function(wall) {
 			_w.balance = CT.dom.div("carecoin (platform wallet) balance: " + wall.outstanding);
 			main = CT.dom.div([
 				_w.balance,
@@ -181,12 +169,39 @@ comp.settings = {
 		});
 		return n;
 	},
+	interests: function() {
+		var intz = CT.dom.div(), u = user.core.get(),
+			_ = comp.settings._;
+		CT.db.multi(u.interests, function(tagz) {
+			CT.dom.setContent(intz, tagz.map(_.tag));
+		});
+		return [
+			intz,
+			CT.dom.button("edit", function() {
+				comp.core.tags(function(tags) {
+					_.up({
+						interests: tags.map(function(t) {
+							return t.key;
+						})
+					});
+					CT.dom.setContent(intz, tags.map(_.tag));
+				}, u.interests.map(function(tag) {
+					return CT.data.get(tag).name;
+				}));
+			})
+		];
+	},
 	init: function() {
+		comp.core.initTags();
 		CT.dom.setContent("ctmain", CT.dom.div([
 			CT.dom.div([
 				CT.dom.div("your basic settings", "biggest"),
 				comp.settings.chat(),
 				comp.settings.remind()
+			], "bordered padded round mb5"),
+			CT.dom.div([
+				CT.dom.div("your special interests", "biggest"),
+				comp.settings.interests()
 			], "bordered padded round mb5"),
 			CT.dom.div([
 				CT.dom.div("your github account", "biggest"),
