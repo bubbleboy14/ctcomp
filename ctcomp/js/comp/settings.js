@@ -2,18 +2,19 @@ comp.settings = {
 	_: {
 		gh: {
 			confirmed: function() {
-				var _ = comp.settings._;
+				var _ = comp.settings._, u = user.core.get();
 				comp.core.edit({
 					modelName: "contributor",
 					handle: _.handle
 				}, function(cont) {
+					u.contributors.push(cont.key);
 					comp.core.edit({
-						key: user.core.get("key"),
-						contributor: cont.key
+						key: u.key,
+						contributors: u.contributors
 					}, function() {
 						CT.dom.setContent(_.hnode, "you're all set!");
 						user.core.update({
-							contributor: cont.key
+							contributors: u.contributors
 						});
 					});
 				});
@@ -125,9 +126,16 @@ comp.settings = {
 		}
 	},
 	handle: function() {
-		var _ = comp.settings._;
-		_.hnode = CT.dom.div(user.core.get("contributor") ? "you're all set!"
-			: CT.dom.button("click here to associate your github account", _.gh.assoc));
+		var _ = comp.settings._, cnode = CT.dom.div();
+		CT.db.multi(user.core.get("contributors"), function(contz) {
+			CT.dom.setContent(cnode, contz.map(function(cont) {
+				return cont.handle;
+			}));
+		});
+		_.hnode = CT.dom.div([
+			cnode,
+			CT.dom.button("click here to associate a github account", _.gh.assoc)
+		]);
 		return _.hnode;
 	},
 	chat: function() {
@@ -158,12 +166,17 @@ comp.settings = {
 			});
 	},
 	wallet: function() {
-		var n = CT.dom.div(), _w = comp.settings._.wall;
+		var n = CT.dom.div(), flipper = CT.dom.button("show/hide", function() {
+			CT.dom.showHide(main);
+		}, "right up30"), _w = comp.settings._.wall, main;
 		CT.db.one(user.core.get().wallet, function(wall) {
 			_w.balance = CT.dom.div("carecoin (platform wallet) balance: " + wall.outstanding);
-			CT.dom.setContent(n, [
+			main = CT.dom.div([
 				_w.balance,
 				comp.settings._.wall.pkey(wall)
+			], "hidden");
+			CT.dom.setContent(n, [
+				flipper, main
 			]);
 		});
 		return n;
