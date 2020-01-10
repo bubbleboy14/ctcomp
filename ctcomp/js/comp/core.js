@@ -380,6 +380,11 @@ comp.core = {
 			});
 		});
 	},
+	initTags: function() {
+		CT.db.get("tag", function(tags) {
+			comp.core._.tags = tags;
+		});
+	},
 	init: function() {
 		var _ = comp.core._;
 		CT.db.get("service", function(services) {
@@ -390,8 +395,6 @@ comp.core = {
 			});
 			_.varieties = Object.keys(_.services);
 		});
-		CT.db.get("tag", function(tags) {
-			_.tags = tags;
-		});
+		comp.core.initTags();
 	}
 };
