@@ -221,3 +221,13 @@ The "%s" pod has just scheduled a meeting. Details:
 Please click <a href='https://fzn.party/stream/widget.html#%s_chat'>here</a> to join the meeting.
 
 That's it!"""
+
+BOARD = """Hello!
+
+Someone in the "%s" pod has just created a message board matching your interests. It's called "%s". Here are the details:
+
+%s
+
+Click <a href='""" + config.web.protocol + """://""" + config.web.domain + """/comp/boards.html'>here</a> to review and discuss.
+
+That's it!"""
