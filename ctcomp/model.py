@@ -1,3 +1,4 @@
+import rel
 from datetime import datetime, timedelta
 from six import string_types
 from cantools import db, config
@@ -8,7 +9,7 @@ from ctcoop.model import *
 from ctdecide.model import Proposal
 from ctstore.model import Product
 from ctmap.model import getzip, Place
-from compTemplates import MEET, PAID, SERVICE, ADJUSTMENT, ADJUSTED, APPOINTMENT, INVITATION, REMINDER, APPLY, EXCLUDE, BLURB, CONVO, DELIVERY, DELIVERED, FEEDBACK
+from compTemplates import MEET, PAID, SERVICE, ADJUSTMENT, ADJUSTED, APPOINTMENT, INVITATION, REMINDER, APPLY, EXCLUDE, BLURB, CONVO, DELIVERY, DELIVERED, FEEDBACK, BOARD
 from ctcomp.mint import mint, balance
 
 ratios = config.ctcomp.ratios
@@ -42,9 +43,14 @@ def membership(person, pod):
 	return Membership.query(Membership.pod == pod.key,
 		Membership.person == person.key).get()
 
+class Tag(db.TimeStampedBase):
+	name = db.String()
+	# helpful especially for providing tagging options
+
 class Person(Member):
 	ip = db.String()                              # optional
 	wallet = db.ForeignKey(kind=Wallet)           # optional
+	interests = db.ForeignKey(kind=Tag, repeated=True)
 	contributors = db.ForeignKey(kind=Contributor, repeated=True)
 	chat = db.Boolean(default=True)
 	remind = db.Boolean(default=True)
@@ -97,10 +103,6 @@ class Person(Member):
 	def commitments(self):
 		return sum([Commitment.query(Commitment.membership == m.key).fetch() for m in self.memberships()], [])
 
-class Tag(db.TimeStampedBase):
-	name = db.String()
-	# helpful especially for providing tagging options
-
 class Resource(Place):
 	editors = db.ForeignKey(kind=Person, repeated=True)
 	name = db.String()
@@ -152,11 +154,25 @@ class Board(db.TimeStampedBase):
 	conversation = db.ForeignKey(kind=Conversation)
 	label = "name"
 
+	def pod(self):
+		return Pod.query(Pod.boards.contains(self.key.urlsafe())).get()
+
+	def interested(self):
+		tagz = set(map(lambda t : t.urlsafe(), self.tags))
+		return filter(lambda p : tagz.intersection(set(map(lambda t : t.urlsafe(),
+			p.interests))), db.get_multi(self.pod().members()))
+
+	def notify(self):
+		bod = BOARD%(self.pod().name, self.name, self.description)
+		for person in self.interested():
+			send_mail(to=person.email, subject="new message board", body=bod)
+
 	def oncreate(self):
 		convo = Conversation(topic=self.name)
 		convo.anonymous = self.anonymous
 		convo.put()
 		self.conversation = convo.key
+		rel.timeout(5, self.notify)
 
 class Pod(db.TimeStampedBase):
 	name = db.String()
