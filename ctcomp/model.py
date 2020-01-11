@@ -1,3 +1,4 @@
+import rel
 from datetime import datetime, timedelta
 from six import string_types
 from cantools import db, config
@@ -171,7 +172,7 @@ class Board(db.TimeStampedBase):
 		convo.anonymous = self.anonymous
 		convo.put()
 		self.conversation = convo.key
-		self.notify()
+		rel.timeout(5, self.notify)
 
 class Pod(db.TimeStampedBase):
 	name = db.String()
