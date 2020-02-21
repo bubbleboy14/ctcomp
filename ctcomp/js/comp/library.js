@@ -56,7 +56,7 @@ comp.library = {
 	slider: function(items) {
 		var cats = {}, mn, _ = comp.library._,
 			liste = CT.dom.div(null, "right"),
-			slide = CT.dom.div(null, "abs all0 r100 scroller"),
+			slide = CT.dom.div(null, "abs all0 r100"),
 			n = CT.dom.div([liste, slide], "full relative"),
 			slider = CT.panel.slider([], liste, slide, null,
 				null, null, true, core.config.ctcomp.blurbs);
