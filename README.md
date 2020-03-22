@@ -5,7 +5,7 @@ This package includes the necessary blockchain/widget/api components for direct 
 # Back (Init Config)
 
     copies = {
-    	".": ["compTemplates.py", "cron.yaml"]
+    	".": ["compTemplates.py"]
     }
     syms = {
     	".": ["_comp.py", "_payday.py"],
@@ -30,6 +30,7 @@ This package includes the necessary blockchain/widget/api components for direct 
     			"line": 0.1,
     			"platform": 1,
     			"framework": 1,
+    			"service": 0.5,
     			"dependency": 0.5,
     			"rnd": 0.2
     		},
@@ -42,6 +43,7 @@ This package includes the necessary blockchain/widget/api components for direct 
     	}
     }
     requires = ["ctcoop", "ctstore", "ctmap"]
+    
 
 # Front (JS Config)
 
@@ -69,6 +71,12 @@ This package includes the necessary blockchain/widget/api components for direct 
     		}
     	},
     	"blurbs": {
+    		"organization": "Helpful groups",
+    		"book": "Good reads and sensible advice",
+    		"web": "Web resources",
+    		"media": "Related media",
+    		"Boards": "Create and utilize message boards.",
+    		"Library": "Add organizations, books, web resources, and media to the resource libary.",
     		"Drivers": "Can you help transport people and things? Click the 'join drivers' button to volunteer. Does someone or something need to get somewhere somehow? Click 'Requests' on the right to request a driver.",
     		"Resources": "Build resource maps.",
     		"Responsibilities": "Task management, including scheduling of and volunteering for pod-related activities.",
@@ -78,7 +86,7 @@ This package includes the necessary blockchain/widget/api components for direct 
     		"Requests": "Include and exclude pod members. Schedule conversations. Update your pod's blurb.",
     		"Content": "Submit web content associated with this pod (most managed pods don't require manual registration).",
     		"Codebases": "Register the codebases associated with this software pod, including platform and r&d repositories.",
-    		"Dependencies": "Please select the frameworks used by this project.",
+    		"Dependencies": "Please select the frameworks and services used by this project.",
     		"Expenses": "Propose an expense (currently supported: one-off dividend).",
     		"Info": "Here's some basic info about this pod.",
     		"Products": "Sell goods and services. Ten percent goes to your pod.",
