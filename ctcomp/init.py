@@ -1,5 +1,5 @@
 copies = {
-	".": ["compTemplates.py", "cron.yaml"]
+	".": ["compTemplates.py"]
 }
 syms = {
 	".": ["_comp.py", "_payday.py"],
