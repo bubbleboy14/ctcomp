@@ -1,6 +1,4 @@
-copies = {
-	".": ["compTemplates.py"]
-}
+templates = "compTemplates.py"
 syms = {
 	".": ["_comp.py", "_payday.py"],
 	"html": ["comp"],
