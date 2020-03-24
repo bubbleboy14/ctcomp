@@ -4,9 +4,7 @@ This package includes the necessary blockchain/widget/api components for direct 
 
 # Back (Init Config)
 
-    copies = {
-    	".": ["compTemplates.py"]
-    }
+    templates = "compTemplates.py"
     syms = {
     	".": ["_comp.py", "_payday.py"],
     	"html": ["comp"],
