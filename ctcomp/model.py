@@ -180,12 +180,14 @@ class Pod(db.TimeStampedBase):
 	blurb = db.Text()
 	pool = db.ForeignKey(kind=Wallet)
 	agent = db.ForeignKey(kind="Pod")
+	needs = db.ForeignKey(kind=Need, repeated=True)
 	tasks = db.ForeignKey(kind=Task, repeated=True)
 	boards = db.ForeignKey(kind=Board, repeated=True)
 	updates = db.ForeignKey(kind=Update, repeated=True)
 	drivers = db.ForeignKey(kind=Person, repeated=True)
 	includers = db.ForeignKey(kind=Person, repeated=True)
 	resources = db.ForeignKey(kind=Resource, repeated=True)
+	offerings = db.ForeignKey(kind=Offering, repeated=True)
 	dependencies = db.ForeignKey(kind="Codebase", repeated=True) # software
 	library = db.ForeignKey(kinds=[Organization, Book, Web, Media], repeated=True) # support
 
