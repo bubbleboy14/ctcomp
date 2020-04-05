@@ -1,4 +1,3 @@
-import rel
 from datetime import datetime, timedelta
 from six import string_types
 from cantools import db, config
@@ -9,7 +8,7 @@ from ctcoop.model import *
 from ctdecide.model import Proposal
 from ctstore.model import Product
 from ctmap.model import getzip, Place
-from compTemplates import MEET, PAID, SERVICE, ADJUSTMENT, ADJUSTED, APPOINTMENT, INVITATION, REMINDER, APPLY, EXCLUDE, BLURB, CONVO, DELIVERY, DELIVERED, FEEDBACK, BOARD
+from compTemplates import MEET, PAID, SERVICE, ADJUSTMENT, ADJUSTED, APPOINTMENT, INVITATION, REMINDER, APPLY, EXCLUDE, BLURB, CONVO, DELIVERY, DELIVERED, FEEDBACK, BOARD, RESOURCE, LIBITEM, NEED, OFFERING
 from ctcomp.mint import mint, balance
 
 ratios = config.ctcomp.ratios
@@ -117,6 +116,11 @@ class Resource(Place):
 		addr = "%s, %s, %s"%(self.address, zcode.city, zcode.state)
 		self.latitude, self.longitude = address2latlng(addr)
 
+	def notify(self, podname, interested):
+		bod = RESOURCE%(podname, self.name, self.description)
+		for person in interested:
+			send_mail(to=person.email, subject="new message board", body=bod)
+
 class LibItem(db.TimeStampedBase):
 	content = db.ForeignKey(kind="Content")
 	editors = db.ForeignKey(kind=Person, repeated=True)
@@ -124,6 +128,11 @@ class LibItem(db.TimeStampedBase):
 	description = db.Text()
 	tags = db.ForeignKey(kind=Tag, repeated=True)
 	label = "name"
+
+	def notify(self, podname, interested):
+		bod = LIBITEM%(podname, self.name, self.description)
+		for person in interested:
+			send_mail(to=person.email, subject="new message board", body=bod)
 
 class Organization(LibItem):
 	url = db.String()
@@ -153,14 +162,9 @@ class Board(db.TimeStampedBase):
 	def pod(self):
 		return Pod.query(Pod.boards.contains(self.key.urlsafe())).get()
 
-	def interested(self):
-		tagz = set(map(lambda t : t.urlsafe(), self.tags))
-		return filter(lambda p : tagz.intersection(set(map(lambda t : t.urlsafe(),
-			p.interests))), db.get_multi(self.pod().members()))
-
-	def notify(self):
-		bod = BOARD%(self.pod().name, self.name, self.description)
-		for person in self.interested():
+	def notify(self, podname, interested):
+		bod = BOARD%(podname, self.name, self.description)
+		for person in interested:
 			send_mail(to=person.email, subject="new message board", body=bod)
 
 	def oncreate(self):
@@ -168,7 +172,6 @@ class Board(db.TimeStampedBase):
 		convo.anonymous = self.anonymous
 		convo.put()
 		self.conversation = convo.key
-		rel.timeout(5, self.notify)
 
 class Pod(db.TimeStampedBase):
 	name = db.String()
@@ -186,6 +189,40 @@ class Pod(db.TimeStampedBase):
 	offerings = db.ForeignKey(kind=Offering, repeated=True)
 	dependencies = db.ForeignKey(kind="Codebase", repeated=True) # software
 	library = db.ForeignKey(kinds=[Organization, Book, Web, Media], repeated=True) # support
+
+	def _trans_boards(self, val):
+		v = val[-1].get()
+		v.notify(self.name, self.interested(v.tags))
+		return val;
+
+	def _trans_library(self, val):
+		v = val[-1].get()
+		v.notify(self.name, self.interested(v.tags))
+		return val;
+
+	def _trans_resources(self, val):
+		v = val[-1].get()
+		v.notify(self.name, self.interested(v.tags))
+		return val;
+
+	def _trans_needs(self, val):
+		self.notify(val[-1].get(), NEED)
+		return val;
+
+	def _trans_offerings(self, val):
+		self.notify(val[-1].get(), OFFERING)
+		return val;
+
+	def notify(self, item, etemp):
+		bod = etemp%(self.name, item.description)
+		for person in self.interested(item.tags):
+			send_mail(to=person.email,
+				subject="new %s"%(item.polytype,), body=bod)
+
+	def interested(self, tags):
+		tagz = set(map(lambda t : t.urlsafe(), tags))
+		return filter(lambda p : tagz.intersection(set(map(lambda t : t.urlsafe(),
+			p.interests))), db.get_multi(self.members()))
 
 	def oncreate(self):
 		email_admins("New Pod", "name: %s\nvariety: %s"%(self.name, self.variety))
