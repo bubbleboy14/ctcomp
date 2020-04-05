@@ -44,7 +44,7 @@ comp.submission = {
 								comp.core.edit(eoz, function() {
 									CT.data.add(res);
 									CT.dom.addContent(_.nodes[stype + "_list"],
-										_[stype](res.key));
+										_[stype](res));
 								});
 							});
 						});
