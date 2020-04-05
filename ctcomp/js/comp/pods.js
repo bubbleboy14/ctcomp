@@ -12,10 +12,10 @@ comp.pods = {
 			main: CT.dom.div(null, "h1 mr160 relative"),
 			right: CT.dom.div(null, "h1 w160p up5 scrolly right")
 		},
-		sections: ["Info", "Boards", "Updates", "Library", "Drivers",
-			"Resources", "Proposals", "Responsibilities", "Adjustments",
-			"Commitments", "Services", "Requests", "Content", "Products",
-			"Codebases", "Dependencies", "Expenses"],
+		sections: ["Info", "Boards", "Needs", "Offerings", "Updates",
+			"Library", "Drivers", "Resources", "Proposals", "Responsibilities",
+			"Adjustments", "Commitments", "Services", "Requests", "Content",
+			"Products", "Codebases", "Dependencies", "Expenses"],
 		proposal: function(key) {
 			var _ = comp.pods._,
 				memship = comp.core.pod2memship(_.current.pod);
