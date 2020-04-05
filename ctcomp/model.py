@@ -43,10 +43,6 @@ def membership(person, pod):
 	return Membership.query(Membership.pod == pod.key,
 		Membership.person == person.key).get()
 
-class Tag(db.TimeStampedBase):
-	name = db.String()
-	# helpful especially for providing tagging options
-
 class Person(Member):
 	ip = db.String()                              # optional
 	wallet = db.ForeignKey(kind=Wallet)           # optional
