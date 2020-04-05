@@ -72,16 +72,14 @@ comp.pods = {
 				})
 			], "bordered padded margined");
 		},
-		need: function(nkey) {
-			var n = CT.data.get(nkey);
+		need: function(n) {
 			return CT.dom.div([
 				n.description,
 				n.tags.map(function(t) { return CT.data.get(t).name; }).join(", "),
 				"closed: " + n.closed,
 			], "bordered padded margined round inline-block");
 		},
-		offering: function(okey) {
-			var o = CT.data.get(okey);
+		offering: function(o) {
 			return CT.dom.div([
 				o.description,
 				o.tags.map(function(t) { return CT.data.get(t).name; }).join(", "),
@@ -340,27 +338,6 @@ comp.pods = {
 				});
 			});
 		},
-		setBoards: function(pod) {
-			CT.db.multi(pod.boards, function(resz) {
-				comp.pods._.frame({
-					boards: resz
-				}, "board", "boards");
-			});
-		},
-		setResources: function(pod) {
-			CT.db.multi(pod.resources, function(resz) {
-				comp.pods._.frame({
-					resources: resz
-				}, "resource", "resources");
-			});
-		},
-		setDependencies: function(pod) {
-			CT.db.multi(pod.dependencies, function(deps) {
-				comp.pods._.frame({
-					dependencies: deps
-				}, "dependency", "dependencies");
-			});
-		},
 		setResponsibilities: function(pod) {
 			var _ = comp.pods._, rz = _.responsibilities,
 				frame = _.frame(null, "responsibility", "responsibilities");
@@ -399,6 +376,14 @@ comp.pods = {
 							}, null, null, task.editors);
 					}
 				}
+			});
+		},
+		setter: function(pod, stype, plur) {
+			var obj = {};
+			plur = plur || (stype + "s");
+			CT.db.multi(pod[plur], function(data) {
+				obj[plur] = data;
+				comp.pods._.frame(obj, stype, plur);
 			});
 		},
 		blurb: function(pod) {
@@ -454,16 +439,12 @@ comp.pods = {
 			memship = comp.core.pod2memship(pod),
 			inclz = CT.dom.div(), content;
 		_.current.pod = pod;
-		_.setBoards(pod);
-		_.setAdjustments(pod);
-		_.setDependencies(pod);
-		_.setResponsibilities(pod);
-		_.frame(pod, "library");
-		["need", "offering"].forEach(function(stype) {
-			CT.db.multi(pod[stype + "s"], function(data) {
-				_.frame(pod, stype, stype + "s");
-			});
+
+		["need", "offering", "board", "resource"].forEach(function(stype) {
+			_.setter(pod, stype);
 		});
+		_.setter(pod, "dependency", "dependencies");
+		_.frame(pod, "library");
 		comp.core.membership(memship.key, function(data) {
 			_.frame(data, "content");
 			_.frame(data, "product", "products");
@@ -525,7 +506,8 @@ comp.pods = {
 			});
 			_.setDrivers(pod);
 			_.setUpdates(pod);
-			_.setResources(pod);
+			_.setAdjustments(pod);
+			_.setResponsibilities(pod);
 			decide.core.util.proposals(_.nodes.proposals, data.proposals);
 			_.restrictions();
 		});
