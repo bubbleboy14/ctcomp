@@ -72,6 +72,22 @@ comp.pods = {
 				})
 			], "bordered padded margined");
 		},
+		need: function(nkey) {
+			var n = CT.data.get(nkey);
+			return CT.dom.div([
+				n.description,
+				n.tags.map(function(t) { return CT.data.get(t).name; }).join(", "),
+				"closed: " + n.closed,
+			], "bordered padded margined round inline-block");
+		},
+		offering: function(okey) {
+			var o = CT.data.get(okey);
+			return CT.dom.div([
+				o.description,
+				o.tags.map(function(t) { return CT.data.get(t).name; }).join(", "),
+				"closed: " + o.closed,
+			], "bordered padded margined round inline-block");
+		},
 		dependency: function(d) {
 			return CT.dom.div(d.repo + " (" + d.variety + ")",
 				"bordered padded margined round inline-block");
@@ -215,11 +231,36 @@ comp.pods = {
 			});
 		},
 		submitter: function(stype) {
-			var _ = comp.pods._, lims = core.config.ctcomp.limits,
-				cur = _.current, pod = cur.pod, counts = cur.counts,
-				memship = comp.core.pod2memship(pod), diff, u;
+			var _ = comp.pods._, cfg = core.config, lims = cfg.ctcomp.limits,
+				cur = _.current, pod = cur.pod, counts = cur.counts, plur, eoz,
+				memship = comp.core.pod2memship(pod), u = user.core.get();
 			return function() {
-				if (stype == "adjustment") {
+				if (stype == "need" || stype == "offering") {
+					comp.core.prompt({
+						isTA: true,
+						prompt: cfg.ctcoop.needs.reflections[stype].prompt,
+						cb: function(desc) {
+							comp.core.tags(function(tagz) {
+								comp.core.edit({
+									modelName: stype,
+									member: u.key,
+									description: desc,
+									tags: tagz.map(function(t) { return t.key; })
+								}, function(res) {
+									plur = stype + "s";
+									eoz = { key: pod.key };
+									pod[plur].push(res.key);
+									eoz[plur] = pod[plur];
+									comp.core.edit(eoz, function() {
+										CT.data.add(res);
+										CT.dom.addContent(_.nodes[stype + "_list"],
+											_[stype](res.key));
+									});
+								});
+							});
+						}
+					});
+				} else if (stype == "adjustment") {
 					comp.core.adjustment(function(adjustment) {
 						CT.dom.addContent(_.nodes.adjustment_list,
 							_.adjustment(adjustment));
@@ -248,7 +289,7 @@ comp.pods = {
 										});
 										comp.core.edit(CT.merge(vals, {
 											modelName: "resource",
-											editors: [user.core.get("key")]
+											editors: [u.key]
 										}), function(res) {
 											pod.resources.push(res.key);
 											comp.core.edit({
@@ -307,7 +348,6 @@ comp.pods = {
 						}
 					});
 				} else if (stype == "codebase") {
-					u = user.core.get();
 					if (!u.contributors.length)
 						return alert("first, go to the settings page to register your github account!");
 					CT.db.multi(u.contributors, function(uconts) {
@@ -814,6 +854,11 @@ comp.pods = {
 		_.setDependencies(pod);
 		_.setResponsibilities(pod);
 		_.frame(pod, "library");
+		["need", "offering"].forEach(function(stype) {
+			CT.db.multi(pod[stype + "s"], function(data) {
+				_.frame(pod, stype, stype + "s");
+			});
+		});
 		comp.core.membership(memship.key, function(data) {
 			_.frame(data, "content");
 			_.frame(data, "product", "products");
