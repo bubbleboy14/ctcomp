@@ -33,181 +33,6 @@ comp.pods = {
 				updates: pod.updates
 			});
 		},
-		name: function(pkey) {
-			var person = CT.data.get(pkey), n = person.firstName;
-			if (person.lastName)
-				n += " " + person.lastName;
-			return n;
-		},
-		item: function(header, data, extras) {
-			return CT.dom.div([
-				CT.dom.div("submitted by: " + comp.pods._.name(CT.data.get(data.membership).person), "right"),
-				CT.dom.div(header, "big"),
-				data.notes.replace(/\n/g, "<br>"),
-				extras,
-				data.passed ? "passed" : "pending"
-			], "bordered padded margined");
-		},
-		codebase: function(c) {
-			comp.pods._.codebases[c.repo] = c;
-			var deps = CT.dom.div(null, "centered");
-			deps.update = function() {
-				CT.db.multi(c.dependencies, function(dz) {
-					CT.dom.setContent(deps, dz.map(function(d) {
-						return CT.dom.div(d.repo, "bordered padded margined round inline-block");
-					}));
-				});
-			};
-			deps.update();
-			return CT.dom.div([
-				CT.dom.div(c.variety, "right"),
-				CT.dom.div(c.owner + " / " + c.repo, "big"),
-				deps, CT.dom.button("add dependencies", function() {
-					comp.core.dependencies(c, function() {
-						comp.core.edit({
-							key: c.key,
-							dependencies: c.dependencies
-						}, deps.update);
-					});
-				})
-			], "bordered padded margined");
-		},
-		need: function(n) {
-			return CT.dom.div([
-				n.description,
-				n.tags.map(function(t) { return CT.data.get(t).name; }).join(", "),
-				"closed: " + n.closed,
-			], "bordered padded margined round inline-block");
-		},
-		offering: function(o) {
-			return CT.dom.div([
-				o.description,
-				o.tags.map(function(t) { return CT.data.get(t).name; }).join(", "),
-				"closed: " + o.closed,
-			], "bordered padded margined round inline-block");
-		},
-		dependency: function(d) {
-			return CT.dom.div(d.repo + " (" + d.variety + ")",
-				"bordered padded margined round inline-block");
-		},
-		board: function(b) {
-			return CT.dom.div([
-				CT.dom.div(b.name, "big"),
-				b.description,
-				"anonymous: " + b.anonymous,
-				b.tags.map(function(t) { return CT.data.get(t).name; }).join(", ")
-			], "bordered padded margined");
-		},
-		resource: function(r) {
-			return CT.dom.div([
-				CT.dom.img(r.icon, "right"),
-				CT.dom.div(r.name, "big"),
-				r.address,
-				r.description,
-				r.tags.map(function(t) { return CT.data.get(t).name; }).join(", ")
-			], "bordered padded margined");
-		},
-		library: function(r) {
-			var n = CT.dom.div(null, "bordered padded margined");
-			CT.db.one(r, function(rdata) {
-				CT.dom.setContent(n, comp.library.view(rdata));
-			});
-			return n;
-		},
-		content: function(c) {
-			return CT.dom.div([
-				CT.dom.div(c.identifier, "big"),
-				CT.dom.link("manual link - probs unnecessary", function() {
-					CT.modal.modal([
-						CT.dom.div("Manual Linking - Probably Not Necessary", "bigger underline"),
-						[
-							"To manually link this content, add <b>&lt;iframe src='",
-							location.protocol,
-							"//",
-							location.host,
-							"/comp/view.html#",
-							c.key,
-							"'&gt;&lt;/iframe&gt;</b> to your web page."
-						].join(""),
-						CT.dom.br(),
-						"Unless you're crafting your site by hand (without the CC API), this is almost certainly not necessary."
-					]);
-				}, null, "centered block")
-			], "bordered padded margined");
-		},
-		product: function(p) {
-			return CT.dom.div([
-				CT.dom.img(p.image, "right wm1-2 hm400p"),
-				CT.dom.div(p.variety, "right italic ph10"),
-				CT.dom.div(p.name, "big"),
-				CT.dom.div(p.price + " carecoins", "bold"),
-				p.description,
-				CT.dom.div(null, "clearnode")
-			], "bordered padded margined");
-		},
-		expense: function(e) {
-			return comp.pods._.item(e.variety + " - " + (e.amount * 100) + "%", e,
-				e.executor && ("executor: " + comp.pods._.name(e.executor)));
-		},
-		service: function(a) { // act
-			return comp.pods._.item(CT.data.get(a.service).name, a);
-		},
-		request: function(r) {
-			var _ = comp.pods._, title = r.change;
-			if (r.person)
-				title += " " + _.name(r.person);
-			return _.item(title, r);
-		},
-		commitment: function(c) {
-			var _ = comp.pods._, n = CT.dom.div(),
-				memship = comp.core.pod2memship(_.current.pod),
-				ismem = c.membership == memship.key;
-			n.adjust = function() {
-				_.estimate(function(estimate) {
-					comp.core.edit({
-						key: c.key,
-						estimate: estimate
-					});
-					if (c.passed && (estimate > c.estimate)) { // requires reapproval
-						comp.core.c({
-							action: "unverify",
-							verifiable: c.key
-						});
-						c.passed = false;
-					}
-					c.estimate = estimate;
-					n.update();
-				}, c.estimate);
-			};
-			n.update = function() {
-				var extras = [c.estimate + " hours per week"];
-				if (ismem) {
-					extras.push(CT.dom.button("adjust", n.adjust));
-				}
-				CT.dom.setContent(n, comp.pods._.item(CT.data.get(c.service).name, c, extras));
-			};
-			n.update();
-			return n;
-		},
-		estimate: function(cb, curval) {
-			curval = curval || 0;
-			var _ = comp.pods._, cfg = core.config.ctcomp,
-				lims = cfg.limits, cur = _.current, counts = cur.counts,
-				diff = lims.commitments - counts.commitments - curval;
-			if (!diff)
-				return alert("you're already committed to the max! scale back something else and try again ;)");
-			comp.core.prompt({
-				prompt: "how many hours per week?",
-				style: "number",
-				max: Math.min(24, diff),
-				initial: curval || Math.min(1, diff),
-				cb: function(estimate) {
-					counts.commitments += estimate - curval;
-					_.nodes.limits.update();
-					cb(estimate);
-				}
-			});
-		},
 		restrictions: function() {
 			var pod = comp.pods._.current.pod,
 				size = comp.core.size(pod.key),
@@ -232,22 +57,6 @@ comp.pods = {
 			CT.dom[driaction]("tlDrivers");
 			CT.dom[resaction]("tlResources");
 			unrestricted || CT.dom.id("tlInfo").firstChild.onclick();
-		},
-		frame: function(data, item, plur, buttname) {
-			var _ = comp.pods._, cfg = core.config.ctcomp,
-				n, content, pcap;
-			plur = plur || item;
-			pcap = CT.parse.capitalize(plur);
-			n = _.nodes[item + "_list"] = CT.dom.div(data && data[plur].map(_[item]));
-			content = [
-				CT.dom.div(pcap, "biggest"),
-				cfg.blurbs[pcap],
-				n
-			];
-			data && content.unshift(CT.dom.button(buttname || "new",
-				comp.submission.submitter(item), "right"));
-			CT.dom.setContent(_.nodes[plur], content);
-			return n;
 		},
 		pod: function(opts, label, cb) {
 			label = label || "this pod";
@@ -297,23 +106,9 @@ comp.pods = {
 				]);
 			});
 		},
-		adjustment: function(a) {
-			var tline = a.name + " => " + a.compensation + " (";
-			if (!a.passed) tline += "not ";
-			tline += "passed)";
-			return CT.dom.div([
-				CT.dom.div(tline, "big"),
-				a.description,
-				CT.dom.link("view details", function() {
-					var deets = CT.dom.div();
-					decide.core.util.proposal(a, deets);
-					CT.modal.modal(deets);
-				})
-			], "bordered padded margined");
-		},
 		setAdjustments: function(pod) {
 			CT.db.get("adjustment", function(adjustments) {
-				comp.pods._.frame({ adjustments: adjustments },
+				comp.generation.frame({ adjustments: adjustments },
 					"adjustment", "adjustments",
 					"review and adjust compensation multipliers");
 			}, null, null, null, {
@@ -340,7 +135,7 @@ comp.pods = {
 		},
 		setResponsibilities: function(pod) {
 			var _ = comp.pods._, rz = _.responsibilities,
-				frame = _.frame(null, "responsibility", "responsibilities");
+				frame = comp.generation.frame(null, "responsibility", "responsibilities");
 			if (rz[pod.key])
 				return rz[pod.key].setParent(frame);
 			rz[pod.key] = new coop.cal.Cal({
@@ -383,7 +178,7 @@ comp.pods = {
 			plur = plur || (stype + "s");
 			CT.db.multi(pod[plur], function(data) {
 				obj[plur] = data;
-				comp.pods._.frame(obj, stype, plur);
+				comp.generation.frame(obj, stype, plur);
 			});
 		},
 		blurb: function(pod) {
@@ -437,17 +232,18 @@ comp.pods = {
 	pod: function(pod) {
 		var _ = comp.pods._, cfg = core.config.ctcomp,
 			memship = comp.core.pod2memship(pod),
-			inclz = CT.dom.div(), content;
+			inclz = CT.dom.div(), content,
+			gen = comp.generation;
 		_.current.pod = pod;
 
 		["need", "offering", "board", "resource"].forEach(function(stype) {
 			_.setter(pod, stype);
 		});
 		_.setter(pod, "dependency", "dependencies");
-		_.frame(pod, "library");
+		gen.frame(pod, "library");
 		comp.core.membership(memship.key, function(data) {
-			_.frame(data, "content");
-			_.frame(data, "product", "products");
+			gen.frame(data, "content");
+			gen.frame(data, "product", "products");
 		});
 		comp.core.pod(pod.key, function(data) {
 			content = [
@@ -502,7 +298,7 @@ comp.pods = {
 			}
 			CT.dom.setContent(_.nodes.info, content);
 			["service", "commitment", "request", "codebase", "expense"].forEach(function(item) {
-				_.frame(data, item, item + "s");
+				gen.frame(data, item, item + "s");
 			});
 			_.setDrivers(pod);
 			_.setUpdates(pod);
