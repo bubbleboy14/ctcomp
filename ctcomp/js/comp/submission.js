@@ -4,7 +4,8 @@ comp.submission = {
 		comp.core.submit(opts, cp, cb || function(ckey) {
 			opts.key = ckey;
 			comp.core.podup(cp.key, stype + "s", opts);
-			CT.dom.addContent(_.nodes[stype + "_list"], _[stype](opts));
+			CT.dom.addContent(_.nodes[stype + "_list"],
+				comp.generation[stype](opts));
 		}, stype, noteprompt, ps);
 	},
 	consub: function(identifier, memship, cb) {
@@ -15,7 +16,8 @@ comp.submission = {
 			membership: memship.key
 		}, function(content) {
 			CT.data.add(content);
-			CT.dom.addContent(_.nodes.content_list, _.content(content));
+			CT.dom.addContent(_.nodes.content_list, 
+				comp.generation.content(content));
 			cb && cb(content);
 		});
 	},
@@ -23,7 +25,7 @@ comp.submission = {
 		var _ = comp.pods._, cfg = core.config, lims = cfg.ctcomp.limits,
 			cur = _.current, pod = cur.pod, counts = cur.counts, plur, eoz,
 			memship = comp.core.pod2memship(pod), u = user.core.get(),
-			sub = comp.submission;
+			sub = comp.submission, gen = comp.generation;
 		return function() {
 			if (stype == "need" || stype == "offering") {
 				comp.core.prompt({
@@ -44,7 +46,7 @@ comp.submission = {
 								comp.core.edit(eoz, function() {
 									CT.data.add(res);
 									CT.dom.addContent(_.nodes[stype + "_list"],
-										comp.generation[stype](res));
+										gen[stype](res));
 								});
 							});
 						});
@@ -53,7 +55,7 @@ comp.submission = {
 			} else if (stype == "adjustment") {
 				comp.core.adjustment(function(adjustment) {
 					CT.dom.addContent(_.nodes.adjustment_list,
-						_.adjustment(adjustment));
+						gen.adjustment(adjustment));
 				}, pod.variety);
 			} else if (stype == "resource") {
 				comp.core.prompt({
@@ -88,7 +90,7 @@ comp.submission = {
 										}, function() {
 											CT.data.add(res);
 											CT.dom.addContent(_.nodes.resource_list,
-												_.resource(res));
+												gen.resource(res));
 										});
 									});
 								});
@@ -110,7 +112,8 @@ comp.submission = {
 								library: pod.library
 							}, function() {
 								CT.data.add(res);
-								CT.dom.addContent(_.nodes.library_list, _.library(res.key));
+								CT.dom.addContent(_.nodes.library_list,
+									gen.library(res.key));
 							});
 						});
 					});
@@ -163,7 +166,7 @@ comp.submission = {
 									}, function(cbase) {
 										CT.data.add(cbase);
 										CT.dom.addContent(_.nodes.codebase_list,
-											_.codebase(cbase));
+											gen.codebase(cbase));
 									});
 								}
 							});
@@ -199,7 +202,7 @@ comp.submission = {
 													boards: pod.boards
 												}, function() {
 													CT.dom.addContent(_.nodes.board_list,
-														_.board(board));
+														gen.board(board));
 												});
 											});
 										});
@@ -249,7 +252,8 @@ comp.submission = {
 															key: memship.key,
 															products: memship.products
 														}, function() {
-															CT.dom.addContent(_.nodes.product_list, _.product(prod));
+															CT.dom.addContent(_.nodes.product_list,
+																gen.product(prod));
 														});
 													});
 												});
@@ -279,7 +283,7 @@ comp.submission = {
 				});
 			} else if (stype == "commitment") {
 				comp.core.services(function(service) {
-					_.estimate(function(estimate) {
+					gen.estimate(function(estimate) {
 						sub.submit({
 							service: service.key,
 							estimate: estimate
@@ -309,10 +313,10 @@ comp.submission = {
 						reqmodes.unshift("delivery");
 					comp.core.choice({
 						data: reqmodes,
-						cb: _.change
+						cb: sub.change
 					});
 				} else
-					_.change("include");
+					sub.change("include");
 			}
 		};
 	},
