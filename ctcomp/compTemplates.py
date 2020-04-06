@@ -122,7 +122,7 @@ That's it!"""
 
 SERVICE = """Hello!
 
-%s of the "%s" pod has reported performing the following service: %s. Details:
+%s of the "%s" pod has reported the following service: %s. Details:
 
 %s
 
