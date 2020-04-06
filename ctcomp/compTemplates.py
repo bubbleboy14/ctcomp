@@ -122,7 +122,7 @@ That's it!"""
 
 SERVICE = """Hello!
 
-%s of the "%s" pod has reported performing the following service: %s. Details:
+%s of the "%s" pod has reported the following service: %s. Details:
 
 %s
 
@@ -229,5 +229,45 @@ Someone in the "%s" pod has just created a message board matching your interests
 %s
 
 Click <a href='""" + config.web.protocol + """://""" + config.web.domain + """/comp/boards.html'>here</a> to review and discuss.
+
+That's it!"""
+
+RESOURCE = """Hello!
+
+Someone in the "%s" pod has just mapped a resource matching your interests. It's called "%s". Here are the details:
+
+%s
+
+Click <a href='""" + config.web.protocol + """://""" + config.web.domain + """/map'>here</a> to check it out.
+
+That's it!"""
+
+LIBITEM = """Hello!
+
+Someone in the "%s" pod has just added a resource matching your interests to the library. It's called "%s". Here are the details:
+
+%s
+
+Click <a href='""" + config.web.protocol + """://""" + config.web.domain + """/user/results.html'>here</a> to poke around.
+
+That's it!"""
+
+NEED = """Hello!
+
+Someone in the "%s" pod has just submitted a request matching your interests. Here are the details:
+
+%s
+
+Click <a href='""" + config.web.protocol + """://""" + config.web.domain + """/coop/needs.html'>here</a> to poke around.
+
+That's it!"""
+
+OFFERING = """Hello!
+
+Someone in the "%s" pod has just offered a resource matching your interests. Here are the details:
+
+%s
+
+Click <a href='""" + config.web.protocol + """://""" + config.web.domain + """/coop/offerings.html'>here</a> to poke around.
 
 That's it!"""
