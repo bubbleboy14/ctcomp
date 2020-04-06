@@ -31,9 +31,29 @@ class Wallet(db.TimeStampedBase):
 			self.outstanding -= amount
 			self.put()
 
-	def deposit(self, amount):
+	def debit(self, amount, note, details=None):
+		if amount > self.outstanding:
+			error("you don't have that much!")
+		Debit(wallet=self.key, amount=amount, note=note, details=details).put()
+		self.outstanding -= amount
+		self.put()
+
+	def deposit(self, amount, note, details=None):
+		Deposit(wallet=self.key, amount=amount, note=note, details=details).put()
 		self.outstanding += amount
 		self.put()
+
+class LedgerItem(db.TimeStampedBase):
+	wallet = db.ForeignKey(kind=Wallet)
+	amount = db.Float()
+	note = db.String()
+	details = db.Text()
+
+class Deposit(LedgerItem):
+	pass
+
+class Debit(LedgerItem):
+	pass
 
 class Contributor(db.TimeStampedBase):
 	handle = db.String()
@@ -677,11 +697,9 @@ class Payment(Verifiable):
 		memship = self.membership.get()
 		recip = memship.person.get()
 		pod = memship.pod.get()
-		paywall = payer.wallet.get()
-		paywall.outstanding -= self.amount
+		payer.wallet.get().debit(self.amount)
 		memship.deposit(self.amount, pay=True)
 		self.passed = True
-		paywall.put()
 		self.put()
 		body = PAID%(self.amount, payer.email, recip.email, pod.name, self.notes)
 		for target in [payer, recip]:
