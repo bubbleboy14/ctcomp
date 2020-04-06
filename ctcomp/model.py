@@ -74,6 +74,14 @@ class Person(Member):
 				podz.add(ipod)
 				invitation.send(self)
 
+	def help_match(self, item): # overrides Member.help_match() in ctcoop.model
+		which = item.polytype
+		isneed = which == "need"
+		pod = Pod.query(getattr(Pod, which + "s").contains(item.key.urlsafe())).get()
+		reg_act(membership(self, pod).key, pod.support_service(),
+			[isneed and self.key or item.member], [isneed and item.member or self.key],
+			item.description)
+
 	def enroll(self, pod):
 		memship = membership(self, pod)
 		if not memship:
@@ -277,14 +285,11 @@ class Pod(db.TimeStampedBase):
 		self.deposit(member, service.compensation * recipient_count)
 
 	def support_service(self):
-		if self.variety != "support":
-			return
-		service = Service.query(Service.name == self.name,
+		sname = (self.variety == "support") and self.name or "support"
+		service = Service.query(Service.name == sname,
 			Service.variety == self.variety).get()
 		if not service:
-			service = Service()
-			service.name = self.name
-			service.variety = self.variety
+			service = Service(name=sname, variety=self.variety)
 			service.put()
 		return service.key
 
