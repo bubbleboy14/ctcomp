@@ -42,6 +42,7 @@ comp.generation = {
 		return CT.dom.div([
 			n.description,
 			n.tags.map(function(t) { return CT.data.get(t).name; }).join(", "),
+			"ongoing: " + n.ongoing,
 			"closed: " + n.closed,
 		], "bordered padded margined round inline-block");
 	},
@@ -49,6 +50,7 @@ comp.generation = {
 		return CT.dom.div([
 			o.description,
 			o.tags.map(function(t) { return CT.data.get(t).name; }).join(", "),
+			"ongoing: " + o.ongoing,
 			"closed: " + o.closed,
 		], "bordered padded margined round inline-block");
 	},

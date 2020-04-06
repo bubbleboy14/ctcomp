@@ -33,21 +33,28 @@ comp.submission = {
 					prompt: cfg.ctcoop.needs.reflections[stype].prompt,
 					cb: function(desc) {
 						comp.core.tags(function(tagz) {
-							comp.core.edit({
-								modelName: stype,
-								member: u.key,
-								description: desc,
-								tags: tagz.map(function(t) { return t.key; })
-							}, function(res) {
-								plur = stype + "s";
-								eoz = { key: pod.key };
-								pod[plur].push(res.key);
-								eoz[plur] = pod[plur];
-								comp.core.edit(eoz, function() {
-									CT.data.add(res);
-									CT.dom.addContent(_.nodes[stype + "_list"],
-										gen[stype](res));
-								});
+							comp.core.choice({
+								prompt: "is this " + stype + " ongoing?",
+								data: ["just this once", "ongoing"],
+								cb: function(og) {
+									comp.core.edit({
+										modelName: stype,
+										member: u.key,
+										description: desc,
+										ongoing: og == "ongoing",
+										tags: tagz.map(function(t) { return t.key; })
+									}, function(res) {
+										plur = stype + "s";
+										eoz = { key: pod.key };
+										pod[plur].push(res.key);
+										eoz[plur] = pod[plur];
+										comp.core.edit(eoz, function() {
+											CT.data.add(res);
+											CT.dom.addContent(_.nodes[stype + "_list"],
+												gen[stype](res));
+										});
+									});
+								}
 							});
 						});
 					}
