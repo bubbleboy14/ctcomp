@@ -74,6 +74,8 @@ This package includes the necessary blockchain/widget/api components for direct 
     		"web": "Web resources",
     		"media": "Related media",
     		"Boards": "Create and utilize message boards.",
+    		"Needs": "What do you need? Please ask.",
+    		"Offerings": "Would you like to offer something?",
     		"Library": "Add organizations, books, web resources, and media to the resource libary.",
     		"Drivers": "Can you help transport people and things? Click the 'join drivers' button to volunteer. Does someone or something need to get somewhere somehow? Click 'Requests' on the right to request a driver.",
     		"Resources": "Build resource maps.",
