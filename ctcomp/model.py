@@ -31,20 +31,21 @@ class Wallet(db.TimeStampedBase):
 			self.outstanding -= amount
 			self.put()
 
-	def debit(self, amount, note, details=None):
+	def debit(self, amount, pod, note, details=None):
 		if amount > self.outstanding:
 			error("you don't have that much!")
-		Debit(wallet=self.key, amount=amount, note=note, details=details).put()
+		Debit(wallet=self.key, pod=pod.key, amount=amount, note=note, details=details).put()
 		self.outstanding -= amount
 		self.put()
 
-	def deposit(self, amount, note, details=None):
-		Deposit(wallet=self.key, amount=amount, note=note, details=details).put()
+	def deposit(self, amount, pod, note, details=None):
+		Deposit(wallet=self.key, pod=pod.key, amount=amount, note=note, details=details).put()
 		self.outstanding += amount
 		self.put()
 
 class LedgerItem(db.TimeStampedBase):
 	wallet = db.ForeignKey(kind=Wallet)
+	pod = db.ForeignKey(kind="Pod")
 	amount = db.Float()
 	note = db.String()
 	details = db.Text()
@@ -284,16 +285,17 @@ class Pod(db.TimeStampedBase):
 		mems = Membership.query(Membership.pod == self.key).fetch()
 		return noperson and mems or [mem.person for mem in mems]
 
-	def deposit(self, member, amount, nocode=False, pay=False):
+	def deposit(self, member, amount, note, details=None, nocode=False, pay=False):
 		memwall = member.wallet.get()
 		if pay:
 			memcut = amount * ratios.pay
 			amount -= memcut
-			memwall.deposit(memcut)
+			memwall.deposit(memcut, self, note, details)
 		else:
-			memwall.deposit(amount)
-		self.pool.get().deposit(amount)
-		self.agent and self.agent.get().pool.get().deposit(amount * ratios.agent)
+			memwall.deposit(amount, self, note, details)
+		self.pool.get().deposit(amount, self, note, details)
+		self.agent and self.agent.get().pool.get().deposit(amount * ratios.agent,
+			self, note, details)
 		if not nocode:
 			for codebase in self.codebases():
 				codebase.deposit(amount)
@@ -301,8 +303,9 @@ class Pod(db.TimeStampedBase):
 			for dependency in db.get_multi(self.dependencies):
 				dependency.deposit(depcut)
 
-	def service(self, member, service, recipient_count):
-		self.deposit(member, service.compensation * recipient_count)
+	def service(self, member, service, recipient_count, details):
+		self.deposit(member, service.compensation * recipient_count,
+			"service: %s (%s)"%(service.name, service.variety), details)
 
 	def support_service(self):
 		sname = (self.variety == "support") and self.name or "support"
@@ -340,8 +343,8 @@ class Membership(db.TimeStampedBase):
 	proposals = db.ForeignKey(kind=Proposal, repeated=True)
 	products = db.ForeignKey(kind=Product, repeated=True)
 
-	def deposit(self, amount, nocode=False, pay=False):
-		self.pod.get().deposit(self.person.get(), amount, nocode, pay)
+	def deposit(self, amount, note, details=None, nocode=False, pay=False):
+		self.pod.get().deposit(self.person.get(), amount, note, details, nocode, pay)
 
 class Invitation(db.TimeStampedBase):
 	membership = db.ForeignKey(kind=Membership)
@@ -439,9 +442,11 @@ class Codebase(db.TimeStampedBase):
 		total = float(sum([cont.count for cont in contz]))
 		platcut = amount * ratios.code.get(self.variety, ratios.code.rnd)
 		log('dividing %s cut (%s) among %s contributors'%(self.variety, platcut, len(contz)))
+		details = "variety: %s\nowner: %s"%(self.variety, self.owner)
 		for contrib in contz:
 			memship = contrib.membership()
-			memship and memship.deposit(platcut * contrib.count / total, True)
+			memship and memship.deposit(platcut * contrib.count / total,
+				"code usage: %s@%s"%(contrib.handle(), self.repo), details, True)
 		depcut = amount * ratios.code.dependency
 		dnum = len(self.dependencies)
 		if dnum:
@@ -472,6 +477,9 @@ class Contribution(db.TimeStampedBase):
 	contributor = db.ForeignKey(kind=Contributor)
 	count = db.Integer(default=0)
 
+	def handle(self):
+		return self.contributor.get().handle
+
 	def membership(self):
 		person = Person.query(Person.contributors.contains(self.contributor.urlsafe())).get()
 		pod = db.get(self.codebase).pod
@@ -480,7 +488,11 @@ class Contribution(db.TimeStampedBase):
 	def refresh(self, total):
 		diff = total - self.count
 		if diff:
-			self.membership().deposit(diff * ratios.code.line, True)
+			cbase = self.codebase.get()
+			self.membership().deposit(diff * ratios.code.line,
+				"code commits: %s@%s"%(self.handle(), cbase.repo),
+				"variety: %s\nowner: %s\nbatch: %s\ntotal: %s"%(cbase.variety,
+					cbase.owner, diff, total), True)
 			self.count = total
 			self.put()
 
@@ -630,7 +642,8 @@ class Appointment(Verifiable):
 	def fulfill(self):
 		if not self.verified():
 			return False
-		self.membership.get().deposit(self.timeslot.get().duration)
+		self.membership.get().deposit(self.timeslot.get().duration,
+			"appointment: %s"%(self.task().name,), self.notes)
 		self.passed = True
 		self.put()
 		return True
@@ -663,7 +676,8 @@ class Delivery(Verifiable):
 		if self.passed or not self.verified():
 			return False
 		self.pod().deposit(self.driver.get(),
-			ratios.delivery + ratios.mileage * self.miles)
+			ratios.delivery + ratios.mileage * self.miles,
+			"delivery: %s miles"%(self.miles,), self.notes)
 		self.passed = True
 		self.put()
 		return True
@@ -697,8 +711,10 @@ class Payment(Verifiable):
 		memship = self.membership.get()
 		recip = memship.person.get()
 		pod = memship.pod.get()
-		payer.wallet.get().debit(self.amount)
-		memship.deposit(self.amount, pay=True)
+		payer.wallet.get().debit(self.amount,
+			"payment to %s"%(recip.email,), self.notes)
+		memship.deposit(self.amount, "payment from %s"%(payer.email,),
+			self.notes, pay=True)
 		self.passed = True
 		self.put()
 		body = PAID%(self.amount, payer.email, recip.email, pod.name, self.notes)
@@ -719,9 +735,8 @@ class Expense(Verifiable):
 		div = self.amount * pool.outstanding
 		cut = div / len(people)
 		for person in people:
-			person.wallet.get().deposit(cut)
-		pool.outstanding -= div
-		pool.put()
+			person.wallet.get().deposit(cut, pod, "dividend")
+		pool.debit(div, pod, "dividend")
 
 	# reimbursement requires $$ conversion...
 	def reimbursement(self):
@@ -739,9 +754,11 @@ class Commitment(Verifiable):
 
 	def deposit(self, numdays=1):
 		service = self.service.get()
-		log("compensating commitment: %s service (%s); estimated %s hours per week; paying for %s days"%(service.name,
-			service.compensation, self.estimate, numdays))
-		self.membership.get().deposit(service.compensation * self.estimate * numdays / 7.0)
+		details = "compensating commitment: %s service (%s); estimated %s hours per week; paying for %s days"%(service.name,
+			service.compensation, self.estimate, numdays)
+		log(details)
+		self.membership.get().deposit(service.compensation * self.estimate * numdays / 7.0,
+			"commitment: %s"%(service.name,), details)
 
 def task2pod(task):
 	return Pod.query(Pod.tasks.contains(task.key.urlsafe())).get()
@@ -771,7 +788,8 @@ def payCal():
 		if slot:
 			log("confirm: %s (%s)"%(task.name, task.mode))
 			if task.mode == "automatic":
-				pod.deposit(person, slot.duration)
+				pod.deposit(person, slot.duration,
+					"task: %s"%(task.name,), task.description)
 			elif task.mode == "email confirmation":
 				appointment(slot, task, pod, person)
 		if person.remind:
@@ -789,7 +807,8 @@ def payRes():
 		person = res.editors[0].get()
 		log("paying %s of '%s' pod for posting '%s' resource"%(person.firstName,
 			pod.name, resource.name))
-		pod.deposit(person, ratios.resource)
+		pod.deposit(person, ratios.resource, "resource: %s"%(resource.name,),
+			resource.description)
 
 def payDay():
 	log("payday!", important=True)
@@ -821,7 +840,7 @@ class Act(Verifiable):
 		pod = self.pod()
 		service = self.service.get()
 		for worker in db.get_multi(self.workers):
-			pod.service(worker, service, count)
+			pod.service(worker, service, count, self.notes)
 		self.passed = True
 		self.put()
 		return True
