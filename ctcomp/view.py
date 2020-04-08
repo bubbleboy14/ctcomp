@@ -12,7 +12,7 @@ def view(user, content):
 	view.put()
 	membership = content.membership.get()
 	membership.pod.get().deposit(membership.person.get(),
-		config.ctcomp.ratios.view,
+		config.ctcomp.ratios.view, view,
 		"viewed: %s"%(content.identifier,),
 		"view: %s"%(view.key.urlsafe(),))
 

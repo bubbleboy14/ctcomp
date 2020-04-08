@@ -31,21 +31,24 @@ class Wallet(db.TimeStampedBase):
 			self.outstanding -= amount
 			self.put()
 
-	def debit(self, amount, pod, note, details=None):
+	def debit(self, amount, pod, deed, note, details=None):
 		if amount > self.outstanding:
 			error("you don't have that much!")
-		Debit(wallet=self.key, pod=pod.key, amount=amount, note=note, details=details).put()
+		Debit(wallet=self.key, pod=pod.key, deed=deed.key,
+			amount=amount, note=note, details=details).put()
 		self.outstanding -= amount
 		self.put()
 
-	def deposit(self, amount, pod, note, details=None):
-		Deposit(wallet=self.key, pod=pod.key, amount=amount, note=note, details=details).put()
+	def deposit(self, amount, pod, deed, note, details=None):
+		Deposit(wallet=self.key, pod=pod.key, deed=deed.key,
+			amount=amount, note=note, details=details).put()
 		self.outstanding += amount
 		self.put()
 
 class LedgerItem(db.TimeStampedBase):
 	wallet = db.ForeignKey(kind=Wallet)
 	pod = db.ForeignKey(kind="Pod")
+	deed = db.ForeignKey() # various options
 	amount = db.Float()
 	note = db.String()
 	details = db.Text()
@@ -285,26 +288,26 @@ class Pod(db.TimeStampedBase):
 		mems = Membership.query(Membership.pod == self.key).fetch()
 		return noperson and mems or [mem.person for mem in mems]
 
-	def deposit(self, member, amount, note, details=None, nocode=False, pay=False):
+	def deposit(self, member, amount, deed, note, details=None, nocode=False, pay=False):
 		memwall = member.wallet.get()
 		if pay:
 			memcut = amount * ratios.pay
 			amount -= memcut
-			memwall.deposit(memcut, self, note, details)
+			memwall.deposit(memcut, self, deed, note, details)
 		else:
-			memwall.deposit(amount, self, note, details)
-		self.pool.get().deposit(amount, self, note, details)
+			memwall.deposit(amount, self, deed, note, details)
+		self.pool.get().deposit(amount, self, deed, note, details)
 		self.agent and self.agent.get().pool.get().deposit(amount * ratios.agent,
-			self, note, details)
+			self, deed, note, details)
 		if not nocode:
 			for codebase in self.codebases():
-				codebase.deposit(amount)
+				codebase.deposit(amount, deed)
 			depcut = amount * ratios.code.dependency
 			for dependency in db.get_multi(self.dependencies):
-				dependency.deposit(depcut)
+				dependency.deposit(depcut, deed)
 
 	def service(self, member, service, recipient_count, details):
-		self.deposit(member, service.compensation * recipient_count,
+		self.deposit(member, service.compensation * recipient_count, service,
 			"service: %s (%s)"%(service.name, service.variety), details)
 
 	def support_service(self):
@@ -343,8 +346,8 @@ class Membership(db.TimeStampedBase):
 	proposals = db.ForeignKey(kind=Proposal, repeated=True)
 	products = db.ForeignKey(kind=Product, repeated=True)
 
-	def deposit(self, amount, note, details=None, nocode=False, pay=False):
-		self.pod.get().deposit(self.person.get(), amount, note, details, nocode, pay)
+	def deposit(self, amount, deed, note, details=None, nocode=False, pay=False):
+		self.pod.get().deposit(self.person.get(), amount, deed, note, details, nocode, pay)
 
 class Invitation(db.TimeStampedBase):
 	membership = db.ForeignKey(kind=Membership)
@@ -436,7 +439,7 @@ class Codebase(db.TimeStampedBase):
 	dependencies = db.ForeignKey(kind="Codebase", repeated=True)
 	label = "repo"
 
-	def deposit(self, amount):
+	def deposit(self, amount, deed):
 		log('compensating "%s/%s" codebase: %s'%(self.owner, self.repo, amount))
 		contz = self.contributions()
 		total = float(sum([cont.count for cont in contz]))
@@ -445,7 +448,7 @@ class Codebase(db.TimeStampedBase):
 		details = "variety: %s\nowner: %s"%(self.variety, self.owner)
 		for contrib in contz:
 			memship = contrib.membership()
-			memship and memship.deposit(platcut * contrib.count / total,
+			memship and memship.deposit(platcut * contrib.count / total, deed,
 				"code usage: %s@%s"%(contrib.handle(), self.repo), details, True)
 		depcut = amount * ratios.code.dependency
 		dnum = len(self.dependencies)
@@ -453,7 +456,7 @@ class Codebase(db.TimeStampedBase):
 			depshare = depcut / dnum
 			log('dividing dependency cut (%s) among %s codebases'%(depcut, dnum))
 			for dep in db.get_multi(self.dependencies):
-				dep.deposit(depshare)
+				dep.deposit(depshare, deed)
 
 	def contributions(self, asmap=False):
 		clist = Contribution.query(Contribution.codebase == self.key).fetch()
@@ -464,13 +467,18 @@ class Codebase(db.TimeStampedBase):
 			contz[cont.contributor.get().handle] = cont
 		return contz
 
-	def refresh(self):
+	def refresh(self, cbatch):
 		freshies = fetch("api.github.com", "/repos/%s/%s/contributors"%(self.owner,
 			self.repo), asjson=True, protocol="https")
+		pcount = 0
+		ccount = 0
 		for item in freshies:
 			log("checking for: %s"%(item["login"],), 1)
 			contrib = getContribution(self, item["login"])
-			contrib and contrib.refresh(item["contributions"])
+			if contrib:
+				pcount += 1
+				ccount += contrib.refresh(item["contributions"], cbatch)
+		return "%s/%s: %s contributors, %s contributions"%(self.owner, self.repo, pcount, ccount)
 
 class Contribution(db.TimeStampedBase):
 	codebase = db.ForeignKey(kind=Codebase)
@@ -485,16 +493,38 @@ class Contribution(db.TimeStampedBase):
 		pod = db.get(self.codebase).pod
 		return person and pod and Membership.query(Membership.pod == pod, Membership.person == person.key).get()
 
-	def refresh(self, total):
+	def refresh(self, total, cbatch):
 		diff = total - self.count
 		if diff:
 			cbase = self.codebase.get()
-			self.membership().deposit(diff * ratios.code.line,
+			self.membership().deposit(diff * ratios.code.line, cbatch,
 				"code commits: %s@%s"%(self.handle(), cbase.repo),
 				"variety: %s\nowner: %s\nbatch: %s\ntotal: %s"%(cbase.variety,
 					cbase.owner, diff, total), True)
 			self.count = total
 			self.put()
+		return diff
+
+class PayBatch(db.TimeStampedBase):
+	count = db.Integer(default=0)
+	variety = db.String()
+	details = db.Text()
+
+def payCode():
+	log("payCode!", important=True)
+	cbz = Codebase.query().fetch()
+	lcbz = len(cbz)
+	cbatch = PayBatch(variety="code", count=lcbz)
+	cbatch.put()
+	log("found %s registered codebases"%(lcbz,), important=True)
+	deetz = []
+	for cb in cbz:
+		cbline = cb.refresh(cbatch)
+		log(cbline)
+		deetz.append(cbline)
+	cbatch.details = "\n".join(deetz)
+	cbatch.put()
+	log("refreshed %s codebases"%(lcbz,), important=True)
 
 def getContribution(codebase, handle):
 	butor = Contributor.query(Contributor.handle == handle).get()
@@ -643,7 +673,7 @@ class Appointment(Verifiable):
 		if not self.verified():
 			return False
 		self.membership.get().deposit(self.timeslot.get().duration,
-			"appointment: %s"%(self.task().name,), self.notes)
+			self, "appointment: %s"%(self.task().name,), self.notes)
 		self.passed = True
 		self.put()
 		return True
@@ -676,7 +706,7 @@ class Delivery(Verifiable):
 		if self.passed or not self.verified():
 			return False
 		self.pod().deposit(self.driver.get(),
-			ratios.delivery + ratios.mileage * self.miles,
+			ratios.delivery + ratios.mileage * self.miles, self,
 			"delivery: %s miles"%(self.miles,), self.notes)
 		self.passed = True
 		self.put()
@@ -713,7 +743,7 @@ class Payment(Verifiable):
 		pod = memship.pod.get()
 		payer.wallet.get().debit(self.amount,
 			"payment to %s"%(recip.email,), self.notes)
-		memship.deposit(self.amount, "payment from %s"%(payer.email,),
+		memship.deposit(self.amount, self, "payment from %s"%(payer.email,),
 			self.notes, pay=True)
 		self.passed = True
 		self.put()
@@ -735,8 +765,8 @@ class Expense(Verifiable):
 		div = self.amount * pool.outstanding
 		cut = div / len(people)
 		for person in people:
-			person.wallet.get().deposit(cut, pod, "dividend")
-		pool.debit(div, pod, "dividend")
+			person.wallet.get().deposit(cut, pod, self, "dividend")
+		pool.debit(div, pod, self, "dividend")
 
 	# reimbursement requires $$ conversion...
 	def reimbursement(self):
@@ -758,7 +788,7 @@ class Commitment(Verifiable):
 			service.compensation, self.estimate, numdays)
 		log(details)
 		self.membership.get().deposit(service.compensation * self.estimate * numdays / 7.0,
-			"commitment: %s"%(service.name,), details)
+			self, "commitment: %s"%(service.name,), details)
 
 def task2pod(task):
 	return Pod.query(Pod.tasks.contains(task.key.urlsafe())).get()
@@ -776,10 +806,13 @@ def remind(reminders):
 			body=REMINDER%("\n".join(reminders[pkey]),))
 
 def payCal():
-	log("paycal!", important=True)
+	log("payCal!", important=True)
 	today = datetime.now()
 	tomorrow = today + timedelta(1)
 	reminders = {}
+	cbatch = PayBatch(variety="calendar")
+	cbatch.put()
+	deetz = []
 	for stew in Stewardship.query().all():
 		task = stew.task()
 		pod = task2pod(task)
@@ -788,7 +821,9 @@ def payCal():
 		if slot:
 			log("confirm: %s (%s)"%(task.name, task.mode))
 			if task.mode == "automatic":
-				pod.deposit(person, slot.duration,
+				cbatch.count += 1
+				deetz.append("%s - %s hours"%(task.name, slot.duration))
+				pod.deposit(person, slot.duration, cbatch,
 					"task: %s"%(task.name,), task.description)
 			elif task.mode == "email confirmation":
 				appointment(slot, task, pod, person)
@@ -797,31 +832,33 @@ def payCal():
 			if slot:
 				log("remind: %s (%s)"%(task.name, task.mode))
 				remember(slot, task, pod, person, reminders)
+	cbatch.details = "\n".join(deetz)
+	cbatch.put()
 	remind(reminders)
 
 def payRes():
-	log("payres!", important=True)
+	log("payRes!", important=True)
 	yesterday = datetime.now() - timedelta(1)
 	for res in Resource.query(Resource.created > yesterday).all():
 		pod = Pod.query(Pod.resources.contains(res.key.urlsafe())).get()
 		person = res.editors[0].get()
 		log("paying %s of '%s' pod for posting '%s' resource"%(person.firstName,
 			pod.name, resource.name))
-		pod.deposit(person, ratios.resource, "resource: %s"%(resource.name,),
-			resource.description)
+		pod.deposit(person, ratios.resource, resource,
+			"resource: %s"%(resource.name,), resource.description)
 
-def payDay():
-	log("payday!", important=True)
+def payComms():
+	log("payComms!", important=True)
 	commz = Commitment.query(Commitment.passed == True).fetch()
 	log("found %s live commitments"%(len(commz),), important=True)
 	for comm in commz:
 		comm.deposit()
 	log("compensated pods and members corresponding to %s commitments"%(len(commz),), important=True)
-	cbz = Codebase.query().fetch()
-	log("found %s registered codebases"%(len(cbz),), important=True)
-	for cb in cbz:
-		cb.refresh()
-	log("refreshed %s codebases"%(len(cbz),), important=True)
+
+def payDay():
+	log("payday!", important=True)
+	payComms()
+	payCode()
 	payRes()
 	payCal()
 
