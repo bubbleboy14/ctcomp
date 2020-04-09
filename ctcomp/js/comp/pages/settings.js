@@ -10,6 +10,7 @@ CT.require("CT.trans");
 CT.require("core");
 CT.require("user.core");
 CT.require("comp.core");
+CT.require("comp.ledger");
 CT.require("comp.settings");
 
 CT.onload(function() {
