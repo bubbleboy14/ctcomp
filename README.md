@@ -73,6 +73,7 @@ This package includes the necessary blockchain/widget/api components for direct 
     		"book": "Good reads and sensible advice",
     		"web": "Web resources",
     		"media": "Related media",
+    		"Ledger": "Check out this pod's ledger!",
     		"Boards": "Create and utilize message boards.",
     		"Needs": "What do you need? Please ask.",
     		"Offerings": "Would you like to offer something?",
