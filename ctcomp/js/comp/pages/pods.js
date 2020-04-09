@@ -20,6 +20,7 @@ CT.require("comp.core");
 CT.require("comp.live");
 CT.require("comp.pods");
 CT.require("comp.forms");
+CT.require("comp.ledger");
 CT.require("comp.library");
 CT.require("comp.generation");
 CT.require("comp.submission");
