@@ -741,7 +741,7 @@ class Payment(Verifiable):
 		memship = self.membership.get()
 		recip = memship.person.get()
 		pod = memship.pod.get()
-		payer.wallet.get().debit(self.amount,
+		payer.wallet.get().debit(self.amount, pod, self,
 			"payment to %s"%(recip.email,), self.notes)
 		memship.deposit(self.amount, self, "payment from %s"%(payer.email,),
 			self.notes, pay=True)
