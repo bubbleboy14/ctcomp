@@ -51,11 +51,11 @@ comp.settings = {
 					user: ukey
 				}, function(bal) {
 					cbal._val = bal;
-					CT.dom.setContent(cbal, "ethereum (blockchain wallet) balance: " + bal);
+					CT.dom.setContent(cbal, "balance: " + bal);
 				});
 				return CT.dom.div(wall.identifier && [
+					"public key: " + wall.identifier,
 					cbal,
-					wall.identifier,
 					CT.dom.button("transfer from carecoin wallet to ethereum wallet", function() {
 						comp.core.prompt({
 							prompt: "how much do you want to tranfer?",
@@ -73,9 +73,9 @@ comp.settings = {
 									wall.outstanding -= amount;
 									cbal._val += amount;
 									CT.dom.setContent(comp.settings._.wall.balance,
-										"carecoin (platform wallet) balance: " + wall.outstanding);
+										"balance: " + wall.outstanding);
 									CT.dom.setContent(cbal,
-										"ethereum (blockchain wallet) balance: " + cbal._val);
+										"balance: " + cbal._val);
 									alert("ok!");
 								}, function(emsg) {
 									alert(emsg);
@@ -107,12 +107,12 @@ comp.settings = {
 						CT.modal.modal(CT.dom.div([
 							CT.dom.div("public keys", "bigger"),
 							"Your public key is your address on the ethereum block chain.",
-							"The coins you store here can be used like any other ethereum token, or traded on the exchanges.",
+							"The C4123 coins you store here can be used like any other ethereum token, or traded on the exchanges.",
 							"The coins you retain in your carecoin wallet, on the other hand, can be used for internal transactions, such as purchasing goods and services from other users.",
 							"(explain more, provide linx)"
 						], "subpadded"));
 					}, null, "right"),
-					CT.dom.div("your public key", "bigger"),
+					CT.dom.div("ethereum (blockchain) wallet", "bigger"),
 					iden
 				], "bordered padded round");
 			}
@@ -158,9 +158,15 @@ comp.settings = {
 			CT.dom.showHide(main);
 		}, "right up30"), _w = comp.settings._.wall, main;
 		CT.db.one(user.core.get("wallet"), function(wall) {
-			_w.balance = CT.dom.div("carecoin (platform wallet) balance: " + wall.outstanding);
+			_w.balance = CT.dom.div("balance: " + wall.outstanding);
 			main = CT.dom.div([
-				_w.balance,
+				CT.dom.div([
+					CT.dom.link("view ledger", function() {
+						comp.ledger.view(wall.key);
+					}, null, "right"),
+					CT.dom.div("carecoin (platform) wallet", "bigger"),
+					_w.balance,
+				], "bordered padded round mb5"),
 				comp.settings._.wall.pkey(wall)
 			], "hidden");
 			CT.dom.setContent(n, [
@@ -208,7 +214,7 @@ comp.settings = {
 				comp.settings.handle()
 			], "bordered padded round mb5"),
 			CT.dom.div([
-				CT.dom.div("your wallet", "biggest"),
+				CT.dom.div("your wallet(s)", "biggest"),
 				comp.settings.wallet()
 			], "bordered padded round")
 		], "centered"));

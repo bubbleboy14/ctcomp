@@ -11,7 +11,10 @@ def view(user, content):
 	view.content = content.key
 	view.put()
 	membership = content.membership.get()
-	membership.pod.get().deposit(membership.person.get(), config.ctcomp.ratios.view)
+	membership.pod.get().deposit(membership.person.get(),
+		config.ctcomp.ratios.view, view,
+		"viewed: %s"%(content.identifier,),
+		"view: %s"%(view.key.urlsafe(),))
 
 def views(user):
 	contents = cgi_get("content")

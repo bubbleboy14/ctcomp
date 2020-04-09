@@ -15,7 +15,7 @@ comp.pods = {
 		sections: ["Info", "Boards", "Needs", "Offerings", "Updates",
 			"Library", "Drivers", "Resources", "Proposals", "Responsibilities",
 			"Adjustments", "Commitments", "Services", "Requests", "Content",
-			"Products", "Codebases", "Dependencies", "Expenses"],
+			"Products", "Codebases", "Dependencies", "Expenses", "Ledger"],
 		proposal: function(key) {
 			var _ = comp.pods._,
 				memship = comp.core.pod2memship(_.current.pod);
@@ -114,6 +114,10 @@ comp.pods = {
 			}, null, null, null, {
 				variety: pod.variety
 			});
+		},
+		setLedger: function(pod) {
+			comp.ledger.view(pod.pool,
+				comp.generation.frame(null, "ledger"));
 		},
 		setUpdates: function(pod) {
 			var _ = comp.pods._;
@@ -300,6 +304,7 @@ comp.pods = {
 			["service", "commitment", "request", "codebase", "expense"].forEach(function(item) {
 				gen.frame(data, item, item + "s");
 			});
+			_.setLedger(pod);
 			_.setDrivers(pod);
 			_.setUpdates(pod);
 			_.setAdjustments(pod);
