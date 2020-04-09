@@ -14,6 +14,9 @@ comp.ledger = {
 			pnode = CT.dom.div();
 			CT.modal.modal(pnode);
 		}
+		// TODO: styling
+		// - alternate bg color
+		// - indicate debit vs deposit
 		CT.db.get("ledgeritem", function(iz) {
 			CT.dom.setContent(pnode, iz.length ? iz.map(function(item) {
 				return CT.dom.flex([
