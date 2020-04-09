@@ -10,6 +10,10 @@ comp.ledger = {
 		});
 	},
 	view: function(wkey, pnode) {
+		if (!pnode) {
+			pnode = CT.dom.div();
+			CT.modal.modal(pnode);
+		}
 		CT.db.get("ledgeritem", function(iz) {
 			CT.dom.setContent(pnode, iz.length ? iz.map(function(item) {
 				return CT.dom.flex([
