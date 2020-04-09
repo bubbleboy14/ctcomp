@@ -9,9 +9,9 @@ comp.ledger = {
 			]);
 		});
 	},
-	view: function(wallet, pnode) {
+	view: function(wkey, pnode) {
 		CT.db.get("ledgeritem", function(iz) {
-			CT.dom.setContent(pnode, iz.map(function(item) {
+			CT.dom.setContent(pnode, iz.length ? iz.map(function(item) {
 				return CT.dom.flex([
 					item.note, item.amount
 				], "row", null, {
@@ -19,9 +19,9 @@ comp.ledger = {
 						comp.ledger.item(item);
 					}
 				});
-			}));
+			}) : CT.dom.div("nothing yet!", "centered"));
 		}, null, null, null, {
-			wallet: wallet.key
+			wallet: wkey
 		});
 	}
 };
