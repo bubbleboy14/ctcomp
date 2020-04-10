@@ -11,10 +11,6 @@ from .verifiables import Appointment, Delivery, Commitment, Act
 
 ratios = config.ctcomp.ratios
 
-def membership(person, pod):
-	return Membership.query(Membership.pod == pod.key,
-		Membership.person == person.key).get()
-
 def global_pod():
 	p = Pod.query().get() # pod #1
 	if not p:
@@ -36,31 +32,9 @@ def blogger_pod():
 		p.put()
 	return p
 
-def payCode():
-	log("payCode!", important=True)
-	cbz = Codebase.query().fetch()
-	lcbz = len(cbz)
-	cbatch = PayBatch(variety="code", count=lcbz)
-	cbatch.put()
-	log("found %s registered codebases"%(lcbz,), important=True)
-	deetz = []
-	for cb in cbz:
-		cbline = cb.refresh(cbatch)
-		log(cbline)
-		deetz.append(cbline)
-	cbatch.details = "\n".join(deetz)
-	cbatch.put()
-	log("refreshed %s codebases"%(lcbz,), important=True)
-
-def getContribution(codebase, handle):
-	butor = Contributor.query(Contributor.handle == handle).get()
-	if butor:
-		bution = Contribution.query(Contribution.codebase == codebase.key,
-			Contribution.contributor == butor.key).get()
-		if not bution:
-			bution = Contribution(codebase=codebase.key, contributor=butor.key)
-			bution.put()
-		return bution
+def membership(person, pod):
+	return Membership.query(Membership.pod == pod.key,
+		Membership.person == person.key).get()
 
 def enroll(agent, pkey, person):
 	pod = db.get(pkey)
@@ -127,6 +101,51 @@ def remind(reminders):
 		send_mail(to=db.KeyWrapper(pkey).get().email, subject="commitment reminder",
 			body=REMINDER%("\n".join(reminders[pkey]),))
 
+def reg_act(membership, service, workers, beneficiaries, notes):
+	act = Act()
+	act.membership = membership
+	act.service = service
+	act.workers = workers
+	act.beneficiaries = beneficiaries
+	act.notes = notes
+	act.put()
+	akey = act.key.urlsafe()
+	service = act.service.get()
+	memship = act.membership.get()
+	person = memship.person.get()
+	pod = memship.pod.get()
+	workers = "\n".join([w.email for w in db.get_multi(act.workers)])
+	act.notify("verify service", lambda signer : SERVICE%(person.email,
+		pod.name, service.name, act.notes, workers, akey,
+		signer.urlsafe(), akey))
+	return akey
+
+def getContribution(codebase, handle):
+	butor = Contributor.query(Contributor.handle == handle).get()
+	if butor:
+		bution = Contribution.query(Contribution.codebase == codebase.key,
+			Contribution.contributor == butor.key).get()
+		if not bution:
+			bution = Contribution(codebase=codebase.key, contributor=butor.key)
+			bution.put()
+		return bution
+
+def payCode():
+	log("payCode!", important=True)
+	cbz = Codebase.query().fetch()
+	lcbz = len(cbz)
+	cbatch = PayBatch(variety="code", count=lcbz)
+	cbatch.put()
+	log("found %s registered codebases"%(lcbz,), important=True)
+	deetz = []
+	for cb in cbz:
+		cbline = cb.refresh(cbatch)
+		log(cbline)
+		deetz.append(cbline)
+	cbatch.details = "\n".join(deetz)
+	cbatch.put()
+	log("refreshed %s codebases"%(lcbz,), important=True)
+
 def payCal():
 	log("payCal!", important=True)
 	today = datetime.now()
@@ -183,22 +202,3 @@ def payDay():
 	payCode()
 	payRes()
 	payCal()
-
-def reg_act(membership, service, workers, beneficiaries, notes):
-	act = Act()
-	act.membership = membership
-	act.service = service
-	act.workers = workers
-	act.beneficiaries = beneficiaries
-	act.notes = notes
-	act.put()
-	akey = act.key.urlsafe()
-	service = act.service.get()
-	memship = act.membership.get()
-	person = memship.person.get()
-	pod = memship.pod.get()
-	workers = "\n".join([w.email for w in db.get_multi(act.workers)])
-	act.notify("verify service", lambda signer : SERVICE%(person.email,
-		pod.name, service.name, act.notes, workers, akey,
-		signer.urlsafe(), akey))
-	return akey
