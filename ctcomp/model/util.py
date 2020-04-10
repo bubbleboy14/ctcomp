@@ -4,6 +4,10 @@ from cantools.util import error, log
 from cantools.web import send_mail
 from ctcoop.model import Stewardship
 from compTemplates import SERVICE, APPOINTMENT, REMINDER, DELIVERED
+from .core import Pod, Membership, PayBatch, Content
+from .coders import Codebase, Contributor, Contribution
+from .resources import Resource
+from .verifiables import Appointment, Delivery, Commitment, Act
 
 ratios = config.ctcomp.ratios
 

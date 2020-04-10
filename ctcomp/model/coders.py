@@ -8,7 +8,7 @@ class Contributor(db.TimeStampedBase):
 	handle = db.String()
 
 class Codebase(db.TimeStampedBase):
-	pod = db.ForeignKey(kind=Pod)
+	pod = db.ForeignKey(kind="Pod")
 	owner = db.String() # bubbleboy14
 	repo = db.String()  # ctcomp
 	variety = db.String(choices=["platform", "framework", "service", "research and development"])
@@ -44,6 +44,7 @@ class Codebase(db.TimeStampedBase):
 		return contz
 
 	def refresh(self, cbatch):
+		from .util import getContribution
 		freshies = fetch("api.github.com", "/repos/%s/%s/contributors"%(self.owner,
 			self.repo), asjson=True, protocol="https")
 		pcount = 0
@@ -65,6 +66,7 @@ class Contribution(db.TimeStampedBase):
 		return self.contributor.get().handle
 
 	def membership(self):
+		from .core import Person, Membership
 		person = Person.query(Person.contributors.contains(self.contributor.urlsafe())).get()
 		pod = db.get(self.codebase).pod
 		return person and pod and Membership.query(Membership.pod == pod, Membership.person == person.key).get()

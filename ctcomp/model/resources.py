@@ -7,7 +7,7 @@ from ctmap.model import getzip, Place
 from compTemplates import BOARD, RESOURCE, LIBITEM
 
 class Resource(Place):
-	editors = db.ForeignKey(kind=Person, repeated=True)
+	editors = db.ForeignKey(kind="Person", repeated=True)
 	name = db.String()
 	description = db.Text()
 	tags = db.ForeignKey(kind=Tag, repeated=True)
@@ -31,7 +31,7 @@ class Resource(Place):
 
 class LibItem(db.TimeStampedBase):
 	content = db.ForeignKey(kind="Content")
-	editors = db.ForeignKey(kind=Person, repeated=True)
+	editors = db.ForeignKey(kind="Person", repeated=True)
 	name = db.String()
 	description = db.Text()
 	tags = db.ForeignKey(kind=Tag, repeated=True)
@@ -68,6 +68,7 @@ class Board(db.TimeStampedBase):
 	label = "name"
 
 	def pod(self):
+		from .core import Pod
 		return Pod.query(Pod.boards.contains(self.key.urlsafe())).get()
 
 	def notify(self, podname, interested):

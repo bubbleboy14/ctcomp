@@ -7,7 +7,7 @@ from compTemplates import MEET, PAID, APPLY, EXCLUDE, BLURB, CONVO, DELIVERY
 ratios = config.ctcomp.ratios
 
 class Verifiable(db.TimeStampedBase):
-	membership = db.ForeignKey(kind=Membership)
+	membership = db.ForeignKey(kind="Membership")
 	passed = db.Boolean(default=False)
 	notes = db.Text()
 
@@ -78,7 +78,7 @@ class Appointment(Verifiable):
 		return True
 
 class Delivery(Verifiable):
-	driver = db.ForeignKey(kind=Person)
+	driver = db.ForeignKey(kind="Person")
 	miles = db.Integer()
 
 	def signers(self):
@@ -95,7 +95,7 @@ class Delivery(Verifiable):
 		return True
 
 class Payment(Verifiable):
-	payer = db.ForeignKey(kind=Person)
+	payer = db.ForeignKey(kind="Person")
 	amount = db.Float()
 
 	def signers(self):
@@ -120,7 +120,7 @@ class Payment(Verifiable):
 		return True
 
 class Expense(Verifiable):
-	executor = db.ForeignKey(kind=Person) # reimbursement only
+	executor = db.ForeignKey(kind="Person") # reimbursement only
 	variety = db.String(choices=["dividend", "reimbursement"])
 	amount = db.Float(default=0.1) # for dividend, split amount * total
 	recurring = db.Boolean(default=False)
@@ -146,7 +146,7 @@ class Expense(Verifiable):
 		return True
 
 class Commitment(Verifiable):
-	service = db.ForeignKey(kind=Service)
+	service = db.ForeignKey(kind="Service")
 	estimate = db.Float(default=1.0) # per week (hours?)
 
 	def deposit(self, numdays=1):
@@ -158,9 +158,9 @@ class Commitment(Verifiable):
 			self, "commitment: %s"%(service.name,), details)
 
 class Act(Verifiable):
-	service = db.ForeignKey(kind=Service)
-	workers = db.ForeignKey(kind=Person, repeated=True)
-	beneficiaries = db.ForeignKey(kind=Person, repeated=True)
+	service = db.ForeignKey(kind="Service")
+	workers = db.ForeignKey(kind="Person", repeated=True)
+	beneficiaries = db.ForeignKey(kind="Person", repeated=True)
 
 	def signers(self):
 		return self.beneficiaries
@@ -180,7 +180,7 @@ class Act(Verifiable):
 class Request(Verifiable):
 	change = db.String(choices=["include", "exclude",
 		"conversation", "support", "delivery"])
-	person = db.ForeignKey(kind=Person) # person in question!
+	person = db.ForeignKey(kind="Person") # person in question!
 
 	def remind(self):
 		rpmail = self.person and self.person.get().email
@@ -223,6 +223,8 @@ class Request(Verifiable):
 		return Verifiable.verified(self)
 
 	def fulfill(self):
+		from .core import Membership
+		from .util import delivery, reg_act
 		if self.passed or not self.verified():
 			return False
 		pod = self.pod()
@@ -247,4 +249,4 @@ class Request(Verifiable):
 
 class Verification(db.TimeStampedBase):
 	act = db.ForeignKey(kinds=[Act, Request, Commitment, Payment, Expense, Appointment, Delivery])
-	person = db.ForeignKey(kind=Person)
+	person = db.ForeignKey(kind="Person")

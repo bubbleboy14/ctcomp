@@ -7,6 +7,9 @@ from ctdecide.model import Proposal
 from ctstore.model import Product
 from ctcomp.mint import mint, balance
 from compTemplates import ADJUSTMENT, ADJUSTED, INVITATION, FEEDBACK, NEED, OFFERING
+from .coders import Codebase, Contributor
+from .resources import Board, Book, Web, Media, Organization, Resource
+from .verifiables import Act, Appointment, Commitment, Delivery, Expense, Request
 
 ratios = config.ctcomp.ratios
 
@@ -65,6 +68,7 @@ class Person(Member):
 	remind = db.Boolean(default=True)
 
 	def onjoin(self):
+		from .util import global_pod
 		email_admins("New Person", self.email)
 		self.enroll(global_pod())
 		wallet = Wallet()
@@ -89,6 +93,7 @@ class Person(Member):
 				invitation.send(self)
 
 	def help_match(self, item): # overrides Member.help_match() in ctcoop.model
+		from .util import membership, reg_act
 		which = item.polytype
 		isneed = which == "need"
 		pod = Pod.query(getattr(Pod, which + "s").contains(item.key.urlsafe())).get()
@@ -97,6 +102,7 @@ class Person(Member):
 			item.description)
 
 	def enroll(self, pod):
+		from .util import membership
 		memship = membership(self, pod)
 		if not memship:
 			memship = Membership(pod=pod.key, person=self.key)
@@ -134,7 +140,7 @@ class Pod(db.TimeStampedBase):
 	includers = db.ForeignKey(kind=Person, repeated=True)
 	resources = db.ForeignKey(kind=Resource, repeated=True)
 	offerings = db.ForeignKey(kind=Offering, repeated=True)
-	dependencies = db.ForeignKey(kind="Codebase", repeated=True) # software
+	dependencies = db.ForeignKey(kind=Codebase, repeated=True) # software
 	library = db.ForeignKey(kinds=[Organization, Book, Web, Media], repeated=True) # support
 
 	def _trans_boards(self, val):
@@ -277,13 +283,14 @@ class Answer(db.TimeStampedBase):
 class Feedback(db.TimeStampedBase):
 	person = db.ForeignKey(kind=Person)
 	conversation = db.ForeignKey(kind=Conversation)
-	interaction = db.ForeignKey(kinds=["appointment", "delivery", "request"])
+	interaction = db.ForeignKey(kinds=[Appointment, Delivery, Request])
 	answers = db.ForeignKey(kind=Answer, repeated=True)
 	topic = db.String()
 	notes = db.Text()
 	followup = db.Boolean(default=False)
 
 	def membership(self):
+		from .util import membership
 		return membership(self.person.get(), self.pod())
 
 	def pod(self):
