@@ -1,32 +1,42 @@
 comp.ledger = {
+	_: {
+		cnames: {
+			debit: "bold red",
+			deposit: "bold green"
+		}
+	},
 	item: function(item) {
 		CT.db.one(item.pod, function(pod) {
 			CT.modal.modal([
-				CT.dom.div(item.amount, "right"),
 				CT.dom.div(item.note, "big"),
+				"type: " + item.modelName,
+				"amount: " + item.amount,
 				"pod: " + pod.name,
-				item.details
+				item.details.replace(/\n/g, "<br>")
 			]);
 		});
 	},
 	view: function(wkey, pnode) {
-		if (!pnode) {
-			pnode = CT.dom.div();
-			CT.modal.modal(pnode);
-		}
-		// TODO: styling
-		// - alternate bg color
-		// - indicate debit vs deposit
+		var cnames = comp.ledger._.cnames,
+			nopn = !pnode;
 		CT.db.get("ledgeritem", function(iz) {
-			CT.dom.setContent(pnode, iz.length ? iz.map(function(item) {
+			if (nopn)
+				pnode = CT.dom.div();
+			CT.dom.setContent(pnode, iz.length ? CT.dom.div(iz.map(function(item) {
 				return CT.dom.flex([
-					item.note, item.amount
-				], "row", null, {
+					[
+						CT.dom.span(item.created),
+						CT.dom.pad(3),
+						CT.dom.span(item.note, "big"),
+					],
+					CT.dom.div(item.amount, cnames[item.modelName])
+				], "pointer row hoverglow", null, {
 					onclick: function() {
 						comp.ledger.item(item);
 					}
 				});
-			}) : CT.dom.div("nothing yet!", "centered"));
+			}), "ledger") : CT.dom.div("nothing yet!", "centered"));
+			nopn && CT.modal.modal(pnode);
 		}, null, null, null, {
 			wallet: wkey
 		});
