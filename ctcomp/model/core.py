@@ -286,11 +286,6 @@ class Feedback(db.TimeStampedBase):
 			req.put()
 			req.remind()
 
-class PayBatch(db.TimeStampedBase):
-	count = db.Integer(default=0)
-	variety = db.String()
-	details = db.Text()
-
 class Content(db.TimeStampedBase):
 	membership = db.ForeignKey(kind=Membership)
 	identifier = db.String() # some hash, defaulting to url
