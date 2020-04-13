@@ -74,14 +74,17 @@ class Contribution(db.TimeStampedBase):
 	def total(self):
 		return self.count * ratios.code.line
 
+	def process(self, cbatch, diff, total=0):
+		cbase = self.codebase.get()
+		self.membership().deposit(diff * ratios.code.line, cbatch,
+			"code commits: %s@%s"%(self.handle(), cbase.repo),
+			"variety: %s\nowner: %s\nbatch: %s\ntotal: %s"%(cbase.variety,
+				cbase.owner, diff, total || diff), True)
+
 	def refresh(self, total, cbatch):
 		diff = total - self.count
 		if diff:
-			cbase = self.codebase.get()
-			self.membership().deposit(diff * ratios.code.line, cbatch,
-				"code commits: %s@%s"%(self.handle(), cbase.repo),
-				"variety: %s\nowner: %s\nbatch: %s\ntotal: %s"%(cbase.variety,
-					cbase.owner, diff, total), True)
+			self.process(cbatch, diff, total)
 			self.count = total
 			self.put()
 		return diff
