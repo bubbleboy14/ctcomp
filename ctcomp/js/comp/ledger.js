@@ -8,7 +8,7 @@ comp.ledger = {
 	item: function(item) {
 		CT.db.one(item.pod, function(pod) {
 			CT.modal.modal([
-				CT.dom.div(item.note, "big"),
+				CT.dom.div(CT.parse.breakurl(item.note), "big"),
 				"type: " + item.modelName,
 				"amount: " + item.amount,
 				"pod: " + pod.name,
@@ -27,7 +27,8 @@ comp.ledger = {
 					[
 						CT.dom.span(item.created),
 						CT.dom.pad(3),
-						CT.dom.span(item.note, "big"),
+						CT.dom.span(CT.parse.breakurl(item.note),
+							"big"),
 					],
 					CT.dom.div(item.amount, cnames[item.modelName])
 				], "pointer row hoverglow", null, {
