@@ -129,6 +129,7 @@ class Audit(db.TimeStampedBase):
 		#   - special-case commitment.....
 		# - stewardship
 		self.details = "\n".join(deetz)
+		self.variety = "deed"
 		self.put()
 
 	def _process(self, modname, cb=None):
@@ -178,17 +179,28 @@ class Audit(db.TimeStampedBase):
 		cbatch.details = "processed %s Contribution records"%(lc,)
 		cbatch.count = lc
 		cbatch.put()
+		wallz = Wallet.query().all()
 		deetz = [
 			"views: %s"%(lv,),
 			"contributions: %s"%(lc,)
 		]
-		for wall in Wallet.query().all():
+		self.counts = {
+			'wallets': {
+				'total': len(wallz),
+				'updated': 0
+			},
+			'views': lv,
+			'contributions': lc
+		}
+		for wall in wallz:
 			wk = wall.key.urlsafe()
 			o = worigz[wk]
 			n = wall.outstanding
 			if o != n:
+				self.counts['wallets']['updated'] += 1
 				dline = "%s: %s -> %s"%(wk, o, n)
 				deetz.append(dline)
 				log(dline)
 		self.details = "\n".join(deetz)
+		self.variety = "rebuild"
 		self.put()
