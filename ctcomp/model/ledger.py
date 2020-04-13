@@ -147,7 +147,7 @@ class Audit(db.TimeStampedBase):
 		worigz = {}
 		for wall in wallz:
 			wk = wall.key.urlsafe()
-			log("%s: %s"%(wkey, wall.outstanding))
+			log("%s: %s"%(wk, wall.outstanding))
 			worigz[wk] = wall.outstanding
 			wall.outstanding = 0
 		db.put_multi(wallz)
