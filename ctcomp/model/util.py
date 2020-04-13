@@ -4,8 +4,9 @@ from cantools.util import error, log
 from cantools.web import send_mail
 from ctcoop.model import Stewardship
 from compTemplates import SERVICE, APPOINTMENT, REMINDER, DELIVERED
-from .core import Pod, Membership, PayBatch, Content
+from .core import Pod, Membership, Content
 from .coders import Codebase, Contributor, Contribution
+from .ledger import Audit, PayBatch
 from .resources import Resource
 from .verifiables import Appointment, Delivery, Commitment, Act
 
@@ -202,3 +203,7 @@ def payDay():
 	payCode()
 	payRes()
 	payCal()
+
+def audit(variety="ledger"): # ledger|deed
+	log("audit (%s)!"%(variety,), important=True)
+	getattr(Audit(), variety)()
