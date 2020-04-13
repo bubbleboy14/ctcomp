@@ -204,6 +204,6 @@ def payDay():
 	payRes()
 	payCal()
 
-def audit(variety="ledger"): # ledger|deed|rebuild
+def audit(variety="ledger"): # ledger|deed
 	log("audit (%s)!"%(variety,), important=True)
 	getattr(Audit(), variety)()
