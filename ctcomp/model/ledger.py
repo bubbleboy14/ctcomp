@@ -1,4 +1,4 @@
-from cantools import db
+from cantools import db, config
 from cantools.util import error, log
 from ctcomp.mint import mint, balance
 
@@ -126,5 +126,64 @@ class Audit(db.TimeStampedBase):
 		self.details = "\n".join(deetz)
 		self.put()
 
+	def _process(self, modname, cb=None):
+		items = db.get_model(modname).query().all()
+		log("processing %s %s items"%(len(items), modname))
+		for item in items:
+			if cb:
+				cb(item)
+			else:
+				item.process()
+		return len(items)
+
+	def _clear(self):
+		ledgies = LedgerItem.query().all()
+		if raw_input("delete %s LedgerItem records? "%(len(ledgies),)) != "yes":
+			error("k bye!")
+		log("deleting %s ledgies!"%(len(ledgies),))
+		db.delete_multi(ledgies)
+		wallz = Wallet.query().all()
+		log("setting %s wallets back to zero"%(len(wallz),))
+		worigz = {}
+		for wall in wallz:
+			wk = wall.key.urlsafe()
+			log("%s: %s"%(wkey, wall.outstanding))
+			worigz[wk] = wall.outstanding
+			wall.outstanding = 0
+		db.put_multi(wallz)
+		return worigz
+
 	def rebuild(self):
+		# *** use with care ***
+		# ******* really don't use *********
+		# this function deletes all LedgerItems, sets
+		# all wallets back to zero, and reprocesses
+		# views and contributions.
+		# purpose: rebuild legitimate ledger (leaving
+		# much out) ASAP now that we have ledgers :)
+		if not config.ctcomp.allowrebuild:
+			error("nope!")
 		log("rebuilding ledgers", important=True)
+		worigz = self._clear()
+		cbatch = PayBatch(variety="ledger initialization")
+		cbatch.put()
+		lv = self._process("view")
+		lc = self._process("contribution",
+			lambda item : item.process(cbatch, item.count))
+		cbatch.details = "processed %s Contribution records"%(lc,)
+		cbatch.count = lc
+		cbatch.put()
+		deetz = [
+			"views: %s"%(lv,),
+			"contributions: %s"%(lc,)
+		]
+		for wall in Wallet.query().all():
+			wk = wall.key.urlsafe()
+			o = worigz[wk]
+			n = wall.outstanding
+			if o != n:
+				dline = "%s: %s -> %s"%(wk, o, n)
+				deetz.append(dline)
+				log(dline)
+		self.details = "\n".join(deetz)
+		self.put()
