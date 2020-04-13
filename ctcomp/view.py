@@ -6,15 +6,11 @@ from six import string_types
 def view(user, content):
 	if View.query(View.viewer == user.key, View.content == content.key).get():
 		return log("already viewed (user %s; content %s)"%(user.key.urlsafe(), content.key.urlsafe()))
-	view = View()
-	view.viewer = user.key
-	view.content = content.key
-	view.put()
-	membership = content.membership.get()
-	membership.pod.get().deposit(membership.person.get(),
-		config.ctcomp.ratios.view, view,
-		"viewed: %s"%(content.identifier,),
-		"view: %s"%(view.key.urlsafe(),))
+	v = View()
+	v.viewer = user.key
+	v.content = content.key
+	v.put()
+	v.process()
 
 def views(user):
 	contents = cgi_get("content")
