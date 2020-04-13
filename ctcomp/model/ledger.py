@@ -2,6 +2,11 @@ from cantools import db, config
 from cantools.util import error, log
 from ctcomp.mint import mint, balance
 
+try:
+    input = raw_input # py2/3 compatibility
+except NameError:
+    pass
+
 class Wallet(db.TimeStampedBase):
 	identifier = db.String() # public key
 	outstanding = db.Float(default=0)
@@ -138,7 +143,7 @@ class Audit(db.TimeStampedBase):
 
 	def _clear(self):
 		ledgies = LedgerItem.query().all()
-		if raw_input("delete %s LedgerItem records? "%(len(ledgies),)) != "yes":
+		if input("delete %s LedgerItem records? "%(len(ledgies),)) != "yes":
 			error("k bye!")
 		log("deleting %s ledgies!"%(len(ledgies),))
 		db.delete_multi(ledgies)
