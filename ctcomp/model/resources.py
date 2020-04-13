@@ -1,4 +1,4 @@
-from cantools import db
+from cantools import db, config
 from six import string_types
 from cantools.web import send_mail
 from cantools.geo import address2latlng
@@ -18,6 +18,9 @@ class Resource(Place):
 		if isinstance(val, string_types) and len(val) < 10:
 			val = getzip(val).key
 		return val
+
+	def total(self):
+		return config.ctcomp.ratios.resource
 
 	def oncreate(self):
 		zcode = self.zipcode.get()

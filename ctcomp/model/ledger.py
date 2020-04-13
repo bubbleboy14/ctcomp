@@ -89,15 +89,42 @@ class Audit(db.TimeStampedBase):
 		self.details = "\n".join(deetz)
 		self.put()
 
+	def _count(self, modname, deetz):
+		items = db.get_model(modname).query().all()
+		cz = {
+			'total': len(items),
+			'unledgered': 0,
+			'value': 0
+		}
+		for item in items:
+			if not LedgerItem.query(LedgerItem.deed == item.key).get():
+				cz['unledgered'] += 1
+				if modname != "verifiable":
+					cz['value'] += item.total()
+		dline = "%s: %s total; %s unledgered; %s value"%(modname,
+			cz['total'], cz['unledgered'], cz['value'])
+		deetz.append(dline)
+		log(dline)
+		return cz
+
 	def deed(self):
+		# this function is for the purpose of ascertaining
+		# the scope of unledgered deeds (at the time of
+		# the ledger's implementation)
 		log("deed audit", important=True)
-		# check for non-ledgerized deeds
-		# - view
+		self.counts = {}
+		deetz = []
+		for mname in ["view", "resource", "contribution", "verifiable"]:
+			self.counts[mname] = self._count(mname, deetz)
+		# check for and count up (per recip wallet?) non-ledgerized deeds
+		# + view
+		# + resource
+		# + contribution
 		# - verifiable
 		#   - special-case commitment.....
-		# - contribution
-		# - resource
 		# - stewardship
+		self.details = "\n".join(deetz)
+		self.put()
 
 	def rebuild(self):
 		log("rebuilding ledgers", important=True)

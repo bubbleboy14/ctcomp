@@ -294,6 +294,9 @@ class View(db.TimeStampedBase):
 	viewer = db.ForeignKey(kind=Person)
 	content = db.ForeignKey(kind=Content)
 
+	def total(self):
+		return ratios.view
+
 class Service(db.TimeStampedBase):
 	name = db.String()
 	variety = db.String()

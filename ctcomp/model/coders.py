@@ -71,6 +71,9 @@ class Contribution(db.TimeStampedBase):
 		pod = db.get(self.codebase).pod
 		return person and pod and Membership.query(Membership.pod == pod, Membership.person == person.key).get()
 
+	def total(self):
+		return self.count * ratios.code.line
+
 	def refresh(self, total, cbatch):
 		diff = total - self.count
 		if diff:
