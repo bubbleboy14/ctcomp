@@ -38,7 +38,7 @@ comp.ledger = {
 				});
 			}), "ledger") : CT.dom.div("nothing yet!", "centered"));
 			nopn && CT.modal.modal(pnode);
-		}, null, null, null, {
+		}, 1000, null, "-created", {
 			wallet: wkey
 		});
 	}
