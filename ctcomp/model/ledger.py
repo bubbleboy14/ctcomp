@@ -71,7 +71,7 @@ class PayBatch(db.TimeStampedBase):
 	details = db.Text()
 
 class Audit(db.TimeStampedBase):
-	variety = db.String(choices=["ledger", "deed", "rebuild"], default="ledger")
+	variety = db.String(choices=["ledger", "deed", "rebuild"])
 	counts = db.JSON()
 	details = db.Text()
 
@@ -85,13 +85,14 @@ class Audit(db.TimeStampedBase):
 		deetz = []
 		for w in wallz:
 			lb = w.ledger_balance()
-			wline = "%s: %s counted; %s recorded"%(self.key.urlsafe(),
+			wline = "%s: %s counted; %s recorded"%(w.key.urlsafe(),
 				lb, w.outstanding)
 			deetz.append(wline)
 			log(wline)
 			if w.outstanding != lb:
 				self.counts["flagged"] += 1
 		self.details = "\n".join(deetz)
+		self.variety = "ledger"
 		self.put()
 
 	def _count(self, modname, deetz):
