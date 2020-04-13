@@ -294,6 +294,14 @@ class View(db.TimeStampedBase):
 	viewer = db.ForeignKey(kind=Person)
 	content = db.ForeignKey(kind=Content)
 
+	def process(self):
+		content = self.content.get()
+		membership = content.membership.get()
+		membership.pod.get().deposit(membership.person.get(),
+			ratios.view, self,
+			"viewed: %s"%(content.identifier,),
+			"view: %s"%(self.key.urlsafe(),))
+
 	def total(self):
 		return ratios.view
 
