@@ -288,6 +288,7 @@ class Feedback(db.TimeStampedBase):
 
 class Content(db.TimeStampedBase):
 	membership = db.ForeignKey(kind=Membership)
+	memberships = db.ForeignKey(kind=Membership, repeated=True)
 	identifier = db.String() # some hash, defaulting to url
 
 class View(db.TimeStampedBase):
@@ -296,11 +297,13 @@ class View(db.TimeStampedBase):
 
 	def process(self):
 		content = self.content.get()
-		membership = content.membership.get()
-		membership.pod.get().deposit(membership.person.get(),
-			ratios.view, self,
-			"viewed: %s"%(content.identifier,),
-			"view: %s"%(self.key.urlsafe(),))
+		mships = content.membership and [content.membership] or content.memberships
+		cut = ratios.view / len(mships)
+		for memship in mships:
+			membership = memship.get()
+			membership.pod.get().deposit(membership.person.get(),
+				cut, self, "viewed: %s"%(content.identifier,),
+				"view: %s"%(self.key.urlsafe(),))
 
 	def total(self):
 		return ratios.view
