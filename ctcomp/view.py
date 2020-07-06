@@ -24,7 +24,8 @@ def hoc(content, agent):
 	if "blogger" in content:
 		memship = enroll(agent, blogger_pod().key, content["blogger"])
 		return manage(agent, memship, content["identifier"])
-	return manage(agent, content["membership"], content["identifier"])
+	return manage(agent, content.get("membership"),
+		content["identifier"], content.get("memberships"))
 
 def cont(content, agent):
 	return isinstance(content, string_types) and db.get(content) or hoc(content, agent)
