@@ -43,15 +43,23 @@ def enroll(agent, pkey, person):
 		error("wrong!")
 	return db.get(person).enroll(pod)
 
-def manage(agent, membership, identifier):
-	memship = db.get(membership)
+def manage(agent, membership, identifier, memberships=None):
+	memship = db.get(membership or memberships[0])
 	pod = db.get(memship.pod)
 	if pod.agent.urlsafe() != (agent or global_pod().agent.urlsafe()):
 		error("wrong!")
-	con = Content.query(Content.membership == membership,
-		Content.identifier == identifier).get()
+	conq = Content.query(Content.identifier == identifier)
+	if memberships:
+		conq.filter(Content.memberships == memberships)
+	else:
+		conq.filter(Content.membership == membership)
+	con = conq.get()
 	if not con:
-		con = Content(identifier=identifier, membership=membership)
+		con = Content(identifier=identifier)
+		if memberships:
+			con.memberships = memberships
+		else:
+			con.membership = membership
 		con.put()
 	return con
 
