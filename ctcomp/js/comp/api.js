@@ -74,6 +74,7 @@ window.CC = {
 			iframe: _.iframe(node, "switch"),
 			cb: onswitch
 		};
+		_.enrollmenteroo = { cb: onswitch }; // lol
 		s.iframe.onload = function() {
 			s.ready = true;
 			_.send(s, "ping"); // warms up the connection...
