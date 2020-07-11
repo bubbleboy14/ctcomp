@@ -206,31 +206,41 @@ comp.pods = {
 			return container;
 		}
 	},
+	acp: function() {
+		var _ = comp.pods._, managed = function(agent) {
+			_.pod({
+				variety: "managed",
+				agent: agent.key
+			}, "the managed pod");
+		}, apod = function() {
+			_.pod({ variety: "software" }, "the agent pod", managed);
+		}, az = _.current.pods.filter(p => p.variety == "software");
+		az.length ? CT.modal.choice({
+			prompt: "please select the agent pod",
+			data: ["new agent pod"].concat(az),
+			cb: function(agent) {
+				(agent == "new agent pod") ? apod() : managed(agent);
+			}
+		}) : apod();
+	},
 	fresh: function() {
 		var _ = comp.pods._, opts = {},
 			ACP = "Agent/Client Pair (Managed Mode)";
 		comp.core.varieties(function(variety) {
-			if (variety == ACP) {
-				_.pod({ variety: "software" }, "the agent pod", function(agent) {
-					_.pod({
-						variety: "managed",
-						agent: agent.key
-					}, "the managed pod");
-				});
-			} else {
-				opts.variety = variety;
-				if (variety == "support" || variety == "resource mapping")
-					return _.pod(opts);
-				comp.core.choice({
-					prompt: "how would you like to admit new members? the default mode, 'full', requires every member to approve new admissions. with the alternative, 'limited', you may designate a subset of the pod's membership to make these decisions.",
-					data: ["full", "limited"],
-					cb: function(selection) {
-						if (selection == "limited")
-							opts.includers = [ user.core.get("key") ];
-						_.pod(opts);
-					}
-				})
-			}
+			if (variety == ACP)
+				return comp.pods.acp();
+			opts.variety = variety;
+			if (variety == "support" || variety == "resource mapping")
+				return _.pod(opts);
+			comp.core.choice({
+				prompt: "how would you like to admit new members? the default mode, 'full', requires every member to approve new admissions. with the alternative, 'limited', you may designate a subset of the pod's membership to make these decisions.",
+				data: ["full", "limited"],
+				cb: function(selection) {
+					if (selection == "limited")
+						opts.includers = [ user.core.get("key") ];
+					_.pod(opts);
+				}
+			});
 		}, ACP);
 	},
 	pod: function(pod) {
@@ -239,7 +249,6 @@ comp.pods = {
 			inclz = CT.dom.div(), content,
 			gen = comp.generation;
 		_.current.pod = pod;
-
 		["need", "offering", "board", "resource"].forEach(function(stype) {
 			_.setter(pod, stype);
 		});
