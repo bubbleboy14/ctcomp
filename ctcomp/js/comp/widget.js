@@ -2,6 +2,7 @@ comp.widget = {
 	_: {
 		receive: function(event) {
 			var d = event.data, data = d.data, _ = comp.widget._;
+			if (!d.action) return;
 			_.targetOrigin = event.origin;
 			if (d.action == "view") {
 				comp.core.c(CT.merge(data, {
