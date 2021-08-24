@@ -2,7 +2,7 @@ from cantools import db, config
 from cantools.util import log
 from cantools.web import send_mail
 from ctcoop.model import Timeslot
-from compTemplates import MEET, PAID, APPLY, EXCLUDE, BLURB, CONVO, DELIVERY
+from compTemplates import MEET, PAID, APPLY, APPLICATION, EXCLUDE, BLURB, CONVO, DELIVERY
 
 ratios = config.ctcomp.ratios
 
@@ -27,7 +27,9 @@ class Verifiable(db.TimeStampedBase):
 
 	def notify(self, subject, body, signers=None):
 		for signer in (signers or self.signers()):
-			send_mail(to=signer.get().email, subject=subject, body=body(signer))
+			if self.unverified(signer):
+				send_mail(to=signer.get().email,
+					subject=subject, body=body(signer))
 
 	def unverify(self):
 		log("unverifying %s"%(self.key.urlsafe(),))
@@ -50,9 +52,12 @@ class Verifiable(db.TimeStampedBase):
 	def veriquery(self):
 		return Verification.query(Verification.act == self.key)
 
+	def unverified(self, person):
+		return not self.veriquery().filter(Verification.person == person).get()
+
 	def verified(self):
 		for person in self.signers():
-			if not self.veriquery().filter(Verification.person == person).get():
+			if self.unverified(person):
 				return False
 		return True
 
@@ -181,6 +186,15 @@ class Request(Verifiable):
 	change = db.String(choices=["include", "exclude",
 		"conversation", "support", "delivery"])
 	person = db.ForeignKey(kind="Person") # person in question!
+
+	def apply(self): # pingable
+		memship = self.membership.get()
+		pod = memship.pod.get()
+		em = self.person.get().email
+		rkey = self.key.urlsafe()
+		self.notify("pod membership application",
+			lambda signer: APPLICATION%(em,
+				pod.name, rkey, signer.urlsafe()))
 
 	def remind(self):
 		rpmail = self.person and self.person.get().email
