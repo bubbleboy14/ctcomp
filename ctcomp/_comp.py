@@ -1,6 +1,6 @@
 from cantools.web import respond, succeed, fail, cgi_get, local, send_mail, redirect
 from model import db, enroll, manage, reg_act, Person, Content, Payment, Commitment, Request, Expense, Invitation
-from compTemplates import APPLICATION, COMMITMENT, PAYMENT, EXPENSE, CONFCODE
+from compTemplates import COMMITMENT, PAYMENT, EXPENSE, CONFCODE
 from ctcomp.view import views
 
 def response():
@@ -116,14 +116,7 @@ def response():
 				body=COMMITMENT%(person.email, pod.name, verifiable.estimate,
 					service.name, vkey, signer.urlsafe()))
 	elif action == "apply":
-		req = db.get(cgi_get("request"))
-		memship = req.membership.get()
-		pod = memship.pod.get()
-		em = req.person.get().email
-		rkey = req.key.urlsafe()
-		req.notify("pod membership application",
-			lambda signer: APPLICATION%(em,
-				pod.name, rkey, signer.urlsafe()))
+		db.get(cgi_get("request")).apply()
 		redirect("/comp/pods.html", "you did it!")
 	elif action == "join": # support only
 		pod = db.get(cgi_get("pod"))
