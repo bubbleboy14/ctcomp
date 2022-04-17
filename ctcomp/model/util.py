@@ -107,8 +107,8 @@ def remember(slot, task, pod, person, reminders):
 
 def remind(reminders):
 	for pkey in reminders:
-		send_mail(to=db.KeyWrapper(pkey).get().email, subject="commitment reminder",
-			body=REMINDER%("\n".join(reminders[pkey]),))
+		db.KeyWrapper(pkey).get().notify("commitment reminder",
+			REMINDER%("\n".join(reminders[pkey]),))
 
 def reg_act(membership, service, workers, beneficiaries, notes):
 	act = Act()
