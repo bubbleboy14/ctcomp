@@ -52,7 +52,9 @@ class Mint(object):
 				tx['gas'] = w3.eth.estimateGas(tx)
 				trans = pretrans.buildTransaction(tx)
 				signed = w3.eth.account.sign_transaction(trans, wcfg.pk)
-				w3.eth.send_raw_transaction(signed.rawTransaction)
+				thash = w3.eth.send_raw_transaction(signed.rawTransaction)
+				hexed = w3.toHex(thash)
+				self.log("mint hash: %s"%(hexed,))
 			return True
 		return False
 
