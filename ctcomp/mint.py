@@ -1,7 +1,17 @@
 from cantools.util import log, read
 from cantools import config
+cfg = config.ctcomp
+wcfg = cfg.w3
+ccfg = cfg.contract
 try:
-	from web3.auto import w3
+	if wcfg.http or wcfg.ws:
+		from web3 import Web3
+		if wcfg.http:
+			w3 = Web3(Web3.HTTPProvider(wcfg.http))
+		else: # ws
+			w3 = Web3(Web3.WebsocketProvider(wcfg.ws))
+	else:
+		from web3.auto import w3
 	ACTIVE = True
 except:
 	log("running py2 -- no w3!")
@@ -33,7 +43,6 @@ class Mint(object):
 			return True
 		return False
 
-cfg = config.ctcomp.contract
-minter = Mint(cfg.abi, cfg.owner, cfg.address)
+minter = Mint(ccfg.abi, ccfg.owner, ccfg.address)
 mint = minter.mint
 balance = minter.balance

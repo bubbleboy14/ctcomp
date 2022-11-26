@@ -32,6 +32,10 @@ cfg = {
 		"abi": None,
 		"owner": None,
 		"address": None
+	},
+	"w3": {
+		"http:": None,
+		"ws": None
 	}
 }
 requires = ["ctcoop", "ctstore", "ctmap"]
