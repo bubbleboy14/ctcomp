@@ -10,8 +10,10 @@ try:
 			w3 = Web3(Web3.HTTPProvider(wcfg.http))
 		else: # ws
 			w3 = Web3(Web3.WebsocketProvider(wcfg.ws))
+		AUTOTRANS = False
 	else:
 		from web3.auto import w3
+		AUTOTRANS = True
 	ACTIVE = True
 except:
 	log("running py2 -- no w3!")
@@ -39,7 +41,18 @@ class Mint(object):
 	def mint(self, account, amount):
 		self.log("minting %s to %s"%(amount, account))
 		if account and amount and self.active():
-			self.contract.functions.mint(account, amount).transact()
+			pretrans = self.contract.functions.mint(account, amount)
+			if AUTOTRANS:
+				pretrans.transact()
+			else:
+				tx = {
+					'nonce': w3.eth.getTransactionCount(w3.eth.defaultAccount),
+					'from': w3.eth.defaultAccount
+				}
+				tx['gas'] = w3.eth.estimateGas(tx)
+				trans = pretrans.buildTransaction(tx)
+				signed = w3.eth.account.sign_transaction(trans, wcfg.pk)
+				w3.eth.send_raw_transaction(signed.rawTransaction)
 			return True
 		return False
 
