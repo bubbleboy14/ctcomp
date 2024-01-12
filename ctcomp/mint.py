@@ -21,7 +21,7 @@ except:
 
 class Mint(object):
 	def __init__(self, abi, owner, address):
-		if abi and owner and address and ACTIVE and w3.isConnected():
+		if abi and owner and address and ACTIVE and w3.is_connected():
 			w3.eth.defaultAccount = owner
 			self.contract = w3.eth.contract(abi=read(abi, isjson=True)['abi'], address=address)
 			self.caller = self.contract.caller
@@ -31,7 +31,7 @@ class Mint(object):
 		log("Mint (%s) :: %s"%(self.active() and "active" or "inactive", msg), important=True)
 
 	def active(self):
-		return ACTIVE and w3.isConnected() and self.caller
+		return ACTIVE and w3.is_connected() and self.caller
 
 	def balance(self, account):
 		if account and self.active():
