@@ -46,7 +46,7 @@ class Codebase(db.TimeStampedBase):
 	def refresh(self, cbatch):
 		from .util import getContribution
 		freshies = fetch("api.github.com", "/repos/%s/%s/contributors"%(self.owner,
-			self.repo), asjson=True, protocol="https")
+			self.repo), asjson=True, timeout=5, protocol="https")
 		pcount = 0
 		ccount = 0
 		for item in freshies:
