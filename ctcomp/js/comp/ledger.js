@@ -33,7 +33,6 @@ comp.ledger = {
 					comp.ledger.item(item);
 				}
 			});
-		}, pnode, "ledger");
-		pnode || CT.modal.modal(n);
+		}, pnode, "ledger", !pnode);
 	}
 };
