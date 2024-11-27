@@ -26,8 +26,6 @@ CT.require("comp.library");
 CT.require("comp.generation");
 CT.require("comp.submission");
 CT.require("decide");
-CT.net.setSpinner(true);
-CT.db.setPagerLimit(30);
 
 CT.onload(function() {
 	CT.initCore();
