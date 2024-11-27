@@ -4,7 +4,7 @@ cfg = config.ctcomp
 wcfg = cfg.w3
 ccfg = cfg.contract
 try:
-	if wcfg and (wcfg.http or wcfg.ws):
+	if wcfg.http or wcfg.ws:
 		from web3 import Web3
 		if wcfg.http:
 			w3 = Web3(Web3.HTTPProvider(wcfg.http))
