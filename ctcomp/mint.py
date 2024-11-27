@@ -8,8 +8,8 @@ try:
 		from web3 import Web3
 		if wcfg.http:
 			w3 = Web3(Web3.HTTPProvider(wcfg.http))
-		else: # ws
-			w3 = Web3(Web3.WebsocketProvider(wcfg.ws))
+		else: # ws - should maybe update to something non-legacy...
+			w3 = Web3(Web3.LegacyWebSocketProvider(wcfg.ws))
 		AUTOTRANS = False
 	else:
 		from web3.auto import w3
