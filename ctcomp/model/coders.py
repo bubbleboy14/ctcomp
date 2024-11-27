@@ -43,10 +43,13 @@ class Codebase(db.TimeStampedBase):
 			contz[cont.contributor.get().handle] = cont
 		return contz
 
+	def history(self):
+		return fetch("api.github.com", "/repos/%s/%s/contributors"%(self.owner,
+			self.repo), asjson=True, timeout=5, protocol="https")
+
 	def refresh(self, cbatch):
 		from .util import getContribution
-		freshies = fetch("api.github.com", "/repos/%s/%s/contributors"%(self.owner,
-			self.repo), asjson=True, timeout=5, protocol="https")
+		freshies = self.history()
 		pcount = 0
 		ccount = 0
 		for item in freshies:
