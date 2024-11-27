@@ -17,29 +17,23 @@ comp.ledger = {
 		});
 	},
 	view: function(wkey, pnode) {
-		var cnames = comp.ledger._.cnames,
-			nopn = !pnode;
-		CT.db.get("ledgeritem", function(iz) {
-			if (nopn)
-				pnode = CT.dom.div();
-			CT.dom.setContent(pnode, iz.length ? CT.dom.div(iz.map(function(item) {
-				return CT.dom.flex([
-					[
-						CT.dom.span(item.created),
-						CT.dom.pad(3),
-						CT.dom.span(CT.parse.breakurl(item.note),
-							"big"),
-					],
-					CT.dom.div(item.amount, cnames[item.modelName])
-				], "pointer row hoverglow", null, {
-					onclick: function() {
-						comp.ledger.item(item);
-					}
-				});
-			}), "ledger") : CT.dom.div("nothing yet!", "centered"));
-			nopn && CT.modal.modal(pnode);
-		}, 1000, null, "-created", {
+		var cnames = comp.ledger._.cnames, n = CT.db.streamer("ledgeritem", "-created", {
 			wallet: wkey
-		});
+		}, function(item) {
+			return CT.dom.flex([
+				[
+					CT.dom.span(item.created),
+					CT.dom.pad(3),
+					CT.dom.span(CT.parse.breakurl(item.note),
+						"big"),
+				],
+				CT.dom.div(item.amount, cnames[item.modelName])
+			], "pointer row hoverglow", null, {
+				onclick: function() {
+					comp.ledger.item(item);
+				}
+			});
+		}, pnode, "ledger");
+		pnode || CT.modal.modal(n);
 	}
 };
