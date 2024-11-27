@@ -5,6 +5,7 @@ CT.require("CT.data");
 CT.require("CT.db");
 CT.require("CT.dom");
 CT.require("CT.file");
+CT.require("CT.key");
 CT.require("CT.layout");
 CT.require("CT.modal");
 CT.require("CT.Pager");
