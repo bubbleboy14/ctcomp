@@ -7,6 +7,7 @@ CT.require("CT.dom");
 CT.require("CT.file");
 CT.require("CT.layout");
 CT.require("CT.modal");
+CT.require("CT.Pager");
 CT.require("CT.panel");
 CT.require("CT.parse");
 CT.require("CT.pubsub");
@@ -26,6 +27,7 @@ CT.require("comp.generation");
 CT.require("comp.submission");
 CT.require("decide");
 CT.net.setSpinner(true);
+CT.db.setPagerLimit(30);
 
 CT.onload(function() {
 	CT.initCore();
