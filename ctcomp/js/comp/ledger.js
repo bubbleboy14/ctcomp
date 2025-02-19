@@ -17,7 +17,8 @@ comp.ledger = {
 		});
 	},
 	view: function(wkey, pnode) {
-		var cnames = comp.ledger._.cnames, n = CT.db.streamer("ledgeritem", "-created", {
+		var cnames = comp.ledger._.cnames;
+		comp.generation.streamer("ledgeritem", {
 			wallet: wkey
 		}, function(item) {
 			return CT.dom.flex([
@@ -33,6 +34,6 @@ comp.ledger = {
 					comp.ledger.item(item);
 				}
 			});
-		}, pnode, "ledger", !pnode);
+		}, pnode, "ledger");
 	}
 };
