@@ -191,6 +191,13 @@ comp.generation = {
 			})
 		], "bordered padded margined");
 	},
+	streamer: function(modelName, filters, builder, pnode, cname, order) {
+		CT.db.streamer(modelName, order || "-created", filters, builder, pnode, cname, !pnode);
+	},
+	framedStream: function(modname, filts) {
+		var gen = comp.generation;
+		gen.streamer(modname, filts, gen[modname], gen.frame(null, modname));
+	},
 	frame: function(data, item, plur, buttname) {
 		var _ = comp.pods._, cfg = core.config.ctcomp,
 			n, content, pcap, gen = comp.generation;
