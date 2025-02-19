@@ -139,7 +139,7 @@ def response():
 	elif action == "membership":
 		memship = db.get(cgi_get("membership"))
 		succeed({
-			"content": [c.data() for c in Content.query(Content.membership == memship.key).fetch()],
+#			"content": [c.data() for c in Content.query(Content.membership == memship.key).fetch()],
 			"products": [p.data() for p in db.get_multi(memship.products)]
 		})
 	elif action == "person":
