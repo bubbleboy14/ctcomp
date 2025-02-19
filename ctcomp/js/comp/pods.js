@@ -119,6 +119,11 @@ comp.pods = {
 			comp.ledger.view(pod.pool,
 				comp.generation.frame(null, "ledger"));
 		},
+		setContent: function(pod, memkey) {
+			comp.generation.framedStream("content", {
+				membership: memkey
+			});
+		},
 		setUpdates: function(pod) {
 			var _ = comp.pods._;
 			CT.db.multi(pod.updates, function(ups) {
@@ -255,7 +260,7 @@ comp.pods = {
 		_.setter(pod, "dependency", "dependencies");
 		gen.frame(pod, "library");
 		comp.core.membership(memship.key, function(data) {
-			gen.frame(data, "content");
+//			gen.frame(data, "content");
 			gen.frame(data, "product", "products");
 		});
 		comp.core.pod(pod.key, function(data) {
@@ -318,6 +323,7 @@ comp.pods = {
 			_.setUpdates(pod);
 			_.setAdjustments(pod);
 			_.setResponsibilities(pod);
+			_.setContent(pod, memship.key);
 			decide.core.util.proposals(_.nodes.proposals, data.proposals);
 			_.restrictions();
 		});
