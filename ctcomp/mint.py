@@ -35,7 +35,7 @@ class Mint(object):
 
 	def balance(self, account):
 		if account and self.active():
-			return self.caller.balance_of(account)
+			return self.caller.balanceOf(account)
 		return 0
 
 	def mint(self, account, amount):
