@@ -22,7 +22,7 @@ except:
 class Mint(object):
 	def __init__(self, abi, owner, address):
 		if abi and owner and address and ACTIVE and w3.is_connected():
-			w3.eth.defaultAccount = owner
+			w3.eth.default_account = owner
 			self.contract = w3.eth.contract(abi=read(abi, isjson=True)['abi'], address=address)
 			self.caller = self.contract.caller
 		self.log("initialized with: %s, %s, %s"%(abi, owner, address))
@@ -35,7 +35,7 @@ class Mint(object):
 
 	def balance(self, account):
 		if account and self.active():
-			return self.caller.balanceOf(account)
+			return self.caller.balance_of(account)
 		return 0
 
 	def mint(self, account, amount):
@@ -46,14 +46,14 @@ class Mint(object):
 				pretrans.transact()
 			else:
 				tx = {
-					'nonce': w3.eth.getTransactionCount(w3.eth.defaultAccount),
-					'from': w3.eth.defaultAccount
+					'nonce': w3.eth.get_transaction_count(w3.eth.default_account),
+					'from': w3.eth.default_account
 				}
-				tx['gas'] = w3.eth.estimateGas(tx)
-				trans = pretrans.buildTransaction(tx)
+				tx['gas'] = w3.eth.estimate_gas(tx)
+				trans = pretrans.build_transaction(tx)
 				signed = w3.eth.account.sign_transaction(trans, wcfg.pk)
-				thash = w3.eth.send_raw_transaction(signed.rawTransaction)
-				hexed = w3.toHex(thash)
+				thash = w3.eth.send_raw_transaction(signed.raw_transaction)
+				hexed = w3.to_hex(thash)
 				self.log("mint hash: %s"%(hexed,))
 			return True
 		return False
