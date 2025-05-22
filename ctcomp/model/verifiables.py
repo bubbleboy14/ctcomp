@@ -184,7 +184,7 @@ class Act(Verifiable):
 
 class Request(Verifiable):
 	change = db.String(choices=["include", "exclude",
-		"conversation", "support", "delivery"])
+		"conversation", "support", "blurb", "delivery"])
 	person = db.ForeignKey(kind="Person") # person in question!
 
 	def apply(self): # pingable
