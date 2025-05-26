@@ -147,10 +147,10 @@ comp.pods = {
 				frame = comp.generation.frame(null, "responsibility", "responsibilities");
 			if (rz[pod.key])
 				return rz[pod.key].setParent(frame);
-			rz[pod.key] = new coop.cal.Cal({
+			rz[pod.key] = new cal.Cal({
 				parent: frame,
 				tasks: pod.tasks,
-				mode: core.config.ctcoop.cal.mode,
+				mode: core.config.ctcal.mode,
 				on: {
 					untask: function(task) {
 						CT.data.remove(pod.tasks, task.key);
