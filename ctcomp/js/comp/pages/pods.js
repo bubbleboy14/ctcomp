@@ -16,7 +16,7 @@ CT.require("CT.storage");
 CT.require("CT.trans");
 CT.require("core");
 CT.require("user.core");
-CT.require("coop.cal");
+CT.require("cal.core");
 CT.require("coop.Updates");
 CT.require("comp.core");
 CT.require("comp.live");

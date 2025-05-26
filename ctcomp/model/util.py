@@ -2,8 +2,8 @@ from datetime import datetime, timedelta
 from cantools import db, config
 from cantools.util import error, log
 from cantools.web import send_mail
-from ctcoop.model import Stewardship
-from compTemplates import SERVICE, APPOINTMENT, REMINDER, DELIVERED
+from ctcal.model import Stewardship, remind
+from compTemplates import SERVICE, APPOINTMENT, DELIVERED
 from .core import Pod, Membership, Content
 from .coders import Codebase, Contributor, Contribution
 from .ledger import Audit, PayBatch
@@ -98,18 +98,6 @@ def delivery(memship, driver, notes):
 def task2pod(task):
 	return Pod.query(Pod.tasks.contains(task.key.urlsafe())).get()
 
-def remember(slot, task, pod, person, reminders):
-	ukey = person.key.urlsafe()
-	if ukey not in reminders:
-		reminders[ukey] = []
-	reminders[ukey].append("%s (%s pod) at %s"%(task.name,
-		pod.name, slot.when.strftime("%H:%M")))
-
-def remind(reminders):
-	for pkey in reminders:
-		db.KeyWrapper(pkey).get().notify("commitment reminder",
-			REMINDER%("\n".join(reminders[pkey]),))
-
 def reg_act(membership, service, workers, beneficiaries, notes):
 	act = Act()
 	act.membership = membership
@@ -158,18 +146,16 @@ def payCode():
 def payCal():
 	log("payCal!", important=True)
 	today = datetime.now()
-	tomorrow = today + timedelta(1)
-	reminders = {}
 	cbatch = PayBatch(variety="calendar")
 	cbatch.put()
 	deetz = []
 	for stew in Stewardship.query().all():
-		task = stew.task()
-		pod = task2pod(task)
-		person = db.get(stew.steward)
 		slot = stew.happening(today)
 		if slot:
+			task = stew.task()
 			log("confirm: %s (%s)"%(task.name, task.mode))
+			pod = task2pod(task)
+			person = db.get(stew.steward)
 			if task.mode == "automatic":
 				cbatch.count += 1
 				deetz.append("%s - %s hours"%(task.name, slot.duration))
@@ -177,14 +163,8 @@ def payCal():
 					"task: %s"%(task.name,), task.description)
 			elif task.mode == "email confirmation":
 				appointment(slot, task, pod, person)
-		if person.remind:
-			slot = stew.happening(tomorrow)
-			if slot:
-				log("remind: %s (%s)"%(task.name, task.mode))
-				remember(slot, task, pod, person, reminders)
 	cbatch.details = "\n".join(deetz)
 	cbatch.put()
-	remind(reminders)
 
 def payRes():
 	log("payRes!", important=True)
@@ -211,6 +191,7 @@ def payDay():
 	payCode()
 	payRes()
 	payCal()
+	remind(lambda task : "%s (%s pod)"%(task.name, task2pod(task).name))
 
 def audit(variety="ledger"): # ledger|deed
 	log("audit (%s)!"%(variety,), important=True)
