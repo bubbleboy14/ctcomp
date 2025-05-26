@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from cantools import db, config
 from cantools.util import error, log
 from cantools.web import send_mail
-from ctcoop.model import Stewardship
+from ctcal.model import Stewardship
 from compTemplates import SERVICE, APPOINTMENT, REMINDER, DELIVERED
 from .core import Pod, Membership, Content
 from .coders import Codebase, Contributor, Contribution

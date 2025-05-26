@@ -1,7 +1,7 @@
 from cantools import db, config
 from cantools.util import log
 from cantools.web import send_mail
-from ctcoop.model import Timeslot
+from ctcal.model import Timeslot
 from compTemplates import MEET, PAID, APPLY, APPLICATION, EXCLUDE, BLURB, CONVO, DELIVERY
 
 ratios = config.ctcomp.ratios

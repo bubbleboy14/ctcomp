@@ -2,7 +2,8 @@ from datetime import datetime, timedelta
 from cantools import db, config
 from cantools.util import log
 from cantools.web import email_admins, send_mail
-from ctcoop.model import Conversation, Member, Tag, Need, Offering, Update, Task
+from ctcoop.model import Conversation, Member, Tag, Need, Offering, Update
+from ctcal.model import Task
 from ctdecide.model import Proposal
 from ctstore.model import Product
 from compTemplates import ADJUSTMENT, ADJUSTED, INVITATION, FEEDBACK, NEED, OFFERING
